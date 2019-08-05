@@ -1,0 +1,11 @@
+15
+1
+0
+/home/mcabrera/MILOS/2014.09.28_09_18_00_t012.fits
+/home/mcabrera/MILOS/lambda.fits
+/home/mcabrera/MILOS/MODELOS/result.fits
+/home/mcabrera/MILOS/MODELOS/sintesis.fits
+0
+NULL
+NULL
+NULL
