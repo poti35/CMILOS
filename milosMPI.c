@@ -412,8 +412,8 @@ int main(int argc, char **argv)
 					printf("\n ERROR WRITING FILE OF SINTHETIC PROFILES: %s",nameOutputFilePerfiles);
 				}
 			}
-			free(resultsInitModelTotal);		
-			free(chisqrfTotal);
+			//free(resultsInitModelTotal);		
+			//free(chisqrfTotal);
 		}
 		else{
 			free(vSpectraSplit);
