@@ -1,8 +1,8 @@
 15
 1
 0
-/home/mcabrera/MILOS/2014.09.28_09_18_00_t012.fits
-/home/mcabrera/MILOS/lambda.fits
+/home/mcabrera/SolarImages/fits_CRISP_sol_calma/2014.05.16_18_08_37_t000.fits
+/home/mcabrera/MILOS/utilsFits/lambda_12.fits
 /home/mcabrera/MILOS/MODELOS/result.fits
 /home/mcabrera/MILOS/MODELOS/sintesis.fits
 0
