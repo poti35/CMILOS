@@ -7,43 +7,43 @@ print:
 	@echo Compilando CMILOS...
 
 create_cuantic.o: create_cuantic.c 
-	mpicc -g -c -O3   create_cuantic.c
+	mpicc -g -c -O1   create_cuantic.c
 
 fvoigt.o: fvoigt.c
-	mpicc -g -O3 -c     fvoigt.c
+	mpicc -g -O1 -c     fvoigt.c
 
 fgauss.o: fgauss.c
-	mpicc -g -O3 -c     fgauss.c
+	mpicc -g -O1 -c     fgauss.c
 
 me_der.o: me_der.c 
-	mpicc -g -O3 -c    me_der.c
+	mpicc -g -O1 -c    me_der.c
 
 mil_sinrf.o: mil_sinrf.c 
-	mpicc -g -O3 -c     mil_sinrf.c 
+	mpicc -g -O1 -c     mil_sinrf.c 
 
 milosUtils.o: milosUtils.c svdcordic.c
-	mpicc -g -O3 -c  milosUtils.c
+	mpicc -g -O1 -c  milosUtils.c
 
 calculosCompartidos.o: calculosCompartidos.c
-	mpicc -g -c -O3   calculosCompartidos.c
+	mpicc -g -c -O1   calculosCompartidos.c
 
 svdcmp.o: svdcmp.c
-	mpicc -g -O3 -c svdcmp.c
+	mpicc -g -O1 -c svdcmp.c
 
 lib.o: lib.c
-	mpicc -g -O3 -c   lib.c
+	mpicc -g -O1 -c   lib.c
 
 mpiTools.o: mpiTools.c
-	mpicc -g -O3 -c  mpiTools.c
+	mpicc -g -O1 -c  mpiTools.c
 
 utilsFits.o: utilsFits.c
-	mpicc -g -O3 -c  utilsFits.c
+	mpicc -g -O1 -c  utilsFits.c
 
 milos.o: milos.c 
-	gcc -g -O3 -c    milos.c
+	gcc -g -O1 -c    milos.c
 
 milosMPI.o: milosMPI.c 
-	mpicc -g -O3 -c    milosMPI.c
+	mpicc -g -O1 -c    milosMPI.c
 
 copyImage: utilsFits.o
 	gcc -g -o copyImage copyImage.c utilsFits.o  -L. -lm -lcfitsio -lnsl

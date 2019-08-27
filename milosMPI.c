@@ -85,7 +85,7 @@ int PRINT_SINTESIS = 0;
 
 int main(int argc, char **argv)
 {
-
+	int i, j;  // indexes 
 	// INIT MPI  PROGRAM 
 	int numProcs, idProc;
 	MPI_Init(&argc, &argv);
@@ -100,8 +100,6 @@ int main(int argc, char **argv)
 
 	double *wlines;
 	int nwlines, nlambda, numPixels, iter, miter, nweight, indexPixel;
-	Init_Model initModel;
-	double * chisqrf;
 	double slight, toplim;
 
 	PRECISION weight[4] = {1., 1., 1., 1.};
@@ -215,135 +213,146 @@ int main(int argc, char **argv)
 	// IF THE NUMBER OF PIXELS IS NOT GREATER THAN 0 WE DON'T CONITUNUE 
 
 	if(numPixels > 0){
-		printf("\n************************************************");		
+		/*printf("\n************************************************");		
 		printf("\n************************************************");		
 		printf("\n ESTOY EN EL PROCESO %d . Número de pixeles leidos: %d", idProc, numPixels);
-		printf("\n************************************************");
+		printf("\n************************************************");*/
 		Init_Model * resultsInitModel;
 		Init_Model * resultsInitModelTotal;
-		double * chisqrfTotal;
-		double * vLambda;
+		double * chisqrfTotal, * chisqrf;
+		if(idProc == root){
+			resultsInitModelTotal = calloc (numPixels , sizeof(Init_Model));
+			chisqrfTotal = calloc (numPixels , sizeof(double));
+		}
 
 		// allocate memory in all processes 
 		AllocateMemoryDerivedSynthesis(nlambda);
 		//initializing weights
 		PRECISION *w, *sig;
 		weights_init(nlambda, sigma, weight, nweight, &w, &sig, noise);
+		MPI_Request mpiRequestSpectro, mpiRequestLambda;
+		//buildMpiType(&mpiInitModel);
 
-		//buildMpiType(&mpiInitModel,nlambda, &mpiVPixels,cuantic[0].N_SIG,cuantic[0].N_PI,&mpiCuantic);
-		printf("\n************************************************");		
-		printf("\n************************************************");		
-		printf("\n ESTOY EN EL PROCESO %d . TIPO DE DATOS CONTRUIDOS", idProc);
-		printf("\n************************************************");
-		printf("\n************************************************");
+	   const int nitemsStructInitModel = 11;
+		int blocklenghtInitModel [11] = {1,1,1,1,1,1,1,1,1,1,1};
+		MPI_Datatype typesInitModel [11] = {MPI_DOUBLE,MPI_DOUBLE,MPI_DOUBLE,MPI_DOUBLE,MPI_DOUBLE,MPI_DOUBLE,MPI_DOUBLE,MPI_DOUBLE,MPI_DOUBLE,MPI_DOUBLE,MPI_DOUBLE};
+			
+		MPI_Aint offsetsInitModel [11];
+		offsetsInitModel[0] = offsetof(Init_Model, eta0);
+		offsetsInitModel[1] = offsetof(Init_Model, B);
+		offsetsInitModel[2] = offsetof(Init_Model, vlos);
+		offsetsInitModel[3] = offsetof(Init_Model, dopp);
+		offsetsInitModel[4] = offsetof(Init_Model, aa);
+		offsetsInitModel[5] = offsetof(Init_Model, gm);
+		offsetsInitModel[6] = offsetof(Init_Model, az);
+		offsetsInitModel[7] = offsetof(Init_Model, S0);
+		offsetsInitModel[8] = offsetof(Init_Model, S1);
+		offsetsInitModel[9] = offsetof(Init_Model, mac);
+		offsetsInitModel[10] = offsetof(Init_Model, alfa);
 
+		
+		MPI_Type_create_struct(nitemsStructInitModel, blocklenghtInitModel, offsetsInitModel, typesInitModel, &mpiInitModel);
+		MPI_Type_commit(&mpiInitModel);
 
 		int numPixelsProceso = numPixels/numProcs;
 		int resto = numPixels % numProcs;
 		int sum = 0;                // Sum of counts. Used to calculate displacements
 		int maxSendCount = 0;
-		int *sendcounts = malloc(sizeof(int)*numProcs); // array describing how many elements to send to each process
-		int *displs = malloc(sizeof(int)*numProcs);  // array describing the displacements where each segment begins
-		for (int i = 0; i < numProcs; i++) {
-			sendcounts[i] = numPixelsProceso;
+		int maxSendCountSpectro = 0;
+		int maxSendCountLambda = 0;
+		int * sendcountsPixels = calloc(numProcs, sizeof(int)); // array describing how many elements to send to each process
+		int * sendcountsSpectro = calloc(numProcs, sizeof(int));
+		int * sendcountsLambda = calloc(numProcs, sizeof(int));
+		int * displsPixels = calloc(numProcs, sizeof(int));  // array describing the displacements where each segment begins
+		int * displsSpectro = calloc(numProcs, sizeof(int));
+		int * displsLambda = calloc(numProcs, sizeof(int));
+
+		for ( i = 0; i < numProcs; i++) {
+			sendcountsPixels[i] = numPixelsProceso;
 			if (resto > 0) {
-					sendcounts[i]++;
+					sendcountsPixels[i]++;
 					resto--;
 			}
-			displs[i] = sum;
-			sum += sendcounts[i];
-			if(sendcounts[i]>maxSendCount) maxSendCount = sendcounts[i];
+			sendcountsSpectro[i] = sendcountsPixels[i]*nlambda*NPARMS;
+			sendcountsLambda[i] = sendcountsPixels[i]*nlambda;
+			displsPixels[i] = sum;
+			displsSpectro[i] = sum*nlambda*NPARMS;
+			displsLambda[i] = sum*nlambda;
+			sum += sendcountsPixels[i];
+			if(sendcountsPixels[i]>maxSendCount) maxSendCount = sendcountsPixels[i];
+			if(sendcountsSpectro[i]>maxSendCountSpectro) maxSendCountSpectro = sendcountsSpectro[i];
+			if(sendcountsLambda[i]>maxSendCountLambda) maxSendCountLambda = sendcountsLambda[i];
 		}
 
-		// BROADCAST VECTOR OF LAMBDAS 
-		if(root==idProc){
-			vLambda = calloc (nlambda, sizeof(double));
-			for(int i=0;i<nlambda;i++){
-				vLambda[i]=fitsImage->pixels[0].vLambda[i];
-			}
-		}
-		MPI_Bcast(vLambda, nlambda, MPI_DOUBLE, root , MPI_COMM_WORLD);
-		MPI_Barrier(MPI_COMM_WORLD); // Wait until all processes have theis vlambda
-
-		for(int i=0;i<nlambda;i++){
-			if(i==0){
-				printf("\n IMPRIMIENDO EL VECTOR DE LAMBDA DEL PROCESO %d: %f", idProc, vLambda[i]);
-			}
-			else
-			{
-				printf(" %f", vLambda[i]);
-			}
-		}
-		printf("\n***********************************************\n");
-		const int nitemsStructVPixel = 3;
-		int blocklenghtVPixel [3] = {nlambda,nlambda*NPARMS,1};
-		MPI_Datatype typesVPixel [3] = {MPI_DOUBLE,MPI_DOUBLE,MPI_INT};
-		const MPI_Aint offsetsVPixels [3] = { 0, sizeof(PRECISION)*nlambda, (sizeof(PRECISION)*nlambda) + (sizeof(PRECISION)*nlambda*4) };
-		/* offsetsVPixels[0] = offsetof(vpixels, vLambda);
-		offsetsVPixels[1] = offsetof(vpixels, spectro);
-		offsetsVPixels[2] = offsetof(vpixels, nLambda);*/
-		MPI_Type_create_struct(nitemsStructVPixel, blocklenghtVPixel, offsetsVPixels, typesVPixel, &mpiVPixels);
-		MPI_Type_commit(&mpiVPixels);
-
-		if (root == idProc) {
-			for (int i = 0; i < numProcs; i++) {
-				printf("\n sendcounts[%d] = %d\tdispls[%d] = %d\n", i, sendcounts[i], i, displs[i]);
+		MPI_Barrier(MPI_COMM_WORLD); // Wait until all processes have their vlambda
+		/*if (root == idProc) {
+			for ( i = 0; i < numProcs; i++) {
+				printf("\n sendcounts[%d] sendcountsSpectro[%d] sendcountsLambda[%d] \n", sendcountsPixels[i], sendcountsSpectro[i] , sendcountsLambda[i] );
+				printf("\n displcounts[%d] displSpectro[%d] displLambda[%d] \n", displsPixels[i], displsSpectro[i] , displsLambda[i] );
 				printf("\n**********************************************");
 			}
-		}
+		}*/
+
 		// SCATTER VPIXELS 
-		vpixels * vPixelsProcess = calloc(maxSendCount, sizeof(vpixels));
-		MPI_Barrier(MPI_COMM_WORLD); // Wait until all processes have their pixels
-		if(idProc==root){
-			MPI_Scatterv(fitsImage->pixels, sendcounts, displs, mpiVPixels, vPixelsProcess, sendcounts[idProc], mpiVPixels, root, MPI_COMM_WORLD);
+		PRECISION  * vSpectraSplit = calloc(sendcountsSpectro[idProc],sizeof(PRECISION));
+		PRECISION  * vLambdaSplit = calloc(sendcountsLambda[idProc],sizeof(PRECISION));
+
+		MPI_Barrier(MPI_COMM_WORLD); // Wait until all processes have their vlambda
+		if( root == idProc){
+			MPI_Iscatterv(fitsImage->spectroImagen, sendcountsSpectro, displsSpectro, MPI_DOUBLE, vSpectraSplit, sendcountsSpectro[idProc], MPI_DOUBLE, root, MPI_COMM_WORLD,&mpiRequestSpectro);
+			MPI_Iscatterv(fitsImage->vLambdaImagen, sendcountsLambda, displsLambda, MPI_DOUBLE,vLambdaSplit, sendcountsLambda[idProc], MPI_DOUBLE, root, MPI_COMM_WORLD,&mpiRequestLambda);
+			MPI_Wait(&mpiRequestSpectro, MPI_STATUS_IGNORE);
+			MPI_Wait(&mpiRequestLambda, MPI_STATUS_IGNORE);
 		}
 		else{
-			MPI_Scatterv(NULL, NULL, NULL, mpiVPixels, vPixelsProcess, sendcounts[idProc], mpiVPixels, root, MPI_COMM_WORLD);
-		}
-		printf("\n************************************************");
-		printf("\n SCATTER HECHO EN PROCESO %d",idProc);
-		printf("\n************************************************");		
-		MPI_Barrier(MPI_COMM_WORLD); // Wait until all processes have their pixels
+			MPI_Iscatterv(NULL, NULL,NULL, MPI_DOUBLE, vSpectraSplit, sendcountsSpectro[idProc], MPI_DOUBLE, root, MPI_COMM_WORLD,&mpiRequestSpectro);
+			MPI_Iscatterv(NULL, NULL,NULL, MPI_DOUBLE, vLambdaSplit, sendcountsLambda[idProc], MPI_DOUBLE, root, MPI_COMM_WORLD,&mpiRequestLambda);
+			MPI_Wait(&mpiRequestSpectro, MPI_STATUS_IGNORE);
+			MPI_Wait(&mpiRequestLambda, MPI_STATUS_IGNORE);
+		}		
 
+		resultsInitModel = malloc(sendcountsPixels[idProc]*sizeof(Init_Model));
+		chisqrf = malloc(sendcountsPixels[idProc]*sizeof(double));
 
-		
-
-		// READ EACH PIXEL FROM THE IMAGE 
-
-		// USE BROADCASTING TO SEND ALL THE DATA NEEDED FOR PROCESS THE PIXELS. 
-		resultsInitModel = calloc(sendcounts[idProc],sizeof(Init_Model));
-		chisqrf = calloc(sendcounts[idProc], sizeof(double));
-
-		
-		for(indexPixel = 0; indexPixel < sendcounts[idProc]; indexPixel++){
-			
+		for(indexPixel = 0; indexPixel < sendcountsPixels[idProc]; indexPixel++){
+			// get spectro and lambdas for the current pixel
+			PRECISION * spectroPixel = calloc(nlambda*NPARMS,sizeof(PRECISION));
+			PRECISION * lambdaPixel = calloc(nlambda,sizeof(PRECISION));
+			for( j=0;j<(nlambda*NPARMS);j++){
+				spectroPixel[j] = vSpectraSplit[(indexPixel*(nlambda*NPARMS))+j];
+			}
+			for( j=0;j<(nlambda);j++){
+				lambdaPixel[j] = vLambdaSplit[(indexPixel*(nlambda))+j];
+			}
 
 			//Initial Model
+			Init_Model initModel;
+			initModel.eta0 = INITIAL_MODEL_ETHA0;
+			initModel.B = INITIAL_MODEL_B; //200 700
+			initModel.gm = INITIAL_MODEL_GM;
+			initModel.az = INITIAL_MODEL_AZI;
+			initModel.vlos = INITIAL_MODEL_VLOS; //km/s 0
+			initModel.mac = 0.0;
+			initModel.dopp = INITIAL_MODEL_LAMBDADOPP;
+			initModel.aa = INITIAL_MODEL_AA;
+			initModel.alfa = 1; //0.38; //stray light factor
+			initModel.S0 = INITIAL_MODEL_S0;
+			initModel.S1 = INITIAL_MODEL_S1;
 
-			resultsInitModel[indexPixel].eta0 = INITIAL_MODEL_ETHA0;
-			resultsInitModel[indexPixel].B = INITIAL_MODEL_B; //200 700
-			resultsInitModel[indexPixel].gm = INITIAL_MODEL_GM;
-			resultsInitModel[indexPixel].az = INITIAL_MODEL_AZI;
-			resultsInitModel[indexPixel].vlos = INITIAL_MODEL_VLOS; //km/s 0
-			resultsInitModel[indexPixel].mac = 0.0;
-			resultsInitModel[indexPixel].dopp = INITIAL_MODEL_LAMBDADOPP;
-			resultsInitModel[indexPixel].aa = INITIAL_MODEL_AA;
-			resultsInitModel[indexPixel].alfa = 1; //0.38; //stray light factor
-			resultsInitModel[indexPixel].S0 = INITIAL_MODEL_S0;
-			resultsInitModel[indexPixel].S1 = INITIAL_MODEL_S1;
+			double auxChisqrf;
 
 			if (CLASSICAL_ESTIMATES)
 			{
-				estimacionesClasicas(wlines[1], vLambda, nlambda, vPixelsProcess[indexPixel].spectro, &resultsInitModel[indexPixel]);
+				estimacionesClasicas(wlines[1], lambdaPixel, nlambda, spectroPixel, &initModel);
 				//Se comprueba si el resultado fue "nan" en las CE
-				if (isnan(resultsInitModel[indexPixel].B))
-					resultsInitModel[indexPixel].B = 1;
-				if (isnan(resultsInitModel[indexPixel].vlos))
-					resultsInitModel[indexPixel].vlos = 1e-3;
-				if (isnan(resultsInitModel[indexPixel].gm))
-					resultsInitModel[indexPixel].gm = 1;
-				if (isnan(resultsInitModel[indexPixel].az))
-					resultsInitModel[indexPixel].az = 1;
+				if (isnan(initModel.B))
+					initModel.B = 1;
+				if (isnan(initModel.vlos))
+					initModel.vlos = 1e-3;
+				if (isnan(initModel.gm))
+					initModel.gm = 1;
+				if (isnan(initModel.az))
+					initModel.az = 1;
 
 			}
 
@@ -352,25 +361,29 @@ int main(int argc, char **argv)
 			{
 				//Se introduce en S0 el valor de Blos si solo se calculan estimaciones clásicas
 				//Aqui se anula esa asignación porque se va a realizar la inversion RTE completa
-				resultsInitModel[indexPixel].S0 = INITIAL_MODEL_S0;
+				initModel.S0 = INITIAL_MODEL_S0;
 
-				lm_mils(cuantic, wlines, nwlines, vLambda, nlambda, vPixelsProcess[indexPixel].spectro, nlambda, &initModel, spectra, &chisqrf[indexPixel], &iter, slight, toplim, miter,
+				lm_mils(cuantic, wlines, nwlines, lambdaPixel, nlambda, spectroPixel, nlambda, &initModel, spectra, &auxChisqrf, &iter, slight, toplim, miter,
 						weight, nweight, fix, sig, filter, ilambda, noise, pol, getshi, 0,&INSTRUMENTAL_CONVOLUTION,&NMUESTRAS_G);
 			}
+			free(spectroPixel);
+			free(lambdaPixel);
+			resultsInitModel[indexPixel] = initModel;			
+			chisqrf[indexPixel] = auxChisqrf;
+		}
 
-		}
-		if(idProc ==0){
-			resultsInitModelTotal = calloc(numPixels,sizeof(Init_Model));
-			chisqrfTotal = calloc(numPixels, sizeof(double));
-		}
-		MPI_Gatherv(resultsInitModel, sendcounts[idProc], mpiInitModel, resultsInitModelTotal, sendcounts, displs, mpiInitModel, root, MPI_COMM_WORLD);
-		MPI_Gatherv(chisqrf, sendcounts[idProc], MPI_DOUBLE, chisqrfTotal, sendcounts, displs, MPI_DOUBLE, root, MPI_COMM_WORLD);
-		MPI_Barrier(MPI_COMM_WORLD);  // FINISH UNTIL EVERY PROCESS FINISHED
- 		
-		free(resultsInitModel);
-		free(chisqrf);
-		free(vLambda);
-		if(idProc==0){		 	  
+		MPI_Gatherv(resultsInitModel, sendcountsPixels[idProc], mpiInitModel, resultsInitModelTotal, sendcountsPixels, displsPixels, mpiInitModel, root, MPI_COMM_WORLD);
+		MPI_Gatherv(chisqrf, sendcountsPixels[idProc], MPI_DOUBLE, chisqrfTotal, sendcountsPixels, displsPixels, MPI_DOUBLE, root, MPI_COMM_WORLD);
+		
+		//MPI_Igatherv(resultsInitModel, sendcountsPixels[idProc], mpiInitModel, resultsInitModelTotal, sendcountsPixels, displsPixels, mpiInitModel, root, MPI_COMM_WORLD,&mpiRequestSpectro);
+		//MPI_Igatherv(chisqrf, sendcountsPixels[idProc], MPI_DOUBLE, chisqrfTotal, sendcountsPixels, displsPixels, MPI_DOUBLE, root, MPI_COMM_WORLD,&mpiRequestLambda);		
+		//MPI_Wait(&mpiRequestSpectro, MPI_STATUS_IGNORE);
+		//MPI_Wait(&mpiRequestLambda, MPI_STATUS_IGNORE);	
+		printf("\n PIXEL CALCULATION FINISHED IN PROCESS: %d \n", idProc);
+		MPI_Barrier(MPI_COMM_WORLD);  // WAIT UNTIL RECEIVED ALL INFORMATION
+	
+
+		if(idProc==root){		 	  
 			if(!writeFitsImageModels(nameOutputFileModels,fitsImage->rows,fitsImage->cols,resultsInitModelTotal,chisqrfTotal)){
 					printf("\n ERROR WRITING FILE OF MODELS: %s",nameOutputFileModels);
 			}
@@ -399,34 +412,38 @@ int main(int argc, char **argv)
 					printf("\n ERROR WRITING FILE OF SINTHETIC PROFILES: %s",nameOutputFilePerfiles);
 				}
 			}
-			free(resultsInitModelTotal);
+			free(resultsInitModelTotal);		
 			free(chisqrfTotal);
 		}
+		else{
+			free(vSpectraSplit);
+			free(vLambdaSplit);
+			free(resultsInitModel);				
+			free(chisqrf);
+		}
+		free(sendcountsPixels); // array describing how many elements to send to each process
+		free(sendcountsSpectro);
+		free(sendcountsLambda);
+		free(displsPixels);  // array describing the displacements where each segment begins
+		free(displsSpectro);
+		free(displsLambda);
+
 
 	}
 	else{
 		printf("\n\n ***************************** FITS FILE CAN NOT BE READ IT ******************************");
 	}
-	if(idProc==0){
+	 if(idProc==root){
 		freeFitsImage(fitsImage);
 	}
-	
-
 	//printf("\n\n TOTAL sec : %.16g segundos\n", total_secs);
-
 	free(cuantic);
 	free(wlines);
-
-
 	FreeMemoryDerivedSynthesis();
 	// FREE TYPE OF MPI
 	MPI_Type_free(&mpiInitModel);
-	MPI_Type_free(&mpiVPixels);
-	MPI_Type_free(&mpiCuantic);
 	MPI_Finalize() ;
-
 	free(G);
-
 	return 0;
 }
 

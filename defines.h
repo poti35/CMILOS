@@ -165,12 +165,12 @@ int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,double * wlines,int nwlines
 
 double * fgauss(double MC, double * eje,int neje,double landa,int deriv);
 
-_Complex * fft_d(double * spectra, int nspectra,int direc);
-_Complex * fft_c(_Complex * spectra, int nspectra,int direc);
+double _Complex * fft_d(double * spectra, int nspectra,int direc);
+double _Complex * fft_c(double _Complex * spectra, int nspectra,int direc);
 
 
 int Guarda(char * nombre,PRECISION *v,int nv);
-int GuardaC(char * nombre,_Complex *v,int nv,int a);
+int GuardaC(char * nombre,double _Complex *v,int nv,int a);
 
 int fvoigt(PRECISION damp,PRECISION *vv,int nvv,PRECISION *h, PRECISION *f);
 
@@ -241,6 +241,8 @@ struct FITS_IMAGE{
 
 	int numPixels;
 	vpixels * pixels;
+	PRECISION * vLambdaImagen;
+	PRECISION * spectroImagen;
 };
 
 typedef struct FITS_IMAGE FitsImage;

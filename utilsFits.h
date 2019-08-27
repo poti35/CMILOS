@@ -51,7 +51,7 @@ void freeFitsImage(FitsImage * image);
  * 
  */
 int writeFitsImageModels(char * fitsFile, int numRows, int numCols, Init_Model * vInitModel, double * vChisqrf);
-
+int writeFitsImageModelsWithArray(char * fitsFile, int numRows, int numCols, double * eta0, double * B, double * vlos, double * dopp, double * aa, double * gm, double * az, double * S0, double * S1, double * mac, double * alfa, double * vChisqrf);
 /**
  * Print the error status of status. 
  * @param status -> int code with the status error. 
