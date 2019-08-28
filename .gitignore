@@ -1,3 +1,4 @@
 *.o
 milosMPI
 milos
+copyImage
