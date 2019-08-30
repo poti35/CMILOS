@@ -259,7 +259,7 @@ FitsImage *  readFitsSpectroImage (char * fitsFileSpectra){
 				printf("\n NÚMERO DE PIXELES EN LA IMAGEN %d", numPixelsFitsFile);
 				printf("\n**********************");
 				// allocate memory to read all pixels in the same array 
-				PRECISION * imageTemp = calloc(numPixelsFitsFile, sizeof(PRECISION));
+				float * imageTemp = calloc(numPixelsFitsFile, sizeof(float));
 				if (!imageTemp)  {
 					printf("ERROR ALLOCATION MEMORY FOR TEMP IMAGE");
 					return NULL;
@@ -279,82 +279,105 @@ FitsImage *  readFitsSpectroImage (char * fitsFileSpectra){
 				image->spectroImagen = calloc(image->numPixels*image->nLambdas*image->numStokes, sizeof(PRECISION));
 				printf("\n Número de pixeles: %d", image->numPixels);
 				printf("\n ***********************************************");
-				for( i=0;i<=image->numPixels;i++){
+				for( i=0;i<image->numPixels;i++){
 					image->pixels[i].spectro = calloc ((image->numStokes*image->nLambdas),sizeof(PRECISION));
 					image->pixels[i].vLambda = calloc (image->nLambdas, sizeof(PRECISION));
 					image->pixels[i].nLambda = image->nLambdas;
 				}
 				int currentLambda = 0, currentRow = 0, currentStokeParameter=0, currentCol = 0, currentPixel;
-				PRECISION pixel;
+				//PRECISION pixel;
 				if(naxis==4){ // image with 4 dimension 
 					
 					for( i=0; i<naxes[3];i++){
 						for( j=0; j<naxes[2];j++){
 							for( k=0;k<naxes[1];k++){
 								for( h=0;h<naxes[0];h++){
+//					for( fpixel[3] = 1; fpixel[3]<=naxes[3];fpixel[3]++){
+//						for( fpixel[2] = 1; fpixel[2]<=naxes[2];fpixel[2]++){
+//							for( fpixel[1] = 1; fpixel[1]<=naxes[1];fpixel[1]++){
+//								for( fpixel[0] = 1; fpixel[0]<=naxes[0]; fpixel[0]++){	
+									float pixel = 0.0;
+									//fits_read_pix(fptr, datatype, fpixel, 1, &nulval, &pixel, &anynul, &status);
 									// I NEED TO KNOW THE CURRENT POSITION OF EACH ITERATOR 
 									switch (pos_lambda)
 									{
 										case 0:
 											currentLambda = h;
+											//currentLambda = fpixel[0]-1;
 											break;
 										case 1:
 											currentLambda = k;
+											//currentLambda = fpixel[1]-1;
 											break;
 										case 2:
 											currentLambda = j;
+											//currentLambda = fpixel[2]-1;
 											break;
 										case 3:
 											currentLambda = i;
+											//currentLambda = fpixel[3]-1;
 											break;																						
 									}
 									switch (pos_stokes_parameters)
 									{
 										case 0:
 											currentStokeParameter = h;
+											//currentStokeParameter = fpixel[0]-1;
 											break;
 										case 1:
 											currentStokeParameter = k;
+											//currentStokeParameter = fpixel[1]-1;
 											break;
 										case 2:
 											currentStokeParameter = j;
+											//currentStokeParameter = fpixel[2]-1;
 											break;
 										case 3:
 											currentStokeParameter = i;
+											//currentStokeParameter = fpixel[3]-1;
 											break;																						
 									}
 									switch (pos_row)
 									{
 										case 0:
 											currentRow = h;
+											//currentRow = fpixel[0]-1;
 											break;
 										case 1:
 											currentRow = k;
+											//currentRow = fpixel[1]-1;
 											break;
 										case 2:
 											currentRow = j;
+											//currentRow = fpixel[2]-1;
 											break;
 										case 3:
 											currentRow = i;
+											//currentRow = fpixel[3]-1;
 											break;																						
 									}
 									switch (pos_col)
 									{
 										case 0:
 											currentCol = h;
+											//currentCol = fpixel[0]-1;
 											break;
 										case 1:
 											currentCol = k;
+											//currentCol = fpixel[1]-1;;
 											break;
 										case 2:
 											currentCol = j;
+											//currentCol = fpixel[2]-1;
 											break;
 										case 3:
 											currentCol = i;
+											//currentCol = fpixel[3]-1;
 											break;																						
 									}			
 									pixel = imageTemp [(i*naxes[2]*naxes[1]*naxes[0]) + (j*naxes[1]*naxes[0]) + (k*naxes[0]) + h];
 									currentPixel = (currentCol*naxes[pos_row]) + currentRow;
+									//currentPixel = (currentRow*naxes[pos_col]) + currentCol;
 									//printf("\n CURRENTLAMBDA %d CURRENTSTOKEPARAMETER %d CURRENTROW %d CURRENTCOL %d NUMERO DE SPECTRO %d NÚMERO DE ITER %d -- NUMERO DE PIXEL -- %d  VALOR PIXEL: %lf",currentLambda, currentStokeParameter,currentRow, currentCol,(currentLambda + image->nLambdas * currentStokeParameter), numiter, currentPixel, pixel);									
 									//printf("\n %d %d %d %d %d %d %d %lf",currentLambda, currentStokeParameter,currentRow, currentCol,(currentLambda + image->nLambdas * currentStokeParameter), numiter, currentPixel, pixel);									
 									//printf("\n*");
@@ -364,16 +387,13 @@ FitsImage *  readFitsSpectroImage (char * fitsFileSpectra){
 						}
 					}
 				}
-				int contSpectro = 0, contLambda =0;
+				int contSpectro = 0;
 				for( i=0;i<image->numPixels;i++){
 					for( j=0;j<(image->nLambdas*image->numStokes);j++){
 						image->spectroImagen[contSpectro++] = image->pixels[i].spectro[j];
 					}
-					for( j=0;j<(image->nLambdas);j++){
-						image->vLambdaImagen[contLambda++] = image->pixels[i].vLambda[j];
-					}
 				}
-				printf("\n IMAGEN LEIDA ");
+				printf("\n IMAGEN LEIDA size spectro %d ", contSpectro);
 				printf("**********");
 				free(imageTemp);
 				fits_close_file(fptr, &status);
@@ -450,9 +470,11 @@ int  readFitsLambdaFile (char * fitsFileLambda, FitsImage * fitsImage){
 						fits_report_error(stderr, status);
 						return 0;	
 					}
+					int contLambda = 0;
 					for( i=0;i<fitsImage->numPixels;i++){
 						for( j=0;j<naxes[0];j++){
 							fitsImage->pixels[i].vLambda[j]=vAuxLambdas[j];
+							fitsImage->vLambdaImagen[contLambda++] = fitsImage->pixels[i].vLambda[j];
 						}
 					}								
 				}
@@ -476,10 +498,12 @@ int  readFitsLambdaFile (char * fitsFileLambda, FitsImage * fitsImage){
 					}
 					int offset_1 = naxes[1] * naxes[0];
 					int offset_2 = naxes[0];
+					int contLambda = 0;
 					for( i=0;i<naxes[2];i++){ // LAMBDA
 						for( j=0;j<naxes[1];j++){ // COLS 
 							for( k=0;j<naxes[0];k++){ // ROWS
 								fitsImage->pixels[ ((j* offset_2) + k) ].vLambda[i] = vAuxLambdas [ (i*offset_1) + (j*offset_2)+ k];
+								fitsImage->vLambdaImagen[contLambda++] = fitsImage->pixels[ ((j* offset_2) + k) ].vLambda[i];
 							}
 						}
 					}
@@ -541,7 +565,7 @@ int writeFitsImageModels(char * fitsFile, int numRows, int numCols, Init_Model *
 	int i, j, h; // indexes for loops
    long  fpixel, nelements, exposure;
 
-	int bitpix =  FLOAT_IMG; /* 16-bit unsigned short pixel values       */
+	int bitpix =  DOUBLE_IMG; 
    long naxis =   3;  /* 2-dimensional image                            */    
    long naxes[3] = { numRows, numCols, NUMBER_PARAM_MODELS };   /* Image of numRows X numCols x 10 parameters of model and chisqrf */
 
@@ -560,7 +584,7 @@ int writeFitsImageModels(char * fitsFile, int numRows, int numCols, Init_Model *
 		return 0;
 	}
 
-	double * vModel = malloc(numRows * numCols * NUMBER_PARAM_MODELS);
+	double * vModel = calloc(numRows * numCols * NUMBER_PARAM_MODELS, sizeof(double));
 
 	int indexModel = 0;
 	for( i=0;i<NUMBER_PARAM_MODELS;i++){
@@ -569,37 +593,37 @@ int writeFitsImageModels(char * fitsFile, int numRows, int numCols, Init_Model *
 				switch (i)
 				{
 				case 0:
-					vModel[indexModel++] = vInitModel[( j*numRows) + h].B;
+					vModel[indexModel++] = vInitModel[( j*numCols) + h].B;
 					break;
 				case 1:
-					vModel[indexModel++] = vInitModel[( j*numRows) + h].gm;
+					vModel[indexModel++] = vInitModel[( j*numCols) + h].gm;
 					break;
 				case 2:
-					vModel[indexModel++] = vInitModel[( j*numRows) + h].az;
+					vModel[indexModel++] = vInitModel[( j*numCols) + h].az;
 					break;
 				case 3:
-					vModel[indexModel++] = vInitModel[( j*numRows) + h].eta0;
+					vModel[indexModel++] = vInitModel[( j*numCols) + h].eta0;
 					break;
 				case 4:
-					vModel[indexModel++] = vInitModel[( j*numRows) + h].dopp;
+					vModel[indexModel++] = vInitModel[( j*numCols) + h].dopp;
 					break;
 				case 5:
-					vModel[indexModel++] = vInitModel[( j*numRows) + h].aa;
+					vModel[indexModel++] = vInitModel[( j*numCols) + h].aa;
 					break;					
 				case 6:
-					vModel[indexModel++] = vInitModel[( j*numRows) + h].vlos;
+					vModel[indexModel++] = vInitModel[( j*numCols) + h].vlos;
 					break;					
 				case 7:
-					vModel[indexModel++] = vInitModel[( j*numRows) + h].alfa;
+					vModel[indexModel++] = vInitModel[( j*numCols) + h].alfa;
 					break;					
 				case 8:
-					vModel[indexModel++] = vInitModel[( j*numRows) + h].S0;
+					vModel[indexModel++] = vInitModel[( j*numCols) + h].S0;
 					break;					
 				case 9:
-					vModel[indexModel++] = vInitModel[( j*numRows) + h].S1;
+					vModel[indexModel++] = vInitModel[( j*numCols) + h].S1;
 					break;					
 				case 10: // READ FROM CHISQR
-					vModel[indexModel++] = vChisqrf[( j*numRows) + h];
+					vModel[indexModel++] = vChisqrf[( j*numCols) + h];
 					break;					
 				default:
 					break;
@@ -609,10 +633,10 @@ int writeFitsImageModels(char * fitsFile, int numRows, int numCols, Init_Model *
 	}
 
    fpixel = 1;                               /* first pixel to write      */
-   nelements = naxes[0] * naxes[1] * naxes[2];          /* number of pixels to write */
+   //nelements = naxes[0] * naxes[1] * naxes[2];          /* number of pixels to write */
 
-    /* write the array of unsigned integers to the FITS file */
-   if ( fits_write_img(fptr, TUSHORT, fpixel, nelements, vModel, &status) ){
+
+   if ( fits_write_img(fptr, TDOUBLE, fpixel, indexModel, vModel, &status) ){
 		printerror( status );
 		free(vModel);
 		return 0;
@@ -623,14 +647,14 @@ int writeFitsImageModels(char * fitsFile, int numRows, int numCols, Init_Model *
 
 	    /* write another optional keyword to the header */
     /* Note that the ADDRESS of the value is passed in the routine */
-    exposure = 1500;
+   exposure = 1500;
 	if ( fits_update_key(fptr, TLONG, "EXPOSURE", &exposure,
 		"Total Exposure Time", &status) ){
 		printerror( status );           
 		return 0;
 	}
-
-	if ( fits_close_file(fptr, &status) ){                /* close the file */
+	
+	if ( fits_close_file(fptr, &status) ){        
 		printerror( status );
 		return 0;
 	}
@@ -639,6 +663,191 @@ int writeFitsImageModels(char * fitsFile, int numRows, int numCols, Init_Model *
 
 }
 
+
+int writeFitsImageProfiles(char * fitsProfileFile, char * fitsFileOrigin, FitsImage * image){
+
+	fitsfile *infptr, *outfptr;   /* FITS file pointers defined in fitsio.h */
+	int status = 0, tstatus, ii = 1, iteration = 0, single = 0, hdupos;
+	int i, j, k, h; // indexes for loops
+	int hdutype, bitpix, bytepix, naxis = 0, nkeys, datatype = 0, anynul;
+	long naxes [4] = {1,1,1,1}, fpixel[4] = {1,1,1,1}; /* The maximun number of dimension that we will read is 4*/
+	char card[FLEN_CARD];
+	char keyname [FLEN_CARD];
+	char value [FLEN_CARD];
+	remove(fitsProfileFile);               /* Delete old file if it already exists */
+	/* Open the input file and create output file */
+   fits_open_file(&infptr, fitsFileOrigin, READONLY, &status);
+   fits_create_file(&outfptr, fitsProfileFile, &status);
+	if (status != 0) {    
+		fits_report_error(stderr, status);
+		return(status);
+	}
+
+	// read a maximun of 4 dimensions 
+	fits_get_img_param(infptr, 4, &bitpix, &naxis, naxes, &status);
+	// CREATE A NEW IMAGE 
+   fits_create_img(outfptr, bitpix, naxis, naxes, &status);
+	if (status) {
+		fits_report_error(stderr, status);
+		return(status);
+	}
+	/* copy all the user keywords (not the structural keywords) */
+	fits_get_hdrspace(infptr, &nkeys, NULL, &status); 
+
+	for (ii = 1; ii <= nkeys; ii++) {
+		fits_read_record(infptr, ii, card, &status);
+		fits_read_keyn(infptr,ii,keyname, value, NULL, &status);
+		fits_update_card(outfptr, keyname,card, &status);
+	}
+
+	// CLOSE THE ORIGIN FILE, HE HAVE ALREADY THE INFORMATION OF KEYWORDS. 
+
+	fits_close_file(infptr, &status);
+	if (status){
+		fits_report_error(stderr, status);
+		return 0;
+	}
+
+
+	switch(bitpix) {
+	case BYTE_IMG:
+		datatype = TBYTE;
+		break;
+	case SHORT_IMG:
+		datatype = TSHORT;
+		break;
+	case LONG_IMG:
+		datatype = TINT;
+		break;
+	case FLOAT_IMG:
+		datatype = TFLOAT;
+		break;
+	case DOUBLE_IMG:
+		datatype = TDOUBLE;
+		break;
+	}
+
+	// ALLOCATE MEMORY TO WRITE THE IMAGE
+	int numElemWrite = naxes[3]*naxes[2]*naxes[1]*naxes[0];
+
+	float * outputImage = calloc(numElemWrite, sizeof(float));
+	int currentLambda = 0, currentRow = 0, currentStokeParameter=0, currentCol = 0, currentPixel;
+	 
+	int pos_lambda = image->pos_lambda;
+	int pos_col = image->pos_col;
+	int pos_row = image->pos_row;
+	int pos_stokes_parameters = image->pos_stokes_parameters;
+	
+	int numiter = 0;	
+	for( i=0; i <naxes[3]; i++){
+		for( j=0;j <naxes[2]; j++){
+			for( k=0; k<naxes[1]; k++){
+				for( h=0; h<naxes[0]; h++){
+//	for( fpixel[3] = 1; fpixel[3]<=naxes[3];fpixel[3]++){
+//		for( fpixel[2] = 1; fpixel[2]<=naxes[2];fpixel[2]++){
+//			for( fpixel[1] = 1; fpixel[1]<=naxes[1];fpixel[1]++){
+//				for( fpixel[0] = 1; fpixel[0]<=naxes[0]; fpixel[0]++){	
+					// I NEED TO KNOW THE CURRENT POSITION OF EACH ITERATOR 
+					switch (pos_lambda)
+					{
+						case 0:
+							//currentLambda = h;
+							currentLambda = fpixel[0]-1;
+							break;
+						case 1:
+							//currentLambda = k;
+							currentLambda = fpixel[1]-1;
+							break;
+						case 2:
+							//currentLambda = j;
+							currentLambda = fpixel[2]-1;
+							break;
+						case 3:
+							//currentLambda = i;
+							currentLambda = fpixel[3]-1;
+							break;																						
+					}
+					switch (pos_stokes_parameters)
+					{
+						case 0:
+							//currentStokeParameter = h;
+							currentStokeParameter = fpixel[0]-1;
+							break;
+						case 1:
+							//currentStokeParameter = k;
+							currentStokeParameter = fpixel[1]-1;
+							break;
+						case 2:
+							//currentStokeParameter = j;
+							currentStokeParameter = fpixel[2]-1;
+							break;
+						case 3:
+							//currentStokeParameter = i;
+							currentStokeParameter = fpixel[3]-1;
+							break;																						
+					}
+					switch (pos_row)
+					{
+						case 0:
+							//currentRow = h;
+							currentRow = fpixel[0]-1;
+							break;
+						case 1:
+							//currentRow = k;
+							currentRow = fpixel[1]-1;
+							break;
+						case 2:
+							//currentRow = j;
+							currentRow = fpixel[2]-1;
+							break;
+						case 3:
+							//currentRow = i;
+							currentRow = fpixel[3]-1;
+							break;																						
+					}
+					switch (pos_col)
+					{
+						case 0:
+							//currentCol = h;
+							currentCol = fpixel[0]-1;
+							break;
+						case 1:
+							//currentCol = k;
+							currentCol = fpixel[1]-1;;
+							break;
+						case 2:
+							//currentCol = j;
+							currentCol = fpixel[2]-1;
+							break;
+						case 3:
+							//currentCol = i;
+							currentCol = fpixel[3]-1;
+							break;																						
+					}
+					//double pixel = image->pixels[(currentRow*image->cols) + currentCol].spectro[currentLambda+(image->nLambdas * currentStokeParameter)];
+					//fits_write_pix(outfptr, datatype, fpixel, 1, &pixel, &status);			
+					outputImage[(i*naxes[2]*naxes[1]*naxes[0]) + (j*naxes[1]*naxes[0]) + (k*naxes[0]) + h] = image->pixels[(currentRow*image->cols) + currentCol].spectro[currentLambda+(image->nLambdas * currentStokeParameter)];
+					//outputImage[numiter++] = image->pixels[(currentCol*image->rows) + currentRow].spectro[currentLambda+(image->nLambdas * currentStokeParameter)];
+				}
+			}
+		}
+	}
+
+    /* write the array of unsigned integers to the FITS file */
+	if ( fits_write_img(outfptr, datatype, 1, numElemWrite, outputImage, &status) ){
+		printerror( status );
+		free(outputImage);
+		return 0;
+	}
+
+	free(outputImage);
+	fits_close_file(outfptr,  &status);
+	if(status){
+		printerror( status );
+		return 0;
+	}
+	return 1;
+}
 
 int writeFitsImageModelsWithArray(char * fitsFile, int numRows, int numCols, double * eta0, double * B, double * vlos, double * dopp, double * aa, double * gm, double * az, double * S0, double * S1, double * mac, double * alfa, double * vChisqrf){
 
@@ -745,169 +954,6 @@ int writeFitsImageModelsWithArray(char * fitsFile, int numRows, int numCols, dou
 
 }
 
-
-int writeFitsImageProfiles(char * fitsProfileFile, char * fitsFileOrigin, FitsImage * image){
-
-	fitsfile *infptr, *outfptr;   /* FITS file pointers defined in fitsio.h */
-	int status = 0, tstatus, ii = 1, iteration = 0, single = 0, hdupos;
-	int i, j, k, h; // indexes for loops
-	int hdutype, bitpix, bytepix, naxis = 0, nkeys, datatype = 0, anynul;
-	long naxes [4] = {1,1,1,1}; /* The maximun number of dimension that we will read is 4*/
-	char card[FLEN_CARD];
-	char keyname [FLEN_CARD];
-	char value [FLEN_CARD];
-	remove(fitsProfileFile);               /* Delete old file if it already exists */
-	/* Open the input file and create output file */
-   fits_open_file(&infptr, fitsFileOrigin, READONLY, &status);
-   fits_create_file(&outfptr, fitsProfileFile, &status);
-	if (status != 0) {    
-		fits_report_error(stderr, status);
-		return(status);
-	}
-
-	// read a maximun of 4 dimensions 
-	fits_get_img_param(infptr, 4, &bitpix, &naxis, naxes, &status);
-	// CREATE A NEW IMAGE 
-   fits_create_img(outfptr, bitpix, naxis, naxes, &status);
-	if (status) {
-		fits_report_error(stderr, status);
-		return(status);
-	}
-	/* copy all the user keywords (not the structural keywords) */
-	fits_get_hdrspace(infptr, &nkeys, NULL, &status); 
-
-	for (ii = 1; ii <= nkeys; ii++) {
-		fits_read_record(infptr, ii, card, &status);
-		fits_read_keyn(infptr,ii,keyname, value, NULL, &status);
-		fits_update_card(outfptr, keyname,card, &status);
-	}
-
-	// CLOSE THE ORIGIN FILE, HE HAVE ALREADY THE INFORMATION OF KEYWORDS. 
-
-	fits_close_file(infptr, &status);
-	if (status){
-		fits_report_error(stderr, status);
-		return 0;
-	}
-
-
-	switch(bitpix) {
-	case BYTE_IMG:
-		datatype = TBYTE;
-		break;
-	case SHORT_IMG:
-		datatype = TSHORT;
-		break;
-	case LONG_IMG:
-		datatype = TINT;
-		break;
-	case FLOAT_IMG:
-		datatype = TFLOAT;
-		break;
-	case DOUBLE_IMG:
-		datatype = TDOUBLE;
-		break;
-	}
-
-	// ALLOCATE MEMORY TO WRITE THE IMAGE
-	int numElemWrite = naxes[3]*naxes[2]*naxes[1]*naxes[0];
-
-	PRECISION * outputImage = calloc(numElemWrite, sizeof(PRECISION));
-	int currentLambda = 0, currentRow = 0, currentStokeParameter=0, currentCol = 0, currentPixel;
-	 
-	int pos_lambda = image->pos_lambda;
-	int pos_col = image->pos_col;
-	int pos_row = image->pos_row;
-	int pos_stokes_parameters = image->pos_stokes_parameters;
-	
-	int numiter = 0;	
-	for( i=0; i <naxes[3]; i++){
-		for( j=0;j <naxes[2]; j++){
-			for( k=0; k<naxes[1]; k++){
-				for( h=0; h<naxes[0]; h++){
-					// I NEED TO KNOW THE CURRENT POSITION OF EACH ITERATOR 
-					switch (pos_lambda)
-					{
-						case 0:
-							currentLambda = h;
-							break;
-						case 1:
-							currentLambda = k;
-							break;
-						case 2:
-							currentLambda = j;
-							break;
-						case 3:
-							currentLambda = i;
-							break;																						
-					}
-					switch (pos_stokes_parameters)
-					{
-						case 0:
-							currentStokeParameter = h;
-							break;
-						case 1:
-							currentStokeParameter = k;
-							break;
-						case 2:
-							currentStokeParameter = j;
-							break;
-						case 3:
-							currentStokeParameter = i;
-							break;																						
-					}
-					switch (pos_row)
-					{
-						case 0:
-							currentRow = h;
-							break;
-						case 1:
-							currentRow = k;
-							break;
-						case 2:
-							currentRow = j;
-							break;
-						case 3:
-							currentRow = i;
-							break;																						
-					}
-					switch (pos_col)
-					{
-						case 0:
-							currentCol = h;
-							break;
-						case 1:
-							currentCol = k;
-							break;
-						case 2:
-							currentCol = j;
-							break;
-						case 3:
-							currentCol = i;
-							break;																						
-					}			
-					outputImage[(i*naxes[2]*naxes[1]*naxes[0]) + (j*naxes[1]*naxes[0]) + (k*naxes[0]) + h] = image->pixels[(currentCol*image->rows) + currentRow].spectro[currentLambda+(image->nLambdas * currentStokeParameter)];
-					//outputImage[numiter++] = image->pixels[(currentCol*image->rows) + currentRow].spectro[currentLambda+(image->nLambdas * currentStokeParameter)];
-				}
-			}
-		}
-	}
-
-    /* write the array of unsigned integers to the FITS file */
-	if ( fits_write_img(outfptr, datatype, 1, numElemWrite, outputImage, &status) ){
-		printerror( status );
-		free(outputImage);
-		return 0;
-	}
-
-	free(outputImage);
-	fits_close_file(outfptr,  &status);
-	if(status){
-		printerror( status );
-		return 0;
-	}
-	return 1;
-}
 
 /*--------------------------------------------------------------------------*/
 void printerror( int status)

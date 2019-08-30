@@ -185,8 +185,8 @@ int main(int argc, char **argv)
 
 		// ALLOCATE MEMORY FOR STORE THE RESULTS 
 
-		vModels = malloc (fitsImage->numPixels * sizeof(Init_Model));
-		vChisqrf = malloc (fitsImage->numPixels * sizeof(double));
+		vModels = calloc (fitsImage->numPixels , sizeof(Init_Model));
+		vChisqrf = calloc (fitsImage->numPixels , sizeof(double));
 
 		printf("\n START EXECUTION OF INVERSION ");
 		printf("\n**********");
@@ -227,6 +227,17 @@ int main(int argc, char **argv)
 
 			}
 
+			int indexAux = 0;
+			/*printf("\n Valores del spectro para el pixel %d ", indexPixel);
+			for(indexAux = 0; indexAux < (nlambda*NPARMS);indexAux++){
+				printf(" %fd ", fitsImage->pixels[indexPixel].spectro[indexAux]);
+			}
+			printf("\n *****************");*/
+			/*printf("\n Valores del lambda para el pixel %d ", indexPixel);
+			for(indexAux = 0; indexAux < (nlambda);indexAux++){
+				printf(" %fd ", fitsImage->pixels[indexPixel].vLambda[indexAux]);
+			}
+			printf("\n *****************");*/
 			//inversion
 			if (CLASSICAL_ESTIMATES != 2)
 			{
@@ -253,7 +264,8 @@ int main(int argc, char **argv)
 		// PROCESS FILE OF SYNTETIC PROFILES
 
 		if(PRINT_SINTESIS){
-			for(int i=0;i<fitsImage->numPixels;i++)
+			int i;
+			for( i=0;i<fitsImage->numPixels;i++)
 			{
 
 				Init_Model initModel = vModels[i];

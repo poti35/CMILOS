@@ -87,8 +87,9 @@ void ReadPointerShareCalculation(int Numero, PRECISION **a, ...)
 	va_list Param;
 	PRECISION **aux;
 
-	*aux = NULL;
 	aux = NULL;
+	*aux = NULL;
+	
 
 	*a = (PRECISION *)PUNTEROS_CALCULOS_COMPARTIDOS[POSR_PUNTERO_CALCULOS_COMPARTIDOS];
 	POSR_PUNTERO_CALCULOS_COMPARTIDOS += 1;

@@ -68,7 +68,7 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,double * wlines,int nwlines,do
 
     int edge,numln,ishift,par;
     PRECISION *axis,*g1,*g2;
-	_Complex *fftg1,*fftg2,*fftaux,*fftaux2,*fftd,*ffts;
+	double _Complex *fftg1,*fftg2,*fftaux,*fftaux2,*fftd,*ffts;
 
 	offset=0;//10.0;
 

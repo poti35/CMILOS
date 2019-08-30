@@ -67,7 +67,7 @@ int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,double * wlines,int nwlines
     PRECISION *dgp1,*dgp2,*dgp3,*dgp4,*dgp5,*dgp6,*d_dt;
     int edge,numln,ishift,par;
     PRECISION *axis,*g1,*g2;
-	_Complex *fftg,*ffts,*fftaux,*fftaux2,*fftd;    
+	double _Complex *fftg,*ffts,*fftaux,*fftaux2,*fftd;    
 	PRECISION  parcial;
 
 	offset= 0;//10.0;

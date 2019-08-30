@@ -1,7 +1,7 @@
 #include "mpiTools.h"
 #include "defines.h"
 
-void buildMpiType( MPI_Datatype * mpiInitModel,int nlambda, MPI_Datatype * mpiVPixels, int N_SIG, int N_PI){ 
+void buildMpiType( MPI_Datatype * mpiInitModel){ 
    	const int nitemsStructInitModel = 11;
 	int blocklenghtInitModel [11] = {1,1,1,1,1,1,1,1,1,1,1};
 	MPI_Datatype typesInitModel [11] = {MPI_DOUBLE,MPI_DOUBLE,MPI_DOUBLE,MPI_DOUBLE,MPI_DOUBLE,MPI_DOUBLE,MPI_DOUBLE,MPI_DOUBLE,MPI_DOUBLE,MPI_DOUBLE,MPI_DOUBLE};
@@ -23,7 +23,7 @@ void buildMpiType( MPI_Datatype * mpiInitModel,int nlambda, MPI_Datatype * mpiVP
 
 	/* CREATE A TYPE FOR STRUCT VPIXEL  */
 
-	const int nitemsStructVPixel = 3;
+	/* const int nitemsStructVPixel = 3;
 	int blocklenghtVPixel [3] = {nlambda,nlambda*NPARMS,1};
 	MPI_Datatype typesVPixel [3] = {MPI_DOUBLE,MPI_DOUBLE,MPI_INT};
 	
@@ -33,7 +33,7 @@ void buildMpiType( MPI_Datatype * mpiInitModel,int nlambda, MPI_Datatype * mpiVP
 	offsetsVPixels[2] = offsetof(vpixels, nLambda);
 	MPI_Type_create_struct(nitemsStructVPixel, blocklenghtVPixel, offsetsVPixels, typesVPixel, mpiVPixels);
 	MPI_Type_commit(mpiVPixels);
-
+	*/
 	/* CREATE  A TYPE FOR STRUCT CUANTIC*/ 
 
 	/* const int nitemsStructCuantic = 12;

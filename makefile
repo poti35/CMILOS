@@ -46,7 +46,7 @@ milosMPI.o: milosMPI.c
 	mpicc -g -O1 -c    milosMPI.c
 
 copyImage: utilsFits.o
-	gcc -g -o copyImage copyImage.c utilsFits.o  -L. -lcfitsio -lm -lnsl
+	gcc -g -o copyImage copyImage.c utilsFits.o  -L. -lm -lcfitsio -lnsl
 
 milos:  calculosCompartidos.o fgauss.o fvoigt.o  milos.o me_der.o mil_sinrf.o lib.o create_cuantic.o utilsFits.o milosUtils.o svdcmp.o
 	gcc -o milos milos.o calculosCompartidos.o create_cuantic.o fgauss.o fvoigt.o me_der.o mil_sinrf.o utilsFits.o milosUtils.o svdcmp.o lib.o -L. -lm -lcfitsio -lnsl
