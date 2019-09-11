@@ -1,40 +1,40 @@
 # C-MILOS
 
 
-## Comenzando 
+## Description 
 
-Instrucción para compilar y ejecutar C-MILOS. 
+Intructions to compile and execute  C-MILOS. 
 
-Mira **Deployment** para conocer como ejecutar el programa.
-
-
-### Pre-requisitos 
-
-Tener instalado la libreria CFITSIO en su versión 3.3.4  y OpenMPI 1.4-4
+Look **Deployment** to understand how to execute the program.
 
 
-### Instalación 
+### Pre-conditions 
 
-_Una vez instaladas las librerias especificadas como prerequisitos ejecutar: make , para compilar tanto el programa milos como milosMPI_
+The libraries CFITSIO AND OpenMPI must be installed in the version 3.3.4 and 1.4-4, respectively. 
+
+
+### Instalation
+
+_After install the pre-conditions libraries, execute: make , to compile the programs milos and milosMPI_
 
 
 
 ## Deployment
 
-Para ejecutar Milos en forma secuencial realizar la siguiente llamada: 
+To execute Milos in sequential way, you must to the following call: 
 _milos parameters.txt_
 
-El fichero parameters.txt contendrá los parametros de entrada al programa con el siguiente orden 
+The file  parameters.txt  will have the parameters of entry with the following order 
 
 ```
-15  // Número de iteraciones máxismas del algoritmo de inversion 
-1   // Indica si usar estimaciones clásicas: 1 si e inversion, 0 no, 2 solo estimaciones clásicas. 
-0   // 0 no se escribe fichero de sintesis, 1 si se escribe. 
-/home/mcabrera/MILOS/2014.09.28_09_18_00_t012.fits  // Fichero origen con el espectro 
-/home/mcabrera/MILOS/lambda.fits                    // Fichero origen con las longitudes de onda
-/home/mcabrera/MILOS/MODELOS/result.fits            // Fichero donde almacenar los modelos de resultados. 
-/home/mcabrera/MILOS/MODELOS/sintesis.fits          // Fichero de sintesis en caso de ser seleccionada su escritua. 
-0   // Indica si usar convolucion o no, 0 no, 1 si . 
+15  // Number of max iterations of the inversion algorithm 
+1   // Option 0: not use classic estimations and use RTE inversion, Option 1: use classic estimations and RTE inversion, Option 2: use only RTE inversion 
+0   // Option 0 to not write syntesis file and 1 to write it 
+/home/mcabrera/MILOS/2014.09.28_09_18_00_t012.fits  // source file with spectro 
+/home/mcabrera/MILOS/lambda.fits                    // source file with lambda 
+/home/mcabrera/MILOS/MODELOS/result.fits            // file to store the results models 
+/home/mcabrera/MILOS/MODELOS/sintesis.fits          // file to store synthesis file 
+0   // Option 0 not use convolution, Option 1 use convolution. 
 NULL  // FWHM
 NULL  // DELTA 
 NULL  // NMUESTRASG
