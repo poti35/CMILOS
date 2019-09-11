@@ -34,7 +34,7 @@ El fichero parameters.txt contendrá los parametros de entrada al programa con e
 /home/mcabrera/MILOS/lambda.fits                    // Fichero origen con las longitudes de onda
 /home/mcabrera/MILOS/MODELOS/result.fits            // Fichero donde almacenar los modelos de resultados. 
 /home/mcabrera/MILOS/MODELOS/sintesis.fits          // Fichero de sintesis en caso de ser seleccionada su escritua. 
-0   // Indica si usar convolucion o no, 0 si, 1 no . 
+0   // Indica si usar convolucion o no, 0 no, 1 si . 
 NULL  // FWHM
 NULL  // DELTA 
 NULL  // NMUESTRASG
