@@ -1,9 +1,9 @@
 15
-1
+2
 0
-/home/mcabrera/SolarImages/fits_CRISP_sol_calma/2014.05.16_18_08_37_t003.fits
-/home/mcabrera/MILOS/utilsFits/lambda_12.fits
-/home/mcabrera/MILOS/MODELOS/result_paralelo.fits
+/home/mcabrera/SolarImages/fits_CRISP_sol_calma/2014.05.16_18_08_37_t000.fits
+/home/mcabrera/MILOS/utilsFits/lambda_12_bueno.fits
+/home/mcabrera/MILOS/MODELOS/result_ce_secuencial.fits
 /home/mcabrera/MILOS/MODELOS/sintesis_paralelo.fits
 0
 NULL

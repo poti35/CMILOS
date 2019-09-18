@@ -523,11 +523,11 @@ void estimacionesClasicas(PRECISION lambda_0, double *lambda, int nlambda, PRECI
 	int i, j;
 
 	//Es necesario crear un lambda en FLOAT para probar como se hace en la FPGA
-	PRECISION *lambda_aux;
-	lambda_aux = (PRECISION *)calloc(nlambda, sizeof(PRECISION));
+	PRECISION *lambda_aux = lambda;
+	//lambda_aux = (PRECISION *)calloc(nlambda, sizeof(PRECISION));
 	PRECISION lambda0, lambda1, lambda2, lambda3, lambda4;
 
-	lambda0 = 6.1732012e+3 + 0;		// RTE_WL_0
+	/*lambda0 = 6.1732012e+3 + 0;		// RTE_WL_0
 	lambda1 = lambda0 + 0.070000000; //RTE_WL_STEP
 	lambda2 = lambda1 + 0.070000000;
 	lambda3 = lambda2 + 0.070000000;
@@ -537,7 +537,7 @@ void estimacionesClasicas(PRECISION lambda_0, double *lambda, int nlambda, PRECI
 	lambda_aux[1] = lambda1;
 	lambda_aux[2] = lambda2;
 	lambda_aux[3] = lambda3;
-	lambda_aux[4] = lambda4;
+	lambda_aux[4] = lambda4;*/
 
 	spectroI = spectro;
 	spectroQ = spectro + nlambda;
@@ -664,7 +664,7 @@ void estimacionesClasicas(PRECISION lambda_0, double *lambda, int nlambda, PRECI
 	initModel->S0 = Blos;
 
 	//Liberar memoria del vector de lambda auxiliar
-	free(lambda_aux);
+	//free(lambda_aux);
 }
 
 
