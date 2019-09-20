@@ -24,22 +24,27 @@ _After install the pre-conditions libraries, execute: make , to compile the prog
 To execute Milos in sequential way, you must to the following call: 
 _milos parameters.txt_
 
-The file  parameters.txt  will have the parameters of entry with the following order 
+The file  parameters.trol  will have the parameters of entry with the following order 
 
 ```
-15  // Number of max iterations of the inversion algorithm 
-1   // Option 0: not use classic estimations and use RTE inversion, Option 1: use classic estimations and RTE inversion, Option 2: use only RTE inversion 
-0   // Option 0 to not write syntesis file and 1 to write it 
-/home/mcabrera/MILOS/2014.09.28_09_18_00_t012.fits  // source file with spectro 
-/home/mcabrera/MILOS/lambda.fits                    // source file with lambda 
-/home/mcabrera/MILOS/MODELOS/result.fits            // file to store the results models 
-/home/mcabrera/MILOS/MODELOS/sintesis.fits          // file to store synthesis file 
-0   // Option 0 not use convolution, Option 1 use convolution. 
-NULL  // FWHM
-NULL  // DELTA 
-NULL  // NMUESTRASG
-
+Number of Iterations                    :15                             ! by default is 15 
+Use classic estimates and RTE           :1                              ! use classical estimates only
+Save synthesis profiles                 :0                              ! don't save synthesis profiles
+Path of spectro file                    :2014.05.16_18_08_37_t000.fits  ! file with lambda vector
+Path of lambda file                     :lambda_12_bueno.fits           ! file with lambda vector
+LINE file                               :LINES_6173                     ! file with atomic lines
+File with Init Model                    :initModel.mod                  ! File with init model for inversion
+Central lambda                          :6173.3356                      ! Lambda central to use from file LINES 
+Path of output model file               :result_ce_secuencial_2.fits    ! model result file
+Path of output synthesis file           :sintesis_secuencial.fits       ! synthesis result file
+Indicate if use convolution             :1                              ! value 0 don't use it , value 1 then use it 
+File with PSF                           :ps.psf                         ! Psf file, if not specify we will use Gauss samples
+FWHM                                    :0.076                          ! In Armstrong
+DELTA                                   :0.069                          ! In Armstrong
+Number of samples to create gaussian    :13                             ! Must be odd
 ```
+
+The first row explains what is the value of that row, after ":" appears the value and after "!" you can put any comment. 
 
 
 
