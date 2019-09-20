@@ -22,7 +22,7 @@ _After install the pre-conditions libraries, execute: make , to compile the prog
 ## Deployment
 
 To execute Milos in sequential way, you must to the following call: 
-_milos parameters.txt_
+_milos parameters.trol_
 
 The file  parameters.trol  will have the parameters of entry with the following order 
 
