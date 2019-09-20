@@ -87,4 +87,25 @@ int writeFitsImageProfiles(char * fitsProfileFile, char * fitsFileOrigin, FitsIm
  * 
  * @return 0 is there is something wrong reading the parameters, 1 is everything was fine. 
  */
-int readParametersFileInput(char * fileParameters, int * maxIter, int * clasicalEstimate, int * printSintesis, char * nameInputFileSpectra, char * nameInputFileLambda, char *nameOutputFileModels, char * nameOutputFileProfiles, int * useConvolution,  PRECISION * FWHM, PRECISION * DELTA, int * NMUESTRAS_G);
+int readParametersFileInput(char * fileParameters, int * maxIter, int * clasicalEstimate, int * printSintesis, char * nameInputFileSpectra, char * nameInputFileLambda,char * nameInputFileLines, char * nameInputFileInitModel,  PRECISION *  centralLambda, char *nameOutputFileModels, char * nameOutputFileProfiles, int * useConvolution, char * nameInputFilePSF, PRECISION * FWHM, PRECISION * DELTA, int * NMUESTRAS_G);
+
+
+/**
+ * 
+ * 
+ * 
+ * 
+ * */
+int readFileCuanticLines(char * inputLineFile, PRECISION * cuanticDat, PRECISION centralLambda);
+
+
+/**
+ * 
+ * 
+ * */
+int readInitialModel(Init_Model * INIT_MODEL, char * fileInitModel);
+
+/**
+ * 
+ * */
+int readPSFFile(PRECISION * deltaLambda, PRECISION * PSF, char * nameInputPSF);

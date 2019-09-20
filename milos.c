@@ -29,6 +29,7 @@
 #include "utilsFits.h"
 #include "milosUtils.h"
 #include "lib.h"
+#include <unistd.h>
 
 
 long long int c1, c2, cd, semi, c1a, c2a, cda; //variables de 64 bits para leer ciclos de reloj
@@ -60,6 +61,7 @@ PRECISION **HGlobalInicial;
 PRECISION **FGlobalInicial;
 PRECISION *perfil_instrumental;
 PRECISION *G;
+PRECISION *interpolatedPSF;
 int FGlobal, HGlobal, uuGlobal;
 
 PRECISION *d_spectra, *spectra;
@@ -86,6 +88,13 @@ int main(int argc, char **argv)
 	double slight, toplim;
 	PRECISION weight[4] = {1., 1., 1., 1.};
 
+	PRECISION CENTRAL_WL;
+
+	Init_Model INITIAL_MODEL;
+
+	PRECISION * deltaLambda, * PSF;
+	int N_SAMPLES_PSF;
+
 	clock_t t_ini, t_fin;
 	double secs, total_secs;
 
@@ -106,20 +115,65 @@ int main(int argc, char **argv)
 	char  nameInputFileLambda [PATH_MAX];
 	char  nameOutputFileModels [PATH_MAX];
 	char  nameOutputFilePerfiles [PATH_MAX];
+	char	nameInputFileLines [PATH_MAX];
+	char 	nameInputFileInitModel [PATH_MAX];
+	char	nameInputFilePSF [PATH_MAX];
 
    FitsImage * fitsImage;
 
-	double dat[7] = {CUANTIC_NWL, CUANTIC_SLOI, CUANTIC_LLOI, CUANTIC_JLOI, CUANTIC_SUPI, CUANTIC_LUPI, CUANTIC_JUPI};
+	//double dat[7] = {CUANTIC_NWL, CUANTIC_SLOI, CUANTIC_LLOI, CUANTIC_JLOI, CUANTIC_SUPI, CUANTIC_LUPI, CUANTIC_JUPI};
+	double dat[7];
 
 	/********************* Read data input from file ******************************/
 
 	/* Read data input from file */
 
-	if(!readParametersFileInput(argv[1], &Max_iter,&CLASSICAL_ESTIMATES,&PRINT_SINTESIS,nameInputFileSpectra,nameInputFileLambda,nameOutputFileModels,nameOutputFilePerfiles,&INSTRUMENTAL_CONVOLUTION,&FWHM,&DELTA,&NMUESTRAS_G)){
+	if(!readParametersFileInput(argv[1], &Max_iter,&CLASSICAL_ESTIMATES,&PRINT_SINTESIS,nameInputFileSpectra,nameInputFileLambda,nameInputFileLines,nameInputFileInitModel, &CENTRAL_WL, nameOutputFileModels,nameOutputFilePerfiles,&INSTRUMENTAL_CONVOLUTION,nameInputFilePSF,&FWHM,&DELTA,&NMUESTRAS_G)){
 		printf("\n********************* EXITING THE PROGRAM . ERROR READING PARAMETERS FILE ****************************\n");
 		return -1;
 	}
 
+	readFileCuanticLines(nameInputFileLines,dat,CENTRAL_WL);
+	readInitialModel(&INITIAL_MODEL,nameInputFileInitModel);
+
+	/****************************************************************************************************/	
+	// if parameter name of psf has been apported we read the file, in other case create the gaussian with the parameters
+	int usedPSF = 0; // initial false
+	if(INSTRUMENTAL_CONVOLUTION){
+		if(access(nameInputFilePSF,F_OK) != -1){
+			// read the number of lines 
+				FILE *fp;
+				char ch;
+				N_SAMPLES_PSF=0;
+				//open file in read more
+				fp=fopen(nameInputFilePSF,"r");
+				if(fp==NULL)
+				{
+					printf("File \"%s\" does not exist!!!\n",nameInputFilePSF);
+					return 0;
+				}
+
+				//read character by character and check for new line	
+				while((ch=fgetc(fp))!=EOF)
+				{
+					if(ch=='\n')
+						N_SAMPLES_PSF++;
+				}
+				
+				//close the file
+				fclose(fp);
+				if(N_SAMPLES_PSF>0){
+					deltaLambda = calloc(N_SAMPLES_PSF,sizeof(PRECISION));
+					PSF = calloc(N_SAMPLES_PSF,sizeof(PRECISION));
+					readPSFFile(deltaLambda,PSF,nameInputFilePSF);
+					usedPSF = 1;
+				}
+				else{
+					generateGaussianInstrumentalProfile(G,FWHM,DELTA,NMUESTRAS_G);		
+				}
+		}else
+			generateGaussianInstrumentalProfile(G,FWHM,DELTA,NMUESTRAS_G);
+	}
 	/*********************************************** INITIALIZE VARIABLES  *********************************/
 	toplim = 1e-18;
 
@@ -150,11 +204,6 @@ int main(int argc, char **argv)
 
 
 	/******************* APPLY GAUSSIAN, CREATE CUANTINC AND INITIALIZE DINAMYC MEMORY*******************/
-	if (INSTRUMENTAL_CONVOLUTION)
-	{
-		generateGaussianInstrumentalProfile(G,FWHM,DELTA,INSTRUMENTAL_CONVOLUTION_WITH_PSF,NMUESTRAS_G);
-	}
-
 	cuantic = create_cuantic(dat);
 	InitializePointerShareCalculation();
 
@@ -177,6 +226,12 @@ int main(int argc, char **argv)
 		nlambda = fitsImage->nLambdas;
 		AllocateMemoryDerivedSynthesis(nlambda);
 
+		// INTERPOLATE PSF WITH ARRAY OF LAMBDA READ
+		if(usedPSF){
+			PRECISION * fInterpolated = calloc(nlambda,sizeof(PRECISION));
+			interpolationPSF(deltaLambda,  PSF, fitsImage->pixels[0].vLambda ,CENTRAL_WL, N_SAMPLES_PSF,fInterpolated, nlambda);
+		}
+
 		//initializing weights
 		PRECISION *w, *sig;
 		weights_init(nlambda, sigma, weight, nweight, &w, &sig, noise);
@@ -196,17 +251,17 @@ int main(int argc, char **argv)
 
 			//Initial Model
 			Init_Model initModel;
-			initModel.eta0 = INITIAL_MODEL_ETHA0;
-			initModel.B = INITIAL_MODEL_B; //200 700
-			initModel.gm = INITIAL_MODEL_GM;
-			initModel.az = INITIAL_MODEL_AZI;
-			initModel.vlos = INITIAL_MODEL_VLOS; //km/s 0
-			initModel.mac = 0.0;
-			initModel.dopp = INITIAL_MODEL_LAMBDADOPP;
-			initModel.aa = INITIAL_MODEL_AA;
-			initModel.alfa = 1; //0.38; //stray light factor
-			initModel.S0 = INITIAL_MODEL_S0;
-			initModel.S1 = INITIAL_MODEL_S1;
+			initModel.eta0 = INITIAL_MODEL.eta0;
+			initModel.B = INITIAL_MODEL.B; //200 700
+			initModel.gm = INITIAL_MODEL.gm;
+			initModel.az = INITIAL_MODEL.az;
+			initModel.vlos = INITIAL_MODEL.vlos; //km/s 0
+			initModel.mac = INITIAL_MODEL.mac;
+			initModel.dopp = INITIAL_MODEL.dopp;
+			initModel.aa = INITIAL_MODEL.aa;
+			initModel.alfa = INITIAL_MODEL.alfa; //0.38; //stray light factor
+			initModel.S0 = INITIAL_MODEL.S0;
+			initModel.S1 = INITIAL_MODEL.S1;
 
 			if (CLASSICAL_ESTIMATES)
 			{
@@ -243,7 +298,7 @@ int main(int argc, char **argv)
 			{
 				//Se introduce en S0 el valor de Blos si solo se calculan estimaciones clásicas
 				//Aqui se anula esa asignación porque se va a realizar la inversion RTE completa
-				initModel.S0 = INITIAL_MODEL_S0;
+				initModel.S0 = INITIAL_MODEL.S0;
 
 				lm_mils(cuantic, wlines, nwlines, fitsImage->pixels[indexPixel].vLambda, fitsImage->pixels[indexPixel].nLambda, fitsImage->pixels[indexPixel].spectro, fitsImage->pixels[indexPixel].nLambda, &initModel, spectra, &chisqrf, &iter, slight, toplim, Max_iter,
 						weight, nweight, fix, sig, filter, ilambda, noise, pol, getshi, 0,&INSTRUMENTAL_CONVOLUTION,&NMUESTRAS_G);

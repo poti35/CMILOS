@@ -73,4 +73,10 @@ int lm_mils(Cuantic *cuantic, double *wlines, int nwlines, double *lambda, int n
 /**
  * Generate the guaussian from instrumental profile 
  */
-void generateGaussianInstrumentalProfile(PRECISION * G, PRECISION  FWHM, PRECISION DELTA, int INSTRUMENTAL_CONVOLUTION_WITH_PSF, int NMUESTRAS_G);
+void generateGaussianInstrumentalProfile(PRECISION * G, PRECISION  FWHM, PRECISION DELTA, int NMUESTRAS_G);
+
+/**
+ * Make the interpolation between deltaLambda and PSF where deltaLambda es x and PSF f(x)
+ *  Return the array with the interpolation. 
+ * */
+int interpolationPSF(PRECISION *deltaLambda, PRECISION * PSF, PRECISION * lambdasSamples, PRECISION centralLambda, size_t N_PSF, PRECISION * fInterpolated,  size_t NSamples);

@@ -18,7 +18,7 @@
 //---------------------------------------------------------
 // USER CONFIGURATION
 
-#define CENTRAL_WL   6173.341000 //6173.341000 (oficial requ.) //6173.3500// 341000  // // 6173.335600 //6173.335400
+//#define CENTRAL_WL   6173.341000 //6173.341000 (oficial requ.) //6173.3500// 341000  // // 6173.335600 //6173.335400
 
 //#include "SVD_configuration.h"
 // #include "SVD_configuration_svdcordic18_norm_Nolimit.h"
@@ -33,7 +33,7 @@
 
 
 //INITIAL MODEL A
-#define INITIAL_MODEL_B 1200
+/*#define INITIAL_MODEL_B 1200
 #define INITIAL_MODEL_GM 170
 #define INITIAL_MODEL_AZI 25
 #define INITIAL_MODEL_ETHA0 14
@@ -41,7 +41,7 @@
 #define INITIAL_MODEL_AA 0.05
 #define INITIAL_MODEL_VLOS 0.05 // Km/s
 #define INITIAL_MODEL_S0 0.25
-#define INITIAL_MODEL_S1 0.75
+#define INITIAL_MODEL_S1 0.75*/
 
 //INITIAL MODEL B
 // #define INITIAL_MODEL_B 1200

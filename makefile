@@ -1,5 +1,5 @@
 #by manu 2019 (IAA-CSIC)
-mil: print svdcmp.o calculosCompartidos.o create_cuantic.o fvoigt.o fgauss.o me_der.o mil_sinrf.o lib.o mpiTools.o utilsFits.o milosUtils.o copyImage milos milosMPI fin
+mil: print svdcmp.o calculosCompartidos.o create_cuantic.o fvoigt.o fgauss.o me_der.o mil_sinrf.o lib.o mpiTools.o utilsFits.o milosUtils.o copyImage milos  fin
 
 print:
 	#clear
@@ -49,10 +49,10 @@ copyImage: utilsFits.o
 	gcc -g -o copyImage copyImage.c utilsFits.o  -L. -lm -lcfitsio -lnsl
 
 milos:  calculosCompartidos.o fgauss.o fvoigt.o  milos.o me_der.o mil_sinrf.o lib.o create_cuantic.o utilsFits.o milosUtils.o svdcmp.o
-	gcc -o milos milos.o calculosCompartidos.o create_cuantic.o fgauss.o fvoigt.o me_der.o mil_sinrf.o utilsFits.o milosUtils.o svdcmp.o lib.o -L. -lm -lcfitsio -lnsl
+	gcc -o milos milos.o calculosCompartidos.o create_cuantic.o fgauss.o fvoigt.o me_der.o mil_sinrf.o utilsFits.o milosUtils.o svdcmp.o lib.o -L. -lm -lcfitsio -lnsl -lgsl -lgslcblas
 
 milosMPI:  calculosCompartidos.o fgauss.o fvoigt.o  milosMPI.o me_der.o mil_sinrf.o lib.o create_cuantic.o utilsFits.o mpiTools.o milosUtils.o svdcmp.o
-	mpicc -g -o  milosMPI milosMPI.o calculosCompartidos.o create_cuantic.o fgauss.o fvoigt.o me_der.o mil_sinrf.o  lib.o utilsFits.o mpiTools.o milosUtils.o  svdcmp.o -L. -lm -lcfitsio -lnsl
+	mpicc -g -o  milosMPI milosMPI.o calculosCompartidos.o create_cuantic.o fgauss.o fvoigt.o me_der.o mil_sinrf.o  lib.o utilsFits.o mpiTools.o milosUtils.o  svdcmp.o -L. -lm -lcfitsio -lnsl -lgsl -lgslcblas
 
 fin:
 	@echo --

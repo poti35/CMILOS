@@ -1,5 +1,6 @@
 #include "utilsFits.h"
 #include "fitsio.h"
+#include <time.h>
 #include <string.h>
 #include <stdio.h>
 #include <stddef.h>
@@ -970,11 +971,12 @@ void printerror( int status)
 }
 
 
-int readParametersFileInput(char * fileParameters, int * maxIter, int * clasicalEstimate, int * printSintesis, char * nameInputFileSpectra, char * nameInputFileLambda, char *nameOutputFileModels, char * nameOutputFileProfiles, int * useConvolution,  PRECISION * FWHM, PRECISION * DELTA, int * NMUESTRAS_G){
+int readParametersFileInput(char * fileParameters, int * maxIter, int * clasicalEstimate, int * printSintesis, char * nameInputFileSpectra, char * nameInputFileLambda,char * nameInputFileLines, char * nameInputFileInitModel,  PRECISION *  centralLambda, char *nameOutputFileModels, char * nameOutputFileProfiles, int * useConvolution, char * nameInputFilePSF, PRECISION * FWHM, PRECISION * DELTA, int * NMUESTRAS_G){
 
 	// try open the file with the 
 	FILE * fReadParameters;
-
+	char LINE [4096], * returnLine;
+	char comment[200], name[100], name2[100];
 	fReadParameters = fopen(fileParameters, "r");
 	if (fReadParameters == NULL)
 	{
@@ -984,7 +986,10 @@ int readParametersFileInput(char * fileParameters, int * maxIter, int * clasical
 	}
 	int rfscanf; 
 	// READ NUM_ITER
-	rfscanf = fscanf(fReadParameters,"%i", maxIter);
+	returnLine = fgets(LINE,4096,fReadParameters);
+	if(returnLine == NULL) return 0;
+	rfscanf = sscanf(LINE,"%99[^:]:%i%99[^!]!",name, maxIter,comment);
+	
 	if(rfscanf ==0 || rfscanf == EOF){
 		printf("Error reading the file of parameters, param MAX_ITER. Please verify it. \n");
 		printf("\n ******* THIS IS THE NAME OF THE FILE RECEVIED : %s \n", fileParameters);
@@ -994,8 +999,12 @@ int readParametersFileInput(char * fileParameters, int * maxIter, int * clasical
 		printf("milos: Error in MAX_ITER parameter. review it. Not accepted: %d\n", *maxIter);
 		return 0;
 	}
+
+
 	// READ CLASICAL ESTIMATE
-	rfscanf = fscanf(fReadParameters,"%i", clasicalEstimate);
+	returnLine = fgets(LINE,4096,fReadParameters);
+	if(returnLine == NULL) return 0;
+	rfscanf = sscanf(LINE,"%99[^:]:%i%99[^!]!", name, clasicalEstimate, comment);
 	if(rfscanf ==0 || rfscanf == EOF){
 		printf("Error reading the file of parameters, param CLASICAL_ESTIMATE. Please verify it. \n");
 		printf("\n ******* THIS IS THE NAME OF THE FILE RECEVIED : %s \n", fileParameters);
@@ -1006,8 +1015,12 @@ int readParametersFileInput(char * fileParameters, int * maxIter, int * clasical
 		printf("milos: Error in CLASSICAL_ESTIMATES parameter. [0,1,2] are valid values. Not accepted: %d\n", *clasicalEstimate);
 		return 0;
 	}
+
+
 	// READ if print printSintesis
-	rfscanf = fscanf(fReadParameters,"%i", printSintesis);
+	returnLine = fgets(LINE,4096,fReadParameters);
+	if(returnLine == NULL) return 0;
+	rfscanf = sscanf(LINE,"%99[^:]:%i%99[^!]!",name, printSintesis, comment);
 	if(rfscanf ==0 || rfscanf == EOF){
 		printf("Error reading the file of parameters, param PRINT_SINTESIS. Please verify it. \n");
 		printf("\n ******* THIS IS THE NAME OF THE FILE RECEVIED : %s \n", fileParameters);
@@ -1015,7 +1028,9 @@ int readParametersFileInput(char * fileParameters, int * maxIter, int * clasical
 	}
 
 	// READ nameInputFileSpectra
-	rfscanf = fscanf(fReadParameters,"%s", nameInputFileSpectra);
+	returnLine = fgets(LINE,4096,fReadParameters);
+	if(returnLine == NULL) return 0;
+	rfscanf = sscanf(LINE,"%99[^:]:%s%99[^!]!",name, nameInputFileSpectra,comment);
 	if(rfscanf ==0 || rfscanf == EOF){
 		printf("Error reading the file of parameters, param INPUT FILE SPECTRO. Please verify it. \n");
 		printf("\n ******* THIS IS THE NAME OF THE FILE RECEVIED : %s \n", fileParameters);
@@ -1023,15 +1038,53 @@ int readParametersFileInput(char * fileParameters, int * maxIter, int * clasical
 	}
 
 	// READ nameInputFileLambda
-	rfscanf = fscanf(fReadParameters,"%s", nameInputFileLambda);
+	returnLine = fgets(LINE,4096,fReadParameters);
+	if(returnLine == NULL) return 0;	
+	rfscanf = sscanf(LINE,"%99[^:]:%s%99[^!]!", name, nameInputFileLambda,comment);
 	if(rfscanf ==0 || rfscanf == EOF){
 		printf("Error reading the file of parameters, param INPUT FILE OF LAMBDAS. Please verify it. \n");
 		printf("\n ******* THIS IS THE NAME OF THE FILE RECEVIED : %s \n", fileParameters);
 		return 0;		
 	}
 
+	// READ nameInputFileLines
+	returnLine = fgets(LINE,4096,fReadParameters);
+	if(returnLine == NULL) return 0;
+	rfscanf = sscanf(LINE,"%99[^:]:%s%99[^!]!",name, nameInputFileLines,comment);
+
+	if(rfscanf ==0 || rfscanf == EOF){
+		printf("Error reading the file of parameters, param INUT FILE LINES. Please verify it. \n");
+		printf("\n ******* THIS IS THE NAME OF THE FILE RECEVIED : %s \n", fileParameters);
+		return 0;		
+	}
+
+	// READ nameInputFileInitModel
+	returnLine = fgets(LINE,4096,fReadParameters);
+	if(returnLine == NULL) return 0;
+	rfscanf = sscanf(LINE,"%99[^:]:%s%99[^!]!",name, nameInputFileInitModel,comment);
+
+	if(rfscanf ==0 || rfscanf == EOF){
+		printf("Error reading the file of parameters, param INUT FILE LINES. Please verify it. \n");
+		printf("\n ******* THIS IS THE NAME OF THE FILE RECEVIED : %s \n", fileParameters);
+		return 0;		
+	}
+
+
+	// READ CENTRAL LAMBDA
+	returnLine = fgets(LINE,4096,fReadParameters);
+	if(returnLine == NULL) return 0;						
+	rfscanf = sscanf(LINE,"%99[^:]:%lf%99[^!]!",name, centralLambda,comment);
+	if(rfscanf ==0 || rfscanf == EOF){
+		printf("Error reading the file of parameters, param DELTA. Please verify it. \n");
+		printf("\n ******* THIS IS THE NAME OF THE FILE RECEVIED : %s \n", fileParameters);
+		return 0;		
+	}
+
+
 	// READ nameOutputFileModels
-	rfscanf = fscanf(fReadParameters,"%s", nameOutputFileModels);
+	returnLine = fgets(LINE,4096,fReadParameters);
+	if(returnLine == NULL) return 0;		
+	rfscanf = sscanf(LINE,"%99[^:]:%s%99[^!]!", name, nameOutputFileModels, comment);
 	if(rfscanf ==0 || rfscanf == EOF){
 		printf("Error reading the file of parameters, param OUTPUT FILE OF MODELS. Please verify it. \n");
 		printf("\n ******* THIS IS THE NAME OF THE FILE RECEVIED : %s \n", fileParameters);
@@ -1039,37 +1092,60 @@ int readParametersFileInput(char * fileParameters, int * maxIter, int * clasical
 	}
 
 	//READ nameOutputFileProfiles
-	rfscanf = fscanf(fReadParameters,"%s", nameOutputFileProfiles);
+	returnLine = fgets(LINE,4096,fReadParameters);
+	if(returnLine == NULL) return 0;			
+	rfscanf = sscanf(LINE,"%99[^:]:%s%99[^!]!", name, nameOutputFileProfiles,comment);
 	if(rfscanf ==0 || rfscanf == EOF){
 		printf("Error reading the file of parameters, param OUTPUT FILE PROFILES Please verify it. \n");
 		printf("\n ******* THIS IS THE NAME OF THE FILE RECEVIED : %s \n", fileParameters);
 		return 0;		
 	}
 	// READ if use Convolution
-	rfscanf = fscanf(fReadParameters,"%i", useConvolution);
+	returnLine = fgets(LINE,4096,fReadParameters);
+	if(returnLine == NULL) return 0;				
+	rfscanf = sscanf(LINE,"%99[^:]:%i%99[^!]!", name, useConvolution,comment);
 	if(rfscanf ==0 || rfscanf == EOF){
 		printf("Error reading the file of parameters, param IF USE CONVOLUTION. Please verify it. \n");
 		printf("\n ******* THIS IS THE NAME OF THE FILE RECEVIED : %s \n", fileParameters);
 		return 0;		
 	}
 
+
+	// READ nameInputFilePSF
+	returnLine = fgets(LINE,4096,fReadParameters);
+	if(returnLine == NULL) return 0;
+	rfscanf = sscanf(LINE,"%99[^:]:%s%99[^!]!",name, nameInputFilePSF,comment);
+
+	if(rfscanf ==0 || rfscanf == EOF){
+		printf("Error reading the file of parameters, param INUT FILE LINES. Please verify it. \n");
+		printf("\n ******* THIS IS THE NAME OF THE FILE RECEVIED : %s \n", fileParameters);
+		return 0;		
+	}
+	
+
 	if(*useConvolution==1){
 		// READ FWHM
-		rfscanf = fscanf(fReadParameters,"%lf", FWHM);
+		returnLine = fgets(LINE,4096,fReadParameters);
+		if(returnLine == NULL) return 0;						
+		rfscanf = sscanf(LINE,"%99[^:]:%lf%99[^!]!", name, FWHM,comment);
 		if(rfscanf ==0 || rfscanf == EOF){
 			printf("Error reading the file of parameters, param FWHM. Please verify it. \n");
 			printf("\n ******* THIS IS THE NAME OF THE FILE RECEVIED : %s \n", fileParameters);
 			return 0;		
 		}
 		// READ DELTA
-		rfscanf = fscanf(fReadParameters,"%lf", DELTA);
+		returnLine = fgets(LINE,4096,fReadParameters);
+		if(returnLine == NULL) return 0;						
+		rfscanf = sscanf(LINE,"%99[^:]:%lf%99[^!]!",name, DELTA,comment);
 		if(rfscanf ==0 || rfscanf == EOF){
 			printf("Error reading the file of parameters, param DELTA. Please verify it. \n");
 			printf("\n ******* THIS IS THE NAME OF THE FILE RECEVIED : %s \n", fileParameters);
 			return 0;		
 		}
 		// READ NMUESTRASG
-		rfscanf = fscanf(fReadParameters,"%i", NMUESTRAS_G);
+		returnLine = fgets(LINE,4096,fReadParameters);
+		if(returnLine == NULL) return 0;						
+		rfscanf = sscanf(LINE,"%99[^:]:%i[^!]%s", name, NMUESTRAS_G,comment);
 		if(rfscanf ==0 || rfscanf == EOF){
 			printf("Error reading the file of parameters, param NMUESTRAS_G. Please verify it. \n");
 			printf("\n ******* THIS IS THE NAME OF THE FILE RECEVIED : %s \n", fileParameters);
@@ -1078,4 +1154,192 @@ int readParametersFileInput(char * fileParameters, int * maxIter, int * clasical
 	}
 	return 1;
 
+}
+
+/**
+ * 
+ * 
+ * 
+ * */
+int readFileCuanticLines(char * inputLineFile, PRECISION * cuanticDat, PRECISION centralLambda){
+	// try open the file with the 
+	FILE * fp;
+	char * line = NULL;
+
+   size_t len = 0;
+   ssize_t read;
+	char atomo [2];
+	fp = fopen(inputLineFile, "r");
+   if (fp == NULL)
+   	return 0;
+
+	int indexLine, ionicState;
+	double damping, potentialExcitation, logGf;
+	PRECISION lambdaLine;
+	int SLOI, SUPI;
+	PRECISION LLOI,JLOI,LUPI,JUPI;
+	char levelD,levelU;
+	while ((read = getline(&line, &len, fp)) != -1) {
+		sscanf(line,"%i=%s %i %lf %lf %lf -%lf %i%c %lf- %i%c %lf",&indexLine,atomo,&ionicState,&lambdaLine,&damping,&potentialExcitation,&logGf,&SLOI,&levelD,&JLOI,&SUPI,&levelU,&JUPI);
+		if(lambdaLine==centralLambda){ // read the rest of the line, else read next line
+			switch (levelD)
+			{
+			case 'S':
+				LLOI = 0;
+				break;
+			case 'P':
+				LLOI = 1;
+				break;
+			case 'D':
+				LLOI = 2;
+				break;				
+			case 'F':
+				LLOI = 3;
+				break;
+			case 'G':
+				LLOI = 4;
+				break;				
+			case 'H':
+				LLOI = 5;
+				break;
+			case 'J':
+				LLOI = 6;
+				break;
+			default:
+				break;
+			}
+			switch (levelU)
+			{
+			case 'S':
+				LUPI = 0;
+				break;
+			case 'P':
+				LUPI = 1;
+				break;
+			case 'D':
+				LUPI = 2;
+				break;				
+			case 'F':
+				LUPI = 3;
+				break;
+			case 'G':
+				LUPI = 4;
+				break;				
+			case 'H':
+				LUPI = 5;
+				break;
+			case 'J':
+				LUPI = 6;
+				break;
+			default:
+				break;
+			}
+			if(SLOI==5) SLOI=2;
+			if(SUPI==5) SUPI=2;
+
+		}
+   }
+	cuanticDat[0] =1 ; // LINE NUMBER 1
+	cuanticDat[1] = SLOI;
+	cuanticDat[2] = LLOI;
+	cuanticDat[3] = JLOI;
+	cuanticDat[4] = SUPI;
+	cuanticDat[5] = LUPI;
+	cuanticDat[6] = JUPI;
+	
+}
+
+
+int readInitialModel(Init_Model * INIT_MODEL, char * fileInitModel){
+	
+	FILE * fReadInitModel;
+	char * line = NULL;
+	size_t len = 0;
+   ssize_t read;
+	char comment[200], name[100];
+	int rfscanf;
+	fReadInitModel = fopen(fileInitModel, "r");
+	if (fReadInitModel == NULL)
+	{
+		printf("Error opening the file of parameters, it's possible that the file doesn't exist. Please verify it. \n");
+		printf("\n ******* THIS IS THE NAME OF THE FILE RECEVIED : %s \n", fileInitModel);
+		fclose(fReadInitModel);
+		return 0;
+	}
+	
+	while ((read = getline(&line, &len, fReadInitModel)) != -1) {
+		double aux_value;
+		rfscanf = sscanf(line,"%99[^:]:%lf%99[^!]!",name, &aux_value,comment);
+		if(strstr(name,"B")!=NULL){ // B
+			INIT_MODEL->B = aux_value;
+		}
+		if(strstr(name,"GM")!=NULL){ // GM
+			INIT_MODEL->gm = aux_value;
+		}
+		if(strstr(name,"AZI")!=NULL){ // AZI
+			INIT_MODEL->az = aux_value;
+		}
+		if(strstr(name,"ETHA0")!=NULL){ // ETHA0
+			INIT_MODEL->eta0 = aux_value;
+		}
+		if(strstr(name,"LAMBDADOPP")!=NULL){ // LAMBDADOPP
+			INIT_MODEL->dopp = aux_value;
+		}
+		if(strstr(name,"AA")!=NULL){ // AA
+			INIT_MODEL->aa = aux_value;
+		}
+		if(strstr(name,"ALFA")!=NULL){ // ALFA
+			INIT_MODEL->alfa = aux_value;
+		}
+		if(strstr(name,"MAC")!=NULL){ // MAC
+			INIT_MODEL->mac = aux_value;
+		}		
+		if(strstr(name,"VLOS")!=NULL){ // VLOS
+			INIT_MODEL->vlos = aux_value;
+		}
+		if(strstr(name,"S0")!=NULL){ // S0
+			INIT_MODEL->S0 = aux_value;
+		}
+		if(strstr(name,"S1")!=NULL){ // S1
+			INIT_MODEL->S1 = aux_value;
+		}				
+	}
+	fclose(fReadInitModel);
+
+
+	return 1;
+}
+
+
+/**
+ * 
+ * */
+int readPSFFile(PRECISION * deltaLambda, PRECISION * PSF, char * nameInputPSF){
+
+	// first of all read the number of lines to give size for arrays deltaLambda and PSF
+	FILE *fp;
+
+	// alloc memory 
+
+	char * line = NULL;
+	int rfscanf;
+	size_t len = 0;
+   ssize_t read;
+	fp=fopen(nameInputPSF,"r");
+	if(fp==NULL)
+	{
+	printf("File \"%s\" does not exist!!!\n",nameInputPSF);
+			return 0;
+	}	
+	int index =0;
+	while ((read = getline(&line, &len, fp)) != -1) {
+		double delta, psf;
+		rfscanf = sscanf(line,"%lf  %lf", &delta, &psf);
+		deltaLambda[index] = delta;
+		PSF[index] = psf;
+		index++;
+	}
+
+	fclose(fp);
+	return 1;
 }

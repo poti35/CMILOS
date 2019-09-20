@@ -1,0 +1,15 @@
+Number of Iterations                    :15                                                                                ! by default is 15 
+Use classic estimates and RTE           :1                                                                                 ! use classical estimates only
+Save synthesis profiles                 :0                                                                                 ! don't save synthesis profiles
+Path of spectro file                    :/home/mcabrera/SolarImages/fits_CRISP_sol_calma/2014.05.16_18_08_37_t000.fits     ! file with lambda vector
+Path of lambda file                     :/home/mcabrera/MILOS/utilsFits/lambda_12_bueno.fits                               ! file with lambda vector
+LINE file                               :/home/mcabrera/MILOS/initFiles/LINES_6173                                         ! file with atomic lines
+File with Init Model                    :/home/mcabrera/MILOS/initFiles/initModel.mod                                      ! File with init model for inversion
+Central lambda                          :6173.3356                                                                         ! Lambda central to use from file LINES 
+Path of output model file               :/home/mcabrera/MILOS/MODELOS/result_ce_secuencial_gaus.fits                          ! model result file
+Path of output synthesis file           :/home/mcabrera/MILOS/MODELOS/sintesis_secuencial.fits                             ! synthesis result file
+Indicate if use convolution             :1                                                                                 ! don't use convolution
+File with PSF                           :/home/mcabrera/MILOS/initFiles/sp.psf                                             ! Psf file, if not specify we will use Gauss samples
+FWHM                                    :0.076                                                                             ! don't use fwhm
+DELTA                                   :0.069                                                                             ! don't use delta
+Number of samples to create gaussian    :13                                                                                ! don't use samples

@@ -4,6 +4,9 @@
 #include "svdcordic.c"
 #include "svdcmp.h"
 #include "lib.h"
+#include <gsl/gsl_math.h>
+#include <gsl/gsl_spline.h>
+
 
 #define tiempo(ciclos) asm volatile("rdtsc \n\t" \
 												: "=A"(ciclos))
@@ -840,10 +843,10 @@ int lm_mils(Cuantic *cuantic, double *wlines, int nwlines, double *lambda, int n
 }
 
 
-void generateGaussianInstrumentalProfile(PRECISION * G, PRECISION  FWHM, PRECISION DELTA, int INSTRUMENTAL_CONVOLUTION_WITH_PSF, int NMUESTRAS_G){
+void generateGaussianInstrumentalProfile(PRECISION * G, PRECISION  FWHM, PRECISION DELTA, int NMUESTRAS_G){
 		G = vgauss(FWHM, NMUESTRAS_G, DELTA);
 
-		if (INSTRUMENTAL_CONVOLUTION_WITH_PSF)
+		/*if (INSTRUMENTAL_CONVOLUTION_WITH_PSF)
 		{
 			//if you wish to convolution with other instrumental profile you have to declare here and to asign it to "G"
 			free(G);
@@ -868,6 +871,38 @@ void generateGaussianInstrumentalProfile(PRECISION * G, PRECISION  FWHM, PRECISI
 			for (kk = 0; kk < NMUESTRAS_G; kk++)
 				G[kk] /= sum;
 		}
+		*/
 }
 
 
+
+/**
+ * Make the interpolation between deltaLambda and PSF where deltaLambda es x and PSF f(x)
+ *  Return the array with the interpolation. 
+ * */
+int interpolationPSF(PRECISION *deltaLambda, PRECISION * PSF, PRECISION * lambdasSamples, PRECISION centralLambda, size_t N_PSF, PRECISION * fInterpolated, size_t NSamples){
+
+	size_t i;
+	gsl_interp_accel *acc = gsl_interp_accel_alloc();
+  	gsl_spline *spline_cubic = gsl_spline_alloc(gsl_interp_cspline, N_PSF);
+	//gsl_spline *spline_akima = gsl_spline_alloc(gsl_interp_akima, NSamples);
+	//gsl_spline *spline_steffen = gsl_spline_alloc(gsl_interp_steffen, NSamples);
+
+	gsl_spline_init(spline_cubic, deltaLambda, PSF, N_PSF);
+	//gsl_spline_init(spline_akima, deltaLambda, PSF, N_PSF);
+	//gsl_spline_init(spline_steffen, deltaLambda, PSF, N_PSF);
+
+	for (i = 0; i < NSamples; ++i){
+   	PRECISION xi = lambdasSamples[i]-centralLambda;
+      fInterpolated[i] = gsl_spline_eval(spline_cubic, xi, acc);
+      //double yi_akima = gsl_spline_eval(spline_akima, xi, acc);
+      //double yi_steffen = gsl_spline_eval(spline_steffen, xi, acc);
+    }
+
+  gsl_spline_free(spline_cubic);
+  //gsl_spline_free(spline_akima);
+  //gsl_spline_free(spline_steffen);
+  gsl_interp_accel_free(acc);
+
+	return 1;
+}
