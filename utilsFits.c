@@ -1246,6 +1246,18 @@ int readFileCuanticLines(char * inputLineFile, PRECISION * cuanticDat, PRECISION
 	cuanticDat[4] = SUPI;
 	cuanticDat[5] = LUPI;
 	cuanticDat[6] = JUPI;
+
+	printf("\n***********************************");
+	printf("\n\n CUANTIC NUMBERS READ FROM FILE: ");
+	printf("\n********* SLOI: %fd",cuanticDat[1]);
+	printf("\n********* LLOI: %fd",cuanticDat[2]);
+	printf("\n********* JLOI: %fd",cuanticDat[3]);
+	printf("\n********* SUPI: %fd",cuanticDat[4]);
+	printf("\n********* LUPI: %fd",cuanticDat[5]);
+	printf("\n********* JUPI: %fd",cuanticDat[6]);
+	printf("\n***********************************");
+
+
 	
 }
 
