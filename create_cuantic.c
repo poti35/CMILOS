@@ -214,20 +214,6 @@ int Cuanten(Cuantic *cuantic, double sl, double ll, double jl, double su, double
 	cuantic->GEFF = geff;
 	cuantic->FO = fos;
 
-	/*printf("geff %f\n",geff);
-	printf("n_pi %d\n",n_pi);
-	printf("n_sig %d\n",n_sig);
-	printf("nub %f\n",msig1[0]);
-	printf("nur %f\n",msig2[0]);
-	printf("nup %f\n",mpi[0]);
-	
-	printf("web %f\n",sig1[0]);
-	printf("wer %f\n",sig2[0]);
-	printf("wep %f\n",pi[0]);
-
-	printf("GL %f\n",g1);
-	printf("GU %f\n",g2);*/
-
 	free(m1);
 	free(m2);
 

@@ -1,5 +1,17 @@
 #include "defines.h"
 #include "lib.h"
+#include <gsl/gsl_cblas.h>
+#include <gsl/gsl_math.h>
+#include <gsl/gsl_spline.h>
+#include <gsl/gsl_math.h>
+#include <gsl/gsl_eigen.h>
+#include <gsl/gsl_matrix.h>
+#include <gsl/gsl_blas.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+//#include <omp.h>
+//#include "mkl_cblas.h"
+
 
 /*
 
@@ -11,19 +23,19 @@ return
 
 */
 
-int covarm(PRECISION *w,PRECISION *sig,int nsig,PRECISION *spectro,int nspectro,PRECISION *spectra,PRECISION  *d_spectra,
+int covarm(PRECISION *w,PRECISION *sig,PRECISION *spectro,int nspectro,PRECISION *spectra,PRECISION  *d_spectra,
 		PRECISION *beta,PRECISION *alpha){
 
-	PRECISION *bt,*ap,*result,*trans;
-	//static PRECISION opa[NLAMBDA];
-	PRECISION *opa;
-	int j,i,k,bt_nf,bt_nc,aux_nf,aux_nc;
+	
+	
+	
+	int j,i,bt_nf,bt_nc,aux_nf,aux_nc;
 
 	static PRECISION AP[NTERMS*NTERMS*NPARMS],BT[NPARMS*NTERMS];
-
+	PRECISION opa[nspectro];
 	PRECISION *BTaux,*APaux;
-
-	opa = calloc(nspectro,sizeof(PRECISION));
+	//PRECISION *opa;
+	//opa = calloc(nspectro,sizeof(PRECISION));
 	
 	for(j=0;j<NPARMS;j++){
 		for(i=0;i<nspectro;i++){
@@ -36,15 +48,15 @@ int covarm(PRECISION *w,PRECISION *sig,int nsig,PRECISION *spectro,int nspectro,
 	
 		//
 		APaux=AP+(j*NTERMS*NTERMS);
-		multmatrix_transpose(d_spectra+j*nspectro*NTERMS,NTERMS,nspectro,d_spectra+j*nspectro*NTERMS,NTERMS,nspectro,
+		multmatrix_transpose_cblas(d_spectra+j*nspectro*NTERMS,NTERMS,nspectro,d_spectra+j*nspectro*NTERMS,NTERMS,nspectro,
 													APaux,&aux_nf,&aux_nc,w[j]/(sig[j]*sig[j]));//ap de tam NTERMS x NTERMS
 		 // multmatrix_transpose(d_spectra+j*nspectro*NTERMS,NTERMS,nspectro,d_spectra+j*nspectro*NTERMS,NTERMS,nspectro,
 													 // APaux,&aux_nf,&aux_nc,1);//ap de tam NTERMS x NTERMS													
 	}
 
-	free(opa);
+	//free(opa);
 	
-	totalParcialf(BT,NPARMS,NTERMS,2,beta); //beta de tam 1 x NTERMS
+	totalParcialf(BT,NPARMS,NTERMS,beta); //beta de tam 1 x NTERMS
 	totalParcialMatrixf(AP,NTERMS,NTERMS,NPARMS,alpha); //alpha de tam NTERMS x NTERMS
 	
 	return 1;
@@ -73,7 +85,6 @@ double fchisqr(PRECISION * spectra,int nspectro,PRECISION *spectro,PRECISION *w,
 	return TOT/nfree;
 	
 }
-
 
 
 double * leeVector(char *nombre,int tam)
@@ -267,13 +278,13 @@ double *totalParcial(double * A, int f,int c,int dire){
 	return result;
 }
 
-void totalParcialf(PRECISION * A, int f,int c,int dire,PRECISION * result){
+void totalParcialf(PRECISION * A, int f,int c,PRECISION * result){
 
 	int i,j;
 //	double 	sum;
 
 //	result=calloc(dire==1?f:c,sizeof(double));
-	int d;
+	
 	for(i=0;i<c;i++){
 		result[i]=0;
 		for(j=0;j<f;j++){
@@ -377,6 +388,34 @@ int multmatrix(PRECISION *a,int naf,int nac, PRECISION *b,int nbf,int nbc,PRECIS
 
 }
 
+
+/*
+	Multiplica la matriz a (tamaño naf,nac)
+	por la matriz b (de tamaño nbf,nbc)
+	al estilo multiplicación algebraica de matrices, es decir, columnas de a por filas de b,
+	el resultado se almacena en resultOut (de tamaño fil,col)
+
+	El tamaño de salida (fil,col) corresponde con (nbf,nac).
+
+	El tamaño de columnas de a, nac, debe de ser igual al de filas de b, nbf.
+*/
+
+int multmatrixCblas(PRECISION *a,int naf,int nac, PRECISION *b,int nbf,int nbc,PRECISION *result,int *fil,int *col){
+    
+    
+    
+    
+	if(nac==nbf){
+		(*fil)=naf;
+		(*col)=nbc;
+		cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,naf, nbc, nac, 1.0, a, nac, b, nbc, 0.0, result, nbc);
+		
+		return 1;
+	}
+	return 0;
+
+}
+
 int multmatrix2(double *a,int naf,int nac, PRECISION *b,int nbf,int nbc,double **result,int *fil,int *col){
     
     int i,j,k;
@@ -437,8 +476,6 @@ int multmatrix3(PRECISION *a,int naf,int nac,double *b,int nbf,int nbc,double **
 	return 0;
 }
 
-
-
 int multmatrix_transpose(PRECISION *a,int naf,int nac, PRECISION *b,int nbf,int nbc,PRECISION *result,int *fil,int *col,PRECISION value){
     
     int i,j,k;
@@ -464,6 +501,77 @@ int multmatrix_transpose(PRECISION *a,int naf,int nac, PRECISION *b,int nbf,int 
 	}
 
 	return 0;
+}
+
+/*int multmatrix_transpose_omp(PRECISION *a,int naf,int nac, PRECISION *b,int nbf,int nbc,PRECISION *result,int *fil,int *col,PRECISION value){
+    
+
+	
+	if(nac==nbc){
+		(*fil)=naf;
+		(*col)=nbf;
+		//PRECISION matrix_aux[nac*naf];
+		#pragma omp parallel
+		{
+			int i,j,k;
+			//PRECISION sum;
+			#pragma omp for 
+			for ( i = 0; i < naf; i++){
+				for ( j = 0; j < nbf; j++){
+					result[(*col)*i+j]=0;
+					for ( k = 0;  k < nbc; k++){
+						result[(*col)*i+j] += a[i*nac+k] * b[j*nbc+k];
+					}
+					result[(*col)*i+j]=result[(*col)*i+j]*value;
+				} 
+			}
+
+
+		}
+		return 1;
+	}else{
+		printf("\n \n Error en multmatrix_transpose no coinciden nac y nbc!!!! ..\n\n");
+	}
+
+	return 0;
+}
+*/
+
+/**
+ * Mul matrix using cblas from GSL
+ * 
+ * */
+int multmatrix_transpose_cblas(PRECISION *a,int naf,int nac, PRECISION *b,int nbf,int nbc,PRECISION *result,int *fil,int *col,PRECISION value){
+
+
+	
+	if(nac==nbc){
+		
+		(*fil)=naf;
+		(*col)=nbf;
+
+		/*gsl_matrix_view matrixA = gsl_matrix_view_array(a, naf, nac);
+   	gsl_matrix_view matrixB = gsl_matrix_view_array(b, nbf, nbc);
+   	gsl_matrix_view matrixC = gsl_matrix_view_array(result, naf, nbf);
+  		gsl_blas_dgemm (CblasNoTrans, CblasNoTrans, value , &matrixA.matrix, &matrixB.matrix, 0.0, &matrixC.matrix);*/
+		//cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,naf, nbc, nac, 1.0, a, nbc, b, nbc, value, result, nbc);
+		// as is ROW MAJOR AND NO TRANSPOSE THE MULTIPLICATION, THEN LDA = NAC , LDB = NBC and LDC = nbc
+		//#pragma omp parallel
+		{
+			cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasTrans,naf, nbf, nac, value, a, nac, a, nac, 0.0, result, naf);
+		}
+		
+		/*gsl_matrix_view matrixResult = gsl_matrix_view_array(result,nac,nbf);
+		*/
+
+		return 1;
+	}else{
+		printf("\n \n Error en multmatrix_transpose no coinciden naf %d nac %d y nbf %d nbc %d !!!! .. \n\n", naf, nac, nbf, nbc);
+	}
+
+	return 0;
+
+
 }
 
 int multmatrix_transposeD(double *a,int naf,int nac, double *b,int nbf,int nbc,double *result,int *fil,int *col){
@@ -496,7 +604,7 @@ int multmatrix_transposeD(double *a,int naf,int nac, double *b,int nbf,int nbc,d
 
 
 //Media de un vector de longitud numl
-double mean(double *dat, int numl){
+PRECISION mean(double *dat, int numl){
 	
 	double auxsum;
 	int i;
@@ -537,12 +645,32 @@ void reformarVector(PRECISION **spectro,int neje){
 /**
  * 
  */
-int CalculaNfree(PRECISION *spectro, int nspectro)
+int CalculaNfree(int nspectro)
 {
-	int nfree, i, j;
+	int nfree;
 	nfree = 0;
 
 	nfree = (nspectro * NPARMS) - NTERMS;
 
 	return nfree;
+}
+
+
+
+void printProgress (double percentage)
+{
+    //int val = (int) (percentage * 100);
+    //int lpad = (int) (percentage * PBWIDTH);
+    //int rpad = PBWIDTH - lpad;
+    //printf ("\r%3f%% [%.*s%*s]",  percentage, lpad, PBSTR, rpad, "");
+	 printf ("\r%3f %%",  percentage);
+    fflush (stdout);
+}
+
+
+int isDirectory(const char *path) {
+   struct stat statbuf;
+   if (stat(path, &statbuf) != 0)
+       return 0;
+   return S_ISDIR(statbuf.st_mode);
 }

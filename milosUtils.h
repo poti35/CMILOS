@@ -1,14 +1,17 @@
 #include "defines.h"
+#include <complex.h>
+#include <fftw3.h> //siempre a continuacion de complex.h
+#include <math.h>
 
 /**
  * 
  */
-void spectral_synthesis_convolution(int * nlambda, int * INSTRUMENTAL_CONVOLUTION, int * NMUESTRAS_G);
+void spectral_synthesis_convolution(int * nlambda);
 
 /**
  * 
  */
-void response_functions_convolution(int * nlambda, int * INSTRUMENTAL_CONVOLUTION, int * NMUESTRAS_G);
+void response_functions_convolution(int * nlambda);
 
 /**
  * 
@@ -31,7 +34,7 @@ int mil_svd(PRECISION *h, PRECISION *beta, PRECISION *delta);
 /**
  * 
  */
-void weights_init(int nlambda, double *sigma, PRECISION *weight, int nweight, PRECISION **wOut, PRECISION **sigOut, double noise);
+void weights_init(double *sigma, PRECISION **wOut, PRECISION **sigOut, double noise);
 
 /*
 *
@@ -52,7 +55,7 @@ void weights_init(int nlambda, double *sigma, PRECISION *weight, int nweight, PR
 * @Date:  Nov. 2011
 *
 */
-void estimacionesClasicas(PRECISION lambda_0, double *lambda, int nlambda, PRECISION *spectro, Init_Model *initModel);
+void estimacionesClasicas(PRECISION lambda_0, PRECISION *lambda, int nlambda, PRECISION *spectro, Init_Model *initModel);
 
 
 /*
@@ -63,20 +66,22 @@ void estimacionesClasicas(PRECISION lambda_0, double *lambda, int nlambda, PRECI
 			longitud nlambda
  * spectra : IQUV por filas, longitud ny=nlambda
  */
-int lm_mils(Cuantic *cuantic, double *wlines, int nwlines, double *lambda, int nlambda, PRECISION *spectro, int nspectro,
-				Init_Model *initModel, PRECISION *spectra, double *chisqrf, int *iterOut,
-				double slight, double toplim, int miter, PRECISION *weight, int nweight, int *fix,
-				PRECISION *sigma, double filter, double ilambda, double noise, double *pol,
-				double getshi, int triplete, int * INSTRUMENTAL_CONVOLUTION, int * NMUESTRAS_G);
+int lm_mils(Cuantic *cuantic, double *wlines, double *lambda, int nlambda, PRECISION *spectro, int nspectro,
+				Init_Model *initModel, PRECISION *spectra, double *chisqrf,
+				double * slight, double toplim, int miter, PRECISION *weight, int *fix,
+				PRECISION *sigma, double ilambda, int triplete, int * INSTRUMENTAL_CONVOLUTION);
 
 
-/**
- * Generate the guaussian from instrumental profile 
- */
-void generateGaussianInstrumentalProfile(PRECISION * G, PRECISION  FWHM, PRECISION DELTA, int NMUESTRAS_G);
 
 /**
  * Make the interpolation between deltaLambda and PSF where deltaLambda es x and PSF f(x)
  *  Return the array with the interpolation. 
  * */
-int interpolationPSF(PRECISION *deltaLambda, PRECISION * PSF, PRECISION * lambdasSamples, PRECISION centralLambda, size_t N_PSF, PRECISION * fInterpolated,  size_t NSamples);
+int interpolationSplinePSF(PRECISION *deltaLambda, PRECISION * PSF, PRECISION * lambdasSamples, PRECISION centralLambda, size_t N_PSF, PRECISION * fInterpolated, size_t NSamples);
+
+
+/**
+ * Make the interpolation between deltaLambda and PSF where deltaLambda es x and PSF f(x)
+ *  Return the array with the interpolation. 
+ * */
+int interpolationLinearPSF(PRECISION *deltaLambda, PRECISION * PSF, PRECISION * lambdasSamples, PRECISION centralLambda, size_t N_PSF, PRECISION * fInterpolated, size_t NSamples);

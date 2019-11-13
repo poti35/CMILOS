@@ -6,6 +6,7 @@
 #include <stddef.h>
 #include <locale.h>
 
+
 /**
  * image --> 	Pointer to store the image 
  * fitsFile --> name of file to read (included the path to the file)
@@ -16,11 +17,11 @@ vpixels * readImagePixels (char * fitsFile, int * numPixels){
    fitsfile *fptr;   /* FITS file pointer, defined in fitsio.h */
    int bitpix, naxis;
    long naxes[4] = {1,1,1,1}, fpixel[4] = {1,1,1,1};
-	char card[FLEN_CARD];   /* Standard string lengths defined in fitsio.h */
+	
    int status = 0;   /* CFITSIO status value MUST be initialized to zero! . Status 0 indicate that everything was fine. */
 	int contPixels, currentLambda;
 	int nLambda;
-	vpixels * image;
+	vpixels * image = NULL;
 	PRECISION * spectro;
 	PRECISION * vlambda;
 	
@@ -170,15 +171,15 @@ void freeVpixels(vpixels * image, int numPixels){
  * fitsFileSpectra --> name of the fits file to read 
  * Return the image read or NULL if something was wrong during the lecture. 
  */
-FitsImage *  readFitsSpectroImage (char * fitsFileSpectra){
+FitsImage *  readFitsSpectroImage (const char * fitsFileSpectra){
    fitsfile *fptr;   /* FITS file pointer, defined in fitsio.h */
 	FitsImage * image =  malloc(sizeof(FitsImage));
    int status = 0;   /* CFITSIO status value MUST be initialized to zero! */
-	PRECISION bscale = 1.0, bzero = 0.0, nulval = 0.; // define null value to 0 because the performance to read from fits file is better doing this. 
-   int bitpix, bytepix, naxis, anynul,first, numPixelsFitsFile;
+	PRECISION nulval = 0.; // define null value to 0 because the performance to read from fits file is better doing this. 
+   int bitpix, naxis, anynul, numPixelsFitsFile;
    long naxes [4] = {1,1,1,1}; /* The maximun number of dimension that we will read is 4*/
 	char comment[FLEN_CARD];   /* Standard string lengths defined in fitsio.h */
-	int ii,kk, hh;
+	
 	int i, j, k, h;
    // OPEN THE FITS FILE TO READ THE DEPTH OF EACH DIMENSION
    if (!fits_open_file(&fptr, fitsFileSpectra, READONLY, &status)){
@@ -229,7 +230,7 @@ FitsImage *  readFitsSpectroImage (char * fitsFileSpectra){
 			// READ IMAGE AND STORAGE IN STRUCTURE IMAGE 
 			if (!fits_get_img_param(fptr, 4, &bitpix, &naxis, naxes, &status) ){
 
-				int datatype = 0;
+				/*int datatype = 0;
 				switch(bitpix) {
               case BYTE_IMG:
                   datatype = TBYTE;
@@ -246,7 +247,7 @@ FitsImage *  readFitsSpectroImage (char * fitsFileSpectra){
               case DOUBLE_IMG:
                   datatype = TDOUBLE;
                   break;
-          	}
+          		}*/
 				image->rows=naxes[pos_row];
 				image->cols=naxes[pos_col];
 				image->nLambdas=naxes[pos_lambda];
@@ -257,18 +258,24 @@ FitsImage *  readFitsSpectroImage (char * fitsFileSpectra){
 				image->pos_row = pos_row;
 				image->pos_stokes_parameters = pos_stokes_parameters;
 				numPixelsFitsFile = naxes[pos_row]*naxes[pos_col]*naxes[pos_lambda]*naxes[pos_stokes_parameters];
-				printf("\n NÚMERO DE PIXELES EN LA IMAGEN %d", numPixelsFitsFile);
-				printf("\n**********************");
+				//printf("\n NÚMERO DE PIXELES EN LA IMAGEN %d", numPixelsFitsFile);
+				//printf("\n**********************");
 				// allocate memory to read all pixels in the same array 
-				float * imageTemp = calloc(numPixelsFitsFile, sizeof(float));
+				PRECISION * imageTemp = calloc(numPixelsFitsFile, sizeof(PRECISION));
 				if (!imageTemp)  {
 					printf("ERROR ALLOCATION MEMORY FOR TEMP IMAGE");
 					return NULL;
           	}
-				first = 1;
-				//fits_read_img(fptr, datatype, first, numPixelsFitsFile, &nulval, imageTemp, &anynul, &status);
+				
+				
 				long fpixel [4] = {1,1,1,1}; 
-				fits_read_pix(fptr, datatype, fpixel, numPixelsFitsFile, &nulval, imageTemp, &anynul, &status);
+				//double time2ReadPixels;
+				//clock_t t;
+				//t = clock();
+				fits_read_pix(fptr, TDOUBLE, fpixel, numPixelsFitsFile, &nulval, imageTemp, &anynul, &status);
+				//t = clock() - t;
+				//time2ReadPixels = ((double)t)/CLOCKS_PER_SEC; // in seconds 
+				//printf("\n TIME TO READ PIXELS:  %f seconds to execute \n", time2ReadPixels);				
 				if(status){
 					fits_report_error(stderr, status);
                return NULL;	
@@ -278,8 +285,8 @@ FitsImage *  readFitsSpectroImage (char * fitsFileSpectra){
 				image->pixels = calloc(image->numPixels, sizeof(vpixels));
 				image->vLambdaImagen = calloc(image->numPixels*image->nLambdas, sizeof(PRECISION));
 				image->spectroImagen = calloc(image->numPixels*image->nLambdas*image->numStokes, sizeof(PRECISION));
-				printf("\n Número de pixeles: %d", image->numPixels);
-				printf("\n ***********************************************");
+				//printf("\n Número de pixeles: %d", image->numPixels);
+				//printf("\n ***********************************************");
 				for( i=0;i<image->numPixels;i++){
 					image->pixels[i].spectro = calloc ((image->numStokes*image->nLambdas),sizeof(PRECISION));
 					image->pixels[i].vLambda = calloc (image->nLambdas, sizeof(PRECISION));
@@ -297,7 +304,7 @@ FitsImage *  readFitsSpectroImage (char * fitsFileSpectra){
 //						for( fpixel[2] = 1; fpixel[2]<=naxes[2];fpixel[2]++){
 //							for( fpixel[1] = 1; fpixel[1]<=naxes[1];fpixel[1]++){
 //								for( fpixel[0] = 1; fpixel[0]<=naxes[0]; fpixel[0]++){	
-									float pixel = 0.0;
+									PRECISION pixel = 0.0;
 									//fits_read_pix(fptr, datatype, fpixel, 1, &nulval, &pixel, &anynul, &status);
 									// I NEED TO KNOW THE CURRENT POSITION OF EACH ITERATOR 
 									switch (pos_lambda)
@@ -394,8 +401,8 @@ FitsImage *  readFitsSpectroImage (char * fitsFileSpectra){
 						image->spectroImagen[contSpectro++] = image->pixels[i].spectro[j];
 					}
 				}
-				printf("\n IMAGEN LEIDA size spectro %d ", contSpectro);
-				printf("**********");
+				/*printf("\n IMAGEN LEIDA size spectro %d ", contSpectro);
+				printf("**********");*/
 				free(imageTemp);
 				fits_close_file(fptr, &status);
 				if (status){
@@ -425,19 +432,19 @@ FitsImage *  readFitsSpectroImage (char * fitsFileSpectra){
  * Return 1 If the image has been read corectly if not return 0 
  */
 
-int  readFitsLambdaFile (char * fitsFileLambda, FitsImage * fitsImage){
+int  readFitsLambdaFile (const char * fitsFileLambda, FitsImage * fitsImage){
 	int i, j, k;
 	fitsfile *fptr;   /* FITS file pointer, defined in fitsio.h */
 	int status = 0;   /* CFITSIO status value MUST be initialized to zero! */
-	PRECISION bscale = 1.0, bzero = 0.0, nulval = 0.; // define null value to 0 because the performance to read from fits file is better doing this. 
-	int bitpix, bytepix, naxis, anynul,first, numPixelsFitsFile;
+	PRECISION  nulval = 0.; // define null value to 0 because the performance to read from fits file is better doing this. 
+	int bitpix, naxis, anynul;
 	long naxes [4] = {1,1,1,1}; /* The maximun number of dimension that we will read is 4*/
-	char comment[FLEN_CARD];   /* Standard string lengths defined in fitsio.h */
-	printf("\n READING IMAGE WITH LAMBDA ");
-	printf("\n**********");
+	
+	/*printf("\n READING IMAGE WITH LAMBDA ");
+	printf("\n**********");*/
 	if (!fits_open_file(&fptr, fitsFileLambda, READONLY, &status)){
 		if (!fits_get_img_param(fptr, 4, &bitpix, &naxis, naxes, &status) ){
-			int datatype = 0;
+			/*int datatype = 0;
 			switch(bitpix) {
 				case BYTE_IMG:
 					datatype = TBYTE;
@@ -454,7 +461,7 @@ int  readFitsLambdaFile (char * fitsFileLambda, FitsImage * fitsImage){
 				case DOUBLE_IMG:
 					datatype = TDOUBLE;
 					break;
-			}
+			}*/
 
 			if(naxis!=1  || naxis!=3){
 				if(naxis == 1){ // array of lambads 
@@ -466,12 +473,12 @@ int  readFitsLambdaFile (char * fitsFileLambda, FitsImage * fitsImage){
 					PRECISION  * vAuxLambdas = calloc(naxes[0], sizeof(PRECISION));
 					long fpixel [1] = {1};
 					fits_read_pix(fptr, TDOUBLE, fpixel, naxes[0], &nulval, vAuxLambdas, &anynul, &status) ;
-					printf("\n*********************");
 					if(status){
 						fits_report_error(stderr, status);
 						return 0;	
 					}
 					int contLambda = 0;
+
 					for( i=0;i<fitsImage->numPixels;i++){
 						for( j=0;j<naxes[0];j++){
 							fitsImage->pixels[i].vLambda[j]=vAuxLambdas[j];
@@ -489,7 +496,7 @@ int  readFitsLambdaFile (char * fitsFileLambda, FitsImage * fitsImage){
 					// WE ASSUME THAT DATA COMES IN THE FORMAT ROW x COL x LAMBDA
 					int numLambdas2Read = naxes[0]*naxes[1]*naxes[2];
 					PRECISION  * vAuxLambdas = calloc(numLambdas2Read, sizeof(PRECISION));
-					first = 1;
+					
 					//fits_read_img(fptr, datatype, first, numLambdas2Read, &nulval, vAuxLambdas, &anynul, &status);
 					long fpixel [3] = {1,1,1};
 					fits_read_pix(fptr, TDOUBLE, fpixel, naxes[0]*naxes[1]*naxes[2], &nulval, vAuxLambdas, &anynul, &status);
@@ -535,14 +542,105 @@ int  readFitsLambdaFile (char * fitsFileLambda, FitsImage * fitsImage){
 		freeFitsImage(fitsImage);
 		return 0;
 	}
-	printf("\n LAMBDA IMAGE READ");
-	printf("\n**********");
+	/*printf("\n LAMBDA IMAGE READ");
+	printf("\n**********");*/
 
 	return 1;
 
 }
 
+PRECISION * readFitsStrayLightFile (const char * fitsFileStrayLight, int * dimStrayLight, int numLambda, int numRows, int numCols){
+	
+	fitsfile *fptr;   /* FITS file pointer, defined in fitsio.h */
+	int status = 0;   /* CFITSIO status value MUST be initialized to zero! */
+	PRECISION nulval = 0.; // define null value to 0 because the performance to read from fits file is better doing this. 
+	int bitpix, naxis, anynul;
+	long naxes [4] = {1,1,1,1}; /* The maximun number of dimension that we will read is 4*/
+	
+	PRECISION * vStrayLight = NULL;
+	/*printf("\n READING IMAGE WITH LAMBDA ");
+	printf("\n**********");*/
+	if (!fits_open_file(&fptr, fitsFileStrayLight, READONLY, &status)){
+		if (!fits_get_img_param(fptr, 4, &bitpix, &naxis, naxes, &status) ){
+			/*int datatype = 0;
+			switch(bitpix) {
+				case BYTE_IMG:
+					datatype = TBYTE;
+					break;
+				case SHORT_IMG:
+					datatype = TSHORT;
+					break;
+				case LONG_IMG:
+					datatype = TINT;
+					break;
+				case FLOAT_IMG:
+					datatype = TFLOAT;
+					break;
+				case DOUBLE_IMG:
+					datatype = TDOUBLE;
+					break;
+			}*/
 
+			if(naxis!=1  || naxis!=3){
+				
+				if(naxis == 1){ // array of lambads 
+					if(naxes[0]!=numLambda){ // image of stray light has different si
+						printf("\n DIM OF STRAYLIGHT HAS DIFFERENT SIZE OF SPECTRO. NUMBER OF LAMBDAS IN SPECTRA IMAGE %d NUMBER OF DIM IN STRAY LIGHT FILE  %ld ", numLambda ,naxes[0]);
+						return NULL;
+					}
+					*dimStrayLight = naxes[0];
+					vStrayLight = calloc(*dimStrayLight, sizeof(PRECISION));
+					long fpixel [1] = {1};
+					fits_read_pix(fptr, TDOUBLE, fpixel, *dimStrayLight, &nulval, vStrayLight, &anynul, &status) ;
+					if(status){
+						fits_report_error(stderr, status);
+						return NULL;	
+					}								
+				}
+				else if(naxis == 3){  // matrix of lambdas  
+					if( naxes[0]!= numRows || naxes[1]!= numCols || naxes[2]!=numLambda){ // stray light has different size of spectra image 
+						printf("\n STRAY LIGHT FILE HAS DIFFERENT SIZE OF SPECTRA IMAGE. SIZE SPECTRA %d X %d X %d. STRAY LIGHT SIZE %ld X %ld X %ld", numRows, numCols , numLambda, naxes[0], naxes[1], naxes[2]);
+						return NULL;
+					}
+					// READ ALL FILE IN ONLY ONE ARRAY 
+					// WE ASSUME THAT DATA COMES IN THE FORMAT ROW x COL x LAMBDA
+					*dimStrayLight = naxes[0]*naxes[1]*naxes[2];
+					vStrayLight = calloc(*dimStrayLight, sizeof(PRECISION));
+					long fpixel [3] = {1,1,1};
+					fits_read_pix(fptr, TDOUBLE, fpixel, *dimStrayLight, &nulval, vStrayLight, &anynul, &status);
+					if(status){
+						fits_report_error(stderr, status);
+						return NULL;	
+					}
+				}
+			}
+			else{
+				printf("\n NAXIS FROM STRAY LIGHT FILE IS NOT VALID %d ** \n", naxis);
+				return 0;
+			}
+			// CLOSE FILE FITS LAMBDAS
+			fits_close_file(fptr, &status);
+			if (status){
+				fits_report_error(stderr, status);
+				return  NULL;
+			}
+		}
+		else {
+			printf("\n WE CAN NOT OPEN FILE OF STRAY LIGHT ** \n");
+			if (status) fits_report_error(stderr, status); /* print any error message */
+			return NULL;
+		}
+	}
+	else {
+		printf("\n WE CAN NOT READ PARAMETERS FROM THE FILE  ** \n");
+		if (status) fits_report_error(stderr, status); /* print any error message */
+		return NULL;
+	}
+	printf("\n STRAY LIGHT FILE READ");
+	printf("\n**********");
+
+	return vStrayLight;
+}
 
 
 void freeFitsImage(FitsImage * image){
@@ -558,17 +656,32 @@ void freeFitsImage(FitsImage * image){
 }
 
 
-
-int writeFitsImageModels(char * fitsFile, int numRows, int numCols, Init_Model * vInitModel, double * vChisqrf){
+/**
+ * 
+ * fixed = array with positions to write in the file, Positions are in the following order: 
+ * [Eta0,Strength,Vlos,Lambdadopp,Damp,Gamma,Azimuth,S0,S1,Macro,Alpha]
+ * */
+int writeFitsImageModels(const char * fitsFile, int numRows, int numCols, Init_Model * vInitModel, double * vChisqrf, int * fixed, int addChiqr){
 
 	fitsfile *fptr;       /* pointer to the FITS file, defined in fitsio.h */
-   int status, ii, jj;
+   int status;
 	int i, j, h; // indexes for loops
-   long  fpixel, nelements, exposure;
+   long  fpixel, exposure;
+	int indexModel = 0, sizeToCheck = NUMBER_PARAM_MODELS;
+
 
 	int bitpix =  DOUBLE_IMG; 
-   long naxis =   3;  /* 2-dimensional image                            */    
-   long naxes[3] = { numRows, numCols, NUMBER_PARAM_MODELS };   /* Image of numRows X numCols x 10 parameters of model and chisqrf */
+   long naxis =   3;  /* 2-dimensional image */    
+	long naxes[3] = { numRows, numCols, 0 };   /* Image of numRows X numCols x 10 parameters of model and chisqrf */
+
+	for( i=0;i<NUMBER_PARAM_MODELS;i++){
+		if(fixed[i]) naxes[2]++;
+	}
+	if(addChiqr){
+		naxes[2]++;
+		sizeToCheck++;
+	}
+   
 
    remove(fitsFile);               /* Delete old file if it already exists */
    status = 0;         /* initialize status before calling fitsio routines */
@@ -585,52 +698,64 @@ int writeFitsImageModels(char * fitsFile, int numRows, int numCols, Init_Model *
 		return 0;
 	}
 
-	double * vModel = calloc(numRows * numCols * NUMBER_PARAM_MODELS, sizeof(double));
+	double * vModel = calloc(naxes[0] * naxes[1] * naxes[2], sizeof(double));
 
-	int indexModel = 0;
-	for( i=0;i<NUMBER_PARAM_MODELS;i++){
-		for( j=0;j<numCols;j++){
-			for( h=0; h<numRows;h++){
-				switch (i)
-				{
-				case 0:
-					vModel[indexModel++] = vInitModel[( j*numCols) + h].B;
-					break;
-				case 1:
-					vModel[indexModel++] = vInitModel[( j*numCols) + h].gm;
-					break;
-				case 2:
-					vModel[indexModel++] = vInitModel[( j*numCols) + h].az;
-					break;
-				case 3:
-					vModel[indexModel++] = vInitModel[( j*numCols) + h].eta0;
-					break;
-				case 4:
-					vModel[indexModel++] = vInitModel[( j*numCols) + h].dopp;
-					break;
-				case 5:
-					vModel[indexModel++] = vInitModel[( j*numCols) + h].aa;
-					break;					
-				case 6:
-					vModel[indexModel++] = vInitModel[( j*numCols) + h].vlos;
-					break;					
-				case 7:
-					vModel[indexModel++] = vInitModel[( j*numCols) + h].alfa;
-					break;					
-				case 8:
-					vModel[indexModel++] = vInitModel[( j*numCols) + h].S0;
-					break;					
-				case 9:
-					vModel[indexModel++] = vInitModel[( j*numCols) + h].S1;
-					break;					
-				case 10: // READ FROM CHISQR
-					vModel[indexModel++] = vChisqrf[( j*numCols) + h];
-					break;					
-				default:
-					break;
+	for( i=0;i<sizeToCheck;i++){
+		if(i<NUMBER_PARAM_MODELS){
+			if(fixed[i]){
+				for( j=0;j<naxes[0];j++){
+					for( h=0; h<naxes[1];h++){
+						//[Eta0,Strength,Vlos,Lambdadopp,Damp,Gamma,Azimuth,S0,S1,Macro,Alpha]
+						switch (i)
+						{
+						case 0:
+							vModel[indexModel++] = vInitModel[( j*naxes[1]) + h].eta0;
+							break;
+						case 1:
+							vModel[indexModel++] = vInitModel[( j*naxes[1]) + h].B;
+							break;
+						case 2:
+							vModel[indexModel++] = vInitModel[( j*naxes[1]) + h].vlos;
+							break;
+						case 3:
+							vModel[indexModel++] = vInitModel[( j*naxes[1]) + h].dopp;
+							break;
+						case 4:
+							vModel[indexModel++] = vInitModel[( j*naxes[1]) + h].aa;
+							break;
+						case 5:
+							vModel[indexModel++] = vInitModel[( j*naxes[1]) + h].gm;
+							break;					
+						case 6:
+							vModel[indexModel++] = vInitModel[( j*naxes[1]) + h].az;
+							break;					
+						case 7:
+							vModel[indexModel++] = vInitModel[( j*naxes[1]) + h].S0;
+							break;					
+						case 8:
+							vModel[indexModel++] = vInitModel[( j*naxes[1]) + h].S1;
+							break;					
+						case 9:
+							vModel[indexModel++] = vInitModel[( j*naxes[1]) + h].mac;
+							break;					
+						case 10:
+							vModel[indexModel++] = vInitModel[( j*naxes[1]) + h].alfa;
+							break;
+						default:
+							break;
+						}
+					}
 				}
 			}
 		}
+		else{  // add chisqr 
+			for( j=0;j<naxes[0];j++){
+				for( h=0; h<naxes[1];h++){		
+					vModel[indexModel++] = vChisqrf[( j*naxes[1]) + h];
+				}
+			}
+		}
+
 	}
 
    fpixel = 1;                               /* first pixel to write      */
@@ -665,13 +790,14 @@ int writeFitsImageModels(char * fitsFile, int numRows, int numCols, Init_Model *
 }
 
 
-int writeFitsImageProfiles(char * fitsProfileFile, char * fitsFileOrigin, FitsImage * image){
+
+int writeFitsImageProfiles(const char * fitsProfileFile, const char * fitsFileOrigin, FitsImage * image){
 
 	fitsfile *infptr, *outfptr;   /* FITS file pointers defined in fitsio.h */
-	int status = 0, tstatus, ii = 1, iteration = 0, single = 0, hdupos;
+	int status = 0, ii = 1;
 	int i, j, k, h; // indexes for loops
-	int hdutype, bitpix, bytepix, naxis = 0, nkeys, datatype = 0, anynul;
-	long naxes [4] = {1,1,1,1}, fpixel[4] = {1,1,1,1}; /* The maximun number of dimension that we will read is 4*/
+	int bitpix,naxis = 0, nkeys;
+	long naxes [4] = {1,1,1,1}; /* The maximun number of dimension that we will read is 4*/
 	char card[FLEN_CARD];
 	char keyname [FLEN_CARD];
 	char value [FLEN_CARD];
@@ -709,37 +835,18 @@ int writeFitsImageProfiles(char * fitsProfileFile, char * fitsFileOrigin, FitsIm
 		return 0;
 	}
 
-
-	switch(bitpix) {
-	case BYTE_IMG:
-		datatype = TBYTE;
-		break;
-	case SHORT_IMG:
-		datatype = TSHORT;
-		break;
-	case LONG_IMG:
-		datatype = TINT;
-		break;
-	case FLOAT_IMG:
-		datatype = TFLOAT;
-		break;
-	case DOUBLE_IMG:
-		datatype = TDOUBLE;
-		break;
-	}
-
 	// ALLOCATE MEMORY TO WRITE THE IMAGE
 	int numElemWrite = naxes[3]*naxes[2]*naxes[1]*naxes[0];
 
-	float * outputImage = calloc(numElemWrite, sizeof(float));
-	int currentLambda = 0, currentRow = 0, currentStokeParameter=0, currentCol = 0, currentPixel;
+	double * outputImage = calloc(numElemWrite, sizeof(double));
+	int currentLambda = 0, currentRow = 0, currentStokeParameter=0, currentCol = 0;
 	 
 	int pos_lambda = image->pos_lambda;
 	int pos_col = image->pos_col;
 	int pos_row = image->pos_row;
 	int pos_stokes_parameters = image->pos_stokes_parameters;
 	
-	int numiter = 0;	
+		
 	for( i=0; i <naxes[3]; i++){
 		for( j=0;j <naxes[2]; j++){
 			for( k=0; k<naxes[1]; k++){
@@ -752,77 +859,77 @@ int writeFitsImageProfiles(char * fitsProfileFile, char * fitsFileOrigin, FitsIm
 					switch (pos_lambda)
 					{
 						case 0:
-							//currentLambda = h;
-							currentLambda = fpixel[0]-1;
+							currentLambda = h;
+							//currentLambda = fpixel[0]-1;
 							break;
 						case 1:
-							//currentLambda = k;
-							currentLambda = fpixel[1]-1;
+							currentLambda = k;
+							//currentLambda = fpixel[1]-1;
 							break;
 						case 2:
-							//currentLambda = j;
-							currentLambda = fpixel[2]-1;
+							currentLambda = j;
+							//currentLambda = fpixel[2]-1;
 							break;
 						case 3:
-							//currentLambda = i;
-							currentLambda = fpixel[3]-1;
+							currentLambda = i;
+							//currentLambda = fpixel[3]-1;
 							break;																						
 					}
 					switch (pos_stokes_parameters)
 					{
 						case 0:
-							//currentStokeParameter = h;
-							currentStokeParameter = fpixel[0]-1;
+							currentStokeParameter = h;
+							//currentStokeParameter = fpixel[0]-1;
 							break;
 						case 1:
-							//currentStokeParameter = k;
-							currentStokeParameter = fpixel[1]-1;
+							currentStokeParameter = k;
+							//currentStokeParameter = fpixel[1]-1;
 							break;
 						case 2:
-							//currentStokeParameter = j;
-							currentStokeParameter = fpixel[2]-1;
+							currentStokeParameter = j;
+							//currentStokeParameter = fpixel[2]-1;
 							break;
 						case 3:
-							//currentStokeParameter = i;
-							currentStokeParameter = fpixel[3]-1;
+							currentStokeParameter = i;
+							//currentStokeParameter = fpixel[3]-1;
 							break;																						
 					}
 					switch (pos_row)
 					{
 						case 0:
-							//currentRow = h;
-							currentRow = fpixel[0]-1;
+							currentRow = h;
+							//currentRow = fpixel[0]-1;
 							break;
 						case 1:
-							//currentRow = k;
-							currentRow = fpixel[1]-1;
+							currentRow = k;
+							//currentRow = fpixel[1]-1;
 							break;
 						case 2:
-							//currentRow = j;
-							currentRow = fpixel[2]-1;
+							currentRow = j;
+							//currentRow = fpixel[2]-1;
 							break;
 						case 3:
-							//currentRow = i;
-							currentRow = fpixel[3]-1;
+							currentRow = i;
+							//currentRow = fpixel[3]-1;
 							break;																						
 					}
 					switch (pos_col)
 					{
 						case 0:
-							//currentCol = h;
-							currentCol = fpixel[0]-1;
+							currentCol = h;
+							//currentCol = fpixel[0]-1;
 							break;
 						case 1:
-							//currentCol = k;
-							currentCol = fpixel[1]-1;;
+							currentCol = k;
+							//currentCol = fpixel[1]-1;;
 							break;
 						case 2:
-							//currentCol = j;
-							currentCol = fpixel[2]-1;
+							currentCol = j;
+							//currentCol = fpixel[2]-1;
 							break;
 						case 3:
-							//currentCol = i;
-							currentCol = fpixel[3]-1;
+							currentCol = i;
+							//currentCol = fpixel[3]-1;
 							break;																						
 					}
 					//double pixel = image->pixels[(currentRow*image->cols) + currentCol].spectro[currentLambda+(image->nLambdas * currentStokeParameter)];
@@ -835,7 +942,7 @@ int writeFitsImageProfiles(char * fitsProfileFile, char * fitsFileOrigin, FitsIm
 	}
 
     /* write the array of unsigned integers to the FITS file */
-	if ( fits_write_img(outfptr, datatype, 1, numElemWrite, outputImage, &status) ){
+	if ( fits_write_img(outfptr, TDOUBLE, 1, numElemWrite, outputImage, &status) ){
 		printerror( status );
 		free(outputImage);
 		return 0;
@@ -853,7 +960,7 @@ int writeFitsImageProfiles(char * fitsProfileFile, char * fitsFileOrigin, FitsIm
 int writeFitsImageModelsWithArray(char * fitsFile, int numRows, int numCols, double * eta0, double * B, double * vlos, double * dopp, double * aa, double * gm, double * az, double * S0, double * S1, double * mac, double * alfa, double * vChisqrf){
 
 	fitsfile *fptr;       /* pointer to the FITS file, defined in fitsio.h */
-   int status, ii, jj;
+   int status;
 	int i, j, h; // indexes for loops
    long  fpixel, nelements, exposure;
 
@@ -914,7 +1021,10 @@ int writeFitsImageModelsWithArray(char * fitsFile, int numRows, int numCols, dou
 				case 9:
 					vModel[indexModel++] = S1[( j*numRows) + h];
 					break;					
-				case 10: // READ FROM CHISQR
+				case 10:
+					vModel[indexModel++] = mac[( j*numRows) + h];
+					break;										
+				case 11: // READ FROM CHISQR
 					vModel[indexModel++] = vChisqrf[( j*numRows) + h];
 					break;					
 				default:
@@ -971,12 +1081,12 @@ void printerror( int status)
 }
 
 
-int readParametersFileInput(char * fileParameters, int * maxIter, int * clasicalEstimate, int * printSintesis, char * nameInputFileSpectra, char * nameInputFileLambda,char * nameInputFileLines, char * nameInputFileInitModel,  PRECISION *  centralLambda, char *nameOutputFileModels, char * nameOutputFileProfiles, int * useConvolution, char * nameInputFilePSF, PRECISION * FWHM, PRECISION * DELTA, int * NMUESTRAS_G){
+int readParametersFileInput(char * fileParameters, int * maxIter, int * clasicalEstimate, int * printSintesis, char * nameInputFileSpectra, char * nameInputFileLambda,char * nameInputFileLines, char * nameInputFileInitModel,  PRECISION *  centralLambda, char *nameOutputFileModels, char * nameOutputFileProfiles, int * useConvolution, char * nameInputFilePSF, PRECISION * FWHM, int * KIND_CONVOLUTION){
 
 	// try open the file with the 
 	FILE * fReadParameters;
 	char LINE [4096], * returnLine;
-	char comment[200], name[100], name2[100];
+	char comment[200], name[100];
 	fReadParameters = fopen(fileParameters, "r");
 	if (fReadParameters == NULL)
 	{
@@ -1075,7 +1185,7 @@ int readParametersFileInput(char * fileParameters, int * maxIter, int * clasical
 	if(returnLine == NULL) return 0;						
 	rfscanf = sscanf(LINE,"%99[^:]:%lf%99[^!]!",name, centralLambda,comment);
 	if(rfscanf ==0 || rfscanf == EOF){
-		printf("Error reading the file of parameters, param DELTA. Please verify it. \n");
+		printf("Error reading the file of parameters, param Central Lambda. Please verify it. \n");
 		printf("\n ******* THIS IS THE NAME OF THE FILE RECEVIED : %s \n", fileParameters);
 		return 0;		
 	}
@@ -1133,225 +1243,17 @@ int readParametersFileInput(char * fileParameters, int * maxIter, int * clasical
 			printf("\n ******* THIS IS THE NAME OF THE FILE RECEVIED : %s \n", fileParameters);
 			return 0;		
 		}
-		// READ DELTA
+
+		// READ if use Convolution
 		returnLine = fgets(LINE,4096,fReadParameters);
-		if(returnLine == NULL) return 0;						
-		rfscanf = sscanf(LINE,"%99[^:]:%lf%99[^!]!",name, DELTA,comment);
+		if(returnLine == NULL) return 0;				
+		rfscanf = sscanf(LINE,"%99[^:]:%i%99[^!]!", name, KIND_CONVOLUTION,comment);
 		if(rfscanf ==0 || rfscanf == EOF){
-			printf("Error reading the file of parameters, param DELTA. Please verify it. \n");
+			printf("Error reading the file of parameters, param KIND OF CONVOLUTION . Please verify it. \n");
 			printf("\n ******* THIS IS THE NAME OF THE FILE RECEVIED : %s \n", fileParameters);
 			return 0;		
-		}
-		// READ NMUESTRASG
-		returnLine = fgets(LINE,4096,fReadParameters);
-		if(returnLine == NULL) return 0;						
-		rfscanf = sscanf(LINE,"%99[^:]:%i[^!]%s", name, NMUESTRAS_G,comment);
-		if(rfscanf ==0 || rfscanf == EOF){
-			printf("Error reading the file of parameters, param NMUESTRAS_G. Please verify it. \n");
-			printf("\n ******* THIS IS THE NAME OF THE FILE RECEVIED : %s \n", fileParameters);
-			return 0;		
-		}		
-	}
-	return 1;
-
-}
-
-/**
- * 
- * 
- * 
- * */
-int readFileCuanticLines(char * inputLineFile, PRECISION * cuanticDat, PRECISION centralLambda){
-	// try open the file with the 
-	FILE * fp;
-	char * line = NULL;
-
-   size_t len = 0;
-   ssize_t read;
-	char atomo [2];
-	fp = fopen(inputLineFile, "r");
-   if (fp == NULL)
-   	return 0;
-
-	int indexLine, ionicState;
-	double damping, potentialExcitation, logGf;
-	PRECISION lambdaLine;
-	int SLOI, SUPI;
-	PRECISION LLOI,JLOI,LUPI,JUPI;
-	char levelD,levelU;
-	while ((read = getline(&line, &len, fp)) != -1) {
-		sscanf(line,"%i=%s %i %lf %lf %lf -%lf %i%c %lf- %i%c %lf",&indexLine,atomo,&ionicState,&lambdaLine,&damping,&potentialExcitation,&logGf,&SLOI,&levelD,&JLOI,&SUPI,&levelU,&JUPI);
-		if(lambdaLine==centralLambda){ // read the rest of the line, else read next line
-			switch (levelD)
-			{
-			case 'S':
-				LLOI = 0;
-				break;
-			case 'P':
-				LLOI = 1;
-				break;
-			case 'D':
-				LLOI = 2;
-				break;				
-			case 'F':
-				LLOI = 3;
-				break;
-			case 'G':
-				LLOI = 4;
-				break;				
-			case 'H':
-				LLOI = 5;
-				break;
-			case 'J':
-				LLOI = 6;
-				break;
-			default:
-				break;
-			}
-			switch (levelU)
-			{
-			case 'S':
-				LUPI = 0;
-				break;
-			case 'P':
-				LUPI = 1;
-				break;
-			case 'D':
-				LUPI = 2;
-				break;				
-			case 'F':
-				LUPI = 3;
-				break;
-			case 'G':
-				LUPI = 4;
-				break;				
-			case 'H':
-				LUPI = 5;
-				break;
-			case 'J':
-				LUPI = 6;
-				break;
-			default:
-				break;
-			}
-			if(SLOI==5) SLOI=2;
-			if(SUPI==5) SUPI=2;
-
-		}
-   }
-	cuanticDat[0] =1 ; // LINE NUMBER 1
-	cuanticDat[1] = SLOI;
-	cuanticDat[2] = LLOI;
-	cuanticDat[3] = JLOI;
-	cuanticDat[4] = SUPI;
-	cuanticDat[5] = LUPI;
-	cuanticDat[6] = JUPI;
-
-	printf("\n***********************************");
-	printf("\n\n CUANTIC NUMBERS READ FROM FILE: ");
-	printf("\n********* SLOI: %fd",cuanticDat[1]);
-	printf("\n********* LLOI: %fd",cuanticDat[2]);
-	printf("\n********* JLOI: %fd",cuanticDat[3]);
-	printf("\n********* SUPI: %fd",cuanticDat[4]);
-	printf("\n********* LUPI: %fd",cuanticDat[5]);
-	printf("\n********* JUPI: %fd",cuanticDat[6]);
-	printf("\n***********************************");
-
-
-	
-}
-
-
-int readInitialModel(Init_Model * INIT_MODEL, char * fileInitModel){
-	
-	FILE * fReadInitModel;
-	char * line = NULL;
-	size_t len = 0;
-   ssize_t read;
-	char comment[200], name[100];
-	int rfscanf;
-	fReadInitModel = fopen(fileInitModel, "r");
-	if (fReadInitModel == NULL)
-	{
-		printf("Error opening the file of parameters, it's possible that the file doesn't exist. Please verify it. \n");
-		printf("\n ******* THIS IS THE NAME OF THE FILE RECEVIED : %s \n", fileInitModel);
-		fclose(fReadInitModel);
-		return 0;
-	}
-	
-	while ((read = getline(&line, &len, fReadInitModel)) != -1) {
-		double aux_value;
-		rfscanf = sscanf(line,"%99[^:]:%lf%99[^!]!",name, &aux_value,comment);
-		if(strstr(name,"B")!=NULL){ // B
-			INIT_MODEL->B = aux_value;
-		}
-		if(strstr(name,"GM")!=NULL){ // GM
-			INIT_MODEL->gm = aux_value;
-		}
-		if(strstr(name,"AZI")!=NULL){ // AZI
-			INIT_MODEL->az = aux_value;
-		}
-		if(strstr(name,"ETHA0")!=NULL){ // ETHA0
-			INIT_MODEL->eta0 = aux_value;
-		}
-		if(strstr(name,"LAMBDADOPP")!=NULL){ // LAMBDADOPP
-			INIT_MODEL->dopp = aux_value;
-		}
-		if(strstr(name,"AA")!=NULL){ // AA
-			INIT_MODEL->aa = aux_value;
-		}
-		if(strstr(name,"ALFA")!=NULL){ // ALFA
-			INIT_MODEL->alfa = aux_value;
-		}
-		if(strstr(name,"MAC")!=NULL){ // MAC
-			INIT_MODEL->mac = aux_value;
-		}		
-		if(strstr(name,"VLOS")!=NULL){ // VLOS
-			INIT_MODEL->vlos = aux_value;
-		}
-		if(strstr(name,"S0")!=NULL){ // S0
-			INIT_MODEL->S0 = aux_value;
-		}
-		if(strstr(name,"S1")!=NULL){ // S1
-			INIT_MODEL->S1 = aux_value;
 		}				
 	}
-	fclose(fReadInitModel);
-
-
 	return 1;
-}
 
-
-/**
- * 
- * */
-int readPSFFile(PRECISION * deltaLambda, PRECISION * PSF, char * nameInputPSF){
-
-	// first of all read the number of lines to give size for arrays deltaLambda and PSF
-	FILE *fp;
-
-	// alloc memory 
-
-	char * line = NULL;
-	int rfscanf;
-	size_t len = 0;
-   ssize_t read;
-	fp=fopen(nameInputPSF,"r");
-	if(fp==NULL)
-	{
-	printf("File \"%s\" does not exist!!!\n",nameInputPSF);
-			return 0;
-	}	
-	int index =0;
-	while ((read = getline(&line, &len, fp)) != -1) {
-		double delta, psf;
-		rfscanf = sscanf(line,"%lf  %lf", &delta, &psf);
-		deltaLambda[index] = delta;
-		PSF[index] = psf;
-		index++;
-	}
-
-	fclose(fp);
-	return 1;
 }

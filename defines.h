@@ -9,6 +9,7 @@
 //#include <stdio.h>
 
 
+
 #ifndef DEFINES_H_
 #define DEFINES_H_
 
@@ -19,40 +20,6 @@
 // USER CONFIGURATION
 
 //#define CENTRAL_WL   6173.341000 //6173.341000 (oficial requ.) //6173.3500// 341000  // // 6173.335600 //6173.335400
-
-//#include "SVD_configuration.h"
-// #include "SVD_configuration_svdcordic18_norm_Nolimit.h"
-// #include "SVD_configuration_svdcordic27.h"
-//#include "SVD_configuration_svdcordic36.h"
- #include "SVD_configuration_svdcmp.h"
-// #include "SVD_configuration_svdcordic18.h"
-// #include "SVD_configuration_svdcordic9.h"
-
-// #include "SVD_configuration_svdcordic18_norm_limit28.h"
-
-
-
-//INITIAL MODEL A
-/*#define INITIAL_MODEL_B 1200
-#define INITIAL_MODEL_GM 170
-#define INITIAL_MODEL_AZI 25
-#define INITIAL_MODEL_ETHA0 14
-#define INITIAL_MODEL_LAMBDADOPP 0.07  //en A
-#define INITIAL_MODEL_AA 0.05
-#define INITIAL_MODEL_VLOS 0.05 // Km/s
-#define INITIAL_MODEL_S0 0.25
-#define INITIAL_MODEL_S1 0.75*/
-
-//INITIAL MODEL B
-// #define INITIAL_MODEL_B 1200
-// #define INITIAL_MODEL_GM 170
-// #define INITIAL_MODEL_AZI 20
-// #define INITIAL_MODEL_ETHA0 12
-// #define INITIAL_MODEL_LAMBDADOPP 0.03  //en A
-// #define INITIAL_MODEL_AA 1.2
-// #define INITIAL_MODEL_VLOS 0.05 // Km/s
-// #define INITIAL_MODEL_S0 0.35
-// #define INITIAL_MODEL_S1 0.85
 
 
 //NumeroS cuanticos
@@ -70,9 +37,24 @@
 #define CLASSICAL_ESTIMATES_SAMPLE_REF 4 //Muestra referencia para cambio de cuadrante de azimuth. Depende del numero de muestras y posicion Continuo
 
 
-#define NTERMS 10  //ojo si es mayor q 10 casca el svdCordic (esta version)
+#define NTERMS 11  //ojo si es mayor q 10 casca el svdCordic (esta version)
 
-//#define	PRECISION double //double or float
+//##############################################
+//SVD CONFIGURATION
+#define USE_SVDCMP 1    //1 for using SVDCMP and 0 for using SVD_CORDIC  -->  Note: the SVDCMP doesn't work in float! only double
+
+#define NORMALIZATION_SVD 0 //1 for using normalization matrixes ONLY  in the SVD_CORDIC
+
+#define NUM_ITER_SVD_CORDIC 36 //9,18,27,36  --> 18 parece ok!
+
+#define LIMITE_INFERIOR_PRECISION_SVD pow(2.0,-54)
+#define LIMITE_INFERIOR_PRECISION_TRIG pow(2.0,-54)
+#define LIMITE_INFERIOR_PRECISION_SINCOS pow(2.0,-54)
+#define PRECISION double //double or float
+
+//#############################################
+
+
 
 // END USER CONFIGURATION
 //---------------------------------------------------------
@@ -84,8 +66,8 @@
 
 #define PI 	3.14159265358979323846264338327950288419716939937510
  		 	
-#define ILAMBDA 10
-#define TOPLIM 0.000000000001
+#define ILAMBDA 0.1
+#define TOPLIM 1e-12 
 #define SLIGHT 0
 #define NOISE 1e-10 //0.001
 
@@ -156,17 +138,16 @@ void FreeMemoryDerivedSynthesis();
 
 Cuantic * create_cuantic(double * dat);
 
-int me_der(Cuantic *cuantic,Init_Model *initModel,double * wlines,int nwlines,double *lambda,int nlambda,
-			PRECISION *d_spectraOut,double ah,double slight,int triplete,int filter);
+int me_der(Cuantic *cuantic,Init_Model *initModel,double * wlines,double *lambda,int nlambda,
+			PRECISION *d_spectraOut,PRECISION *spectra,double ah,double * slight,int triplete,int calcSpectra,int filter);
 
-int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,double * wlines,int nwlines,double *lambda,int nlambda,PRECISION *spectra,
-			double ah,int triplete,int filter);
+int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,double * wlines,double *lambda,int nlambda,PRECISION *spectra,
+			double ah,int triplete,double * slight,PRECISION * spectra_mc, int filter);
 			
 
 double * fgauss(double MC, double * eje,int neje,double landa,int deriv);
+double * fgauss_WL(double FWHM, double step_between_lw, double lambda0, double lambdaCentral, int nLambda, int * sizeG);
 
-double _Complex * fft_d(double * spectra, int nspectra,int direc);
-double _Complex * fft_c(double _Complex * spectra, int nspectra,int direc);
 
 
 int Guarda(char * nombre,PRECISION *v,int nv);
@@ -174,8 +155,8 @@ int GuardaC(char * nombre,double _Complex *v,int nv,int a);
 
 int fvoigt(PRECISION damp,PRECISION *vv,int nvv,PRECISION *h, PRECISION *f);
 
-void direct_convolution(PRECISION * x, int nx,PRECISION * h, int nh,PRECISION delta);
-PRECISION * vgauss(PRECISION fwhm,int nmuestras_G,PRECISION delta);
+//PRECISION * vgauss(PRECISION fwhm,int nmuestras_G,PRECISION delta);
+
 
 /******************* DEFINITIONS FOR READ FITS FILE *********************/
 
@@ -251,6 +232,126 @@ typedef struct FITS_IMAGE FitsImage;
 
 #define PATH_MAX 4096
 
+struct CONFIG_CONTROL{
 
+	int NumberOfCycles;
+	const char * ObservedProfiles;
+	const char * StrayLightFile;
+	const char * PSFFile;
+	const char * WavelengthFile;
+	const char * AtomicParametersFile;
+	const char * InitialGuessModel;
+	PRECISION WeightForStokesI;
+	PRECISION WeightForStokesQ;
+	PRECISION WeightForStokesU;
+	PRECISION WeightForStokesV;
+	PRECISION WeightForStokes[4];
+	int InvertMacroturbulence;
+	int InvertFillingFactor;
+	int InvertStrayLightFactor;
+	double mu;
+	int EstimatedSNForI;
+	int ContinuumContrast;
+	double ToleranceForSVD;
+	double InitialDiagonalElement;
+	int useInterpolarSplinesOrLinear; // 0 splines , 1 linear 
+	int ConvolveWithPSF;
+	double FWHM;
+	const char * TypeConvolution;
+	double GasPressureAtSurface1;
+	double GasPressureAtSurface2;
+	double MagneticPressureTerm;
+	int ntl;
+	int nliobs;
+	double CentralWaveLenght;
+	//INIT_MODEL=[eta0,magnet,vlos,landadopp,aa,gamma,azi,B1,B2,macro,alfa]
+	int fix[11]; // eta0, B , vlos, dopp, aa, gm , az, S0, S1, mac, alpha
+	int saveChisqr;
+	double toplim; // Optional minimum relative difference between two succesive merit-function values
+	double sigma [4];
+	double noise;
+	int UseClassicalEstimates;
+	int UseRTEInversion;
+	int SaveSynthesisProfile;	
+	const char * OutputModelFile;
+	const char * OutputSynthesisFile;
+};
+
+typedef struct CONFIG_CONTROL ConfigControl;
+
+// CONSTANTS TO COMPARE DATA FOR READ FROM CONFIGURATION FILE 
+#define NUMBER_OF_CYCLES "NumberOfCycles"
+#define OBSERVED_PROFILES "ObservedProfiles"
+#define STRAY_LIGHT_FILE "StrayLightFile"
+#define PSF_FILE "PSFFile"
+#define WAVE_LENGHT_FILE "WavelengthFile"
+#define ATOMIC_PARAMETERS_FILE "AtomicParametersFile"
+#define INITIAL_GUESS_MODEL "InitialGuessModel"
+#define WEIGHT_FOR_STOKESI  "WeightForStokesI"
+#define WEIGHT_FOR_STOKESQ  "WeightForStokesQ"
+#define WEIGHT_FOR_STOKESU  "WeightForStokesU"
+#define WEIGHT_FOR_STOKESV  "WeightForStokesV"
+#define INVERT_MACROTURBULENCE "InvertMacroturbulence"
+#define INVERT_FILLING_FACTOR "InvertFillingFactor"
+#define INVERT_STRAY_LIGHT_FACTOR "InvertStrayLightFactor"
+#define MU "mu"
+#define ESTIMATEDSNFORI "EstimatedSNForI"
+#define CONTINUUM_CONTRAST "ContinuumContrast"
+#define TOLERANCE_FOR_SVD "ToleranceForSVD"
+#define INITIAL_DIAGONAL_ELEMENT "InitialDiagonalElement"
+#define USE_INTERPOLAR_SPLINES_OR_LINEAR "UseInterpolarSplinesOrLinear"
+#define CONVOLVE_WITH_PSF "ConvolveWithPSF"
+#define FWHM_FILE "FWHM"
+#define TYPE_CONVOLUTION "TypeConvolution"
+#define GAS_PRESSURE_AT_SURFACE_1 "GasPressureAtSurface1" 
+#define GAS_PRESSURE_AT_SURFACE_2 "GasPressureAtSurface2" 
+#define MAGNETIC_PRESSURE_TERM "MagneticPressureTerm"
+#define NTL "ntl"
+#define NLIOBS "nliobs"
+#define CENTRAL_WAVE_LENGHT "CentralWaveLenght"
+#define ETA0_LINE_TO_CONTINUUM_ABSORPTION "ETA0_LineToContiniuumAbsorption"
+#define B_MAGNETIC_FIELD_STRENGTH "B_MagneticFieldStrength"
+#define VLOS_LINE_OF_SIGHT_VELOCITY "VLOS_LineOfSightVelocity"
+#define DOPP_DOOPLER_WIDTH "DOPP_DooplerWidth"
+#define AA_DAMPING_PARAMETER "AA_DampingParameter"
+#define GM_MAGNETIC_FIELD_INCLINATION "GM_MagneticFieldInclination"
+#define AZ_MAGNETIC_FIELD_AZIMUTH "AZ_MagneticFieldAzimuth"
+#define S0_SOURCE_FUNCTION_CONSTANT "S0_SourceFunctionConstant"
+#define S1_SOURCE_FUNCTION_GRADIENT "S1_SourceFunctionGradient"
+#define MAC_MACROTURBULENT_VELOCITY "MAC_MacroturbulentVelocity"
+#define ALPHA_FILLING_FACTOR "ALPHA_FillingFactor"
+#define SAVE_CHISQR "SaveChisqr"
+#define USE_CLASSICAL_ESTIMATES "UseClassicalEstimates"
+#define USE_RTE_INVERSION "UseRTEInversion"
+#define SAVE_SYNTHESIS_PROFILE "SaveSynthesisProfile"
+#define OUTPUT_MODEL_FILE "OutputModelFile"
+#define OUTPUT_SYNTHESIS_FILE "OutputSynthesisFile"
+#define SIGMA_FILE "sigma"
+#define NOISE_FILE "noise"
+#define TOPLIM_FILE "toplim" 
+
+// values for init guess model 
+
+#define INITIAL_MODEL_ETHA0 "INITIAL_MODEL_ETHA0"
+#define INITIAL_MODEL_B "INITIAL_MODEL_B"
+#define INITIAL_MODEL_VLOS "INITIAL_MODEL_VLOS"
+#define INITIAL_MODEL_LAMBDADOPP "INITIAL_MODEL_LAMBDADOPP"
+#define INITIAL_MODEL_AA "INITIAL_MODEL_AA"
+#define INITIAL_MODEL_GM "INITIAL_MODEL_GM"
+#define INITIAL_MODEL_AZI "INITIAL_MODEL_AZI"
+#define INITIAL_MODEL_S0 "INITIAL_MODEL_S0"
+#define INITIAL_MODEL_S1 "INITIAL_MODEL_S1"
+#define INITIAL_MODEL_MAC "INITIAL_MODEL_MAC"
+#define INITIAL_MODEL_ALFA "INITIAL_MODEL_ALFA"
+
+
+// TYPES OF CONVOLUTION 
+
+#define CONVOLUTION_FFT "FFT"
+#define CONVOLUTION_DIRECT "DIRECT"
+
+// PERCENTAGE OF ITERATION
+#define PBSTR "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"
+#define PBWIDTH 60
 
 #endif /*DEFINES_H_*/

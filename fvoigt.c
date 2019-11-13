@@ -16,12 +16,12 @@ int fvoigt(PRECISION damp, PRECISION *vv, int nvv, PRECISION *h, PRECISION *f)
 									348.703917719495792, 170.354001821091472, 53.992906912940207,
 									10.479857114260399, 1.};
 
-	//static _Complex PRECISION z[NLAMBDA],zden[NLAMBDA],zdiv[NLAMBDA];
-	_Complex PRECISION *z, *zden, *zdiv;
+	_Complex PRECISION z[nvv],zden[nvv],zdiv[nvv];
+	/*_Complex PRECISION *z, *zden, *zdiv;
 
-	z = calloc(nvv, sizeof(_Complex PRECISION));
-	zden = calloc(nvv, sizeof(_Complex PRECISION));
-	zdiv = calloc(nvv, sizeof(_Complex PRECISION));
+	z = malloc (nvv * sizeof(_Complex PRECISION));
+	zden = malloc (nvv * sizeof(_Complex PRECISION));
+	zdiv = malloc (nvv * sizeof(_Complex PRECISION));*/
 
 	for (i = 0; i < nvv; i++)
 	{
@@ -64,8 +64,8 @@ int fvoigt(PRECISION damp, PRECISION *vv, int nvv, PRECISION *h, PRECISION *f)
 		z[i] = zden[i] / zdiv[i];
 	}
 
-	free(zden);
-	free(zdiv);
+	//free(zden);
+	//free(zdiv);
 
 	//	h=calloc(nvv,sizeof(PRECISION));
 	//	f=calloc(nvv,sizeof(PRECISION));
@@ -80,7 +80,7 @@ int fvoigt(PRECISION damp, PRECISION *vv, int nvv, PRECISION *h, PRECISION *f)
 		f[i] = vv[i] >= 0 ? (PRECISION)cimag(z[i]) * 0.5 : (PRECISION)cimag(z[i]) * -0.5;
 	}
 
-	free(z);
+	//free(z);
 
 	return 1;
 }

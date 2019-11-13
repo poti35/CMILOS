@@ -1,4 +1,3 @@
-
 #include "defines.h"
 #include <stdarg.h>
 
@@ -13,7 +12,7 @@ extern PRECISION *dgp1, *dgp2, *dgp3, *dgp4, *dgp5, *dgp6, *d_dt;
 extern PRECISION *d_ei, *d_eq, *d_eu, *d_ev, *d_rq, *d_ru, *d_rv;
 extern PRECISION *dfi, *dshi;
 extern PRECISION *fi_p, *fi_b, *fi_r, *shi_p, *shi_b, *shi_r;
-extern PRECISION *spectra, *d_spectra;
+extern PRECISION *spectra, *d_spectra,*spectra_mac;
 extern PRECISION *etain, *etaqn, *etaun, *etavn, *rhoqn, *rhoun, *rhovn;
 extern PRECISION *etai, *etaq, *etau, *etav, *rhoq, *rhou, *rhov;
 extern PRECISION *parcial1, *parcial2, *parcial3;
@@ -42,7 +41,6 @@ void DeleteSpectraCalculation()
 	for (i = 0; i < POSW_PUNTERO_CALCULOS_COMPARTIDOS; i++)
 	{
 		free(PUNTEROS_CALCULOS_COMPARTIDOS[i]);
-		//		printf("AAAAAAAAAAAAAA\n");
 	}
 
 	ResetPointerShareCalculation();
@@ -112,6 +110,7 @@ void AllocateMemoryDerivedSynthesis(int numl)
 {
 
 	spectra = calloc(numl * NPARMS, sizeof(PRECISION));
+	spectra_mac = calloc(numl * NPARMS, sizeof(PRECISION));
 	d_spectra = calloc(numl * NTERMS * NPARMS, sizeof(PRECISION));
 
 	gp4_gp2_rhoq = calloc(numl, sizeof(PRECISION));
@@ -234,6 +233,7 @@ void FreeMemoryDerivedSynthesis()
 	free(dshi);
 
 	free(spectra);
+	free(spectra_mac);
 	free(d_spectra);
 
 	free(fi_p);
