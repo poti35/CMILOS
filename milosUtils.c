@@ -629,12 +629,15 @@ int lm_mils(Cuantic *cuantic, double *wlines, double *lambda, int nlambda, PRECI
 	PRECISION chisqr_mem;
 	
 	
-	mil_sinrf(cuantic, initModel, wlines, lambda, nlambda, spectra, AH, triplete,NULL,spectra_mac, 0);
-	me_der(cuantic, initModel, wlines, lambda, nlambda, d_spectra, spectra_mac, AH, slight, triplete,0,0);
+	/*mil_sinrf(cuantic, initModel, wlines, lambda, nlambda, spectra, AH, triplete,NULL,spectra_mac, 0);
+	me_der(cuantic, initModel, wlines, lambda, nlambda, d_spectra, spectra_mac, AH, slight, triplete,0,0);*/
+
+	mil_sinrf(cuantic, initModel, wlines, lambda, nlambda, spectra, AH, triplete,NULL,spectra_mac, *INSTRUMENTAL_CONVOLUTION);
+	me_der(cuantic, initModel, wlines, lambda, nlambda, d_spectra, spectra_mac, AH, slight, triplete,0,*INSTRUMENTAL_CONVOLUTION);	
 
 	//convolucionamos los perfiles IQUV (spectra) y convolucionamos las funciones respuesta ( d_spectra )
-	//if(initModel->mac==0 && *INSTRUMENTAL_CONVOLUTION){
-	if(*INSTRUMENTAL_CONVOLUTION){
+	if(initModel->mac==0 && *INSTRUMENTAL_CONVOLUTION){
+	//if(*INSTRUMENTAL_CONVOLUTION){
 		spectral_synthesis_convolution(&nlambda);
 		response_functions_convolution(&nlambda);
 	}
@@ -721,15 +724,16 @@ int lm_mils(Cuantic *cuantic, double *wlines, double *lambda, int nlambda, PRECI
 		//printf("\n MODELO INICIAL FUNCIONES RESPUESTA: %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf\n",model.eta0,model.B,model.vlos,model.dopp,model.aa,model.gm,model.az,model.S0,model.S1,model.mac,model.alfa);
 
 
-		mil_sinrf(cuantic, &model, wlines, lambda, nlambda, spectra, AH, triplete,NULL,spectra_mac,0);
+		//mil_sinrf(cuantic, &model, wlines, lambda, nlambda, spectra, AH, triplete,NULL,spectra_mac,0);
+		mil_sinrf(cuantic, &model, wlines, lambda, nlambda, spectra, AH, triplete,NULL,spectra_mac,*INSTRUMENTAL_CONVOLUTION);
 		/*printf("\n valores de spectro sintetizado con MIL_SINRF sin aplicar PSF %d\n", iter);
 		for (int kk = 0; kk < nlambda; kk++)
 		{
 			printf("1\t%f\t%le\t%le\t%le\t%le\n", lambda[kk], spectra[kk], spectra[kk + nlambda], spectra[kk + nlambda * 2], spectra[kk + nlambda * 3]);
 		}
 			*/	
-		//if(model.mac<=0.0001 && *INSTRUMENTAL_CONVOLUTION){
-		if(*INSTRUMENTAL_CONVOLUTION){			
+		if(model.mac<=0.0001 && *INSTRUMENTAL_CONVOLUTION){
+		//if(*INSTRUMENTAL_CONVOLUTION){			
 			spectral_synthesis_convolution(&nlambda);
 		}
 		/*printf("\n valores de spectro sintetizado con MIL_SINRF en la iteracion %d\n", iter);
@@ -764,11 +768,12 @@ int lm_mils(Cuantic *cuantic, double *wlines, double *lambda, int nlambda, PRECI
 			//printf("iteration=%d , chisqr = %f CONVERGE	- ilambda= %e \n",iter,chisqr,flambda);
 
 
-			me_der(cuantic, initModel, wlines, lambda, nlambda, d_spectra, spectra_mac, AH, slight, triplete,0,0);
+			//me_der(cuantic, initModel, wlines, lambda, nlambda, d_spectra, spectra_mac, AH, slight, triplete,0,0);
+			me_der(cuantic, initModel, wlines, lambda, nlambda, d_spectra, spectra_mac, AH, slight, triplete,0,*INSTRUMENTAL_CONVOLUTION);
 
 			//convolucionamos las funciones respuesta ( d_spectra )
-			//if(initModel->mac<=0.0001 && *INSTRUMENTAL_CONVOLUTION){
-			if(*INSTRUMENTAL_CONVOLUTION){
+			if(initModel->mac<=0.0001 && *INSTRUMENTAL_CONVOLUTION){
+			//if(*INSTRUMENTAL_CONVOLUTION){
 				response_functions_convolution(&nlambda);
 			}
 

@@ -56,6 +56,9 @@ extern fftw_complex * inFilterMAC, * inFilterMAC_DERIV, * outFilterMAC, * outFil
 extern fftw_plan planForwardMAC, planBackwardMAC;
 extern fftw_plan planFilterMAC, planFilterMAC_DERIV;
 
+extern fftw_complex * fftw_G_PSF, * fftw_G_MAC_PSF, * fftw_G_MAC_DERIV_PSF;
+extern fftw_complex * inPSF_MAC, * inMulMacPSF, * inPSF_MAC_DERIV, *inMulMacPSFDeriv, *outConvFilters, * outConvFiltersDeriv;
+extern fftw_plan planForwardPSF_MAC, planForwardPSF_MAC_DERIV,planBackwardPSF_MAC, planBackwardPSF_MAC_DERIV;
 
 int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,double * wlines,double *lambda,int nlambda,PRECISION *spectra,
 			double ah,int triplete,double * slight, PRECISION * spectra_mc, int filter)
@@ -342,12 +345,24 @@ int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,double * wlines,double *lam
     	//convolucion del espectro original
 
 		int i;
-		for(i=0;i<numln;i++){
-			if(filter){  // if there is PSF filter multiply gaussian to convolve both 
-				
-				inFilterMAC[i] = (gMac[i] * G[i]) + 0 * _Complex_I;
+		if(filter){// if there is PSF filter convolve both gaussian and use the result as the signal to convolve
+			for(i=0;i<numln;i++){ // copy gmac to
+				inPSF_MAC[i] = (gMac[i]) + 0 * _Complex_I;
 			}
-			else{
+			fftw_execute(planForwardPSF_MAC);
+			for(i=0;i<numln;i++){ // multiply both fft gaussians
+				inMulMacPSF[i] = fftw_G_PSF[i] * (fftw_G_MAC_PSF[i]/numln);
+			}
+			fftw_execute(planBackwardPSF_MAC);
+			for(i=0,ishift=numln/2;i<numln/2;i++,ishift++){
+				inFilterMAC[ishift]= outConvFilters[i]*numln;
+			}
+			for(i=numln/2,ishift=0;i<numln;i++,ishift++){
+				inFilterMAC[ishift]= outConvFilters[i]*numln;
+			}
+		}
+		else{
+			for(i=0;i<numln;i++){
 				inFilterMAC[i] = gMac[i] + 0 * _Complex_I;
 			}
 		}
@@ -387,10 +402,6 @@ int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,double * wlines,double *lam
 	return 1;
 }
 
-
-/*
- * 
- */
 
 int funcionComponentFor_sinrf(PRECISION *u,int n_pi,int numl,double *wex,PRECISION *nuxB,PRECISION *fi_x,
 												PRECISION *shi_x,PRECISION A,PRECISION MF)

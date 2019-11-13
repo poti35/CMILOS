@@ -56,6 +56,10 @@ extern fftw_complex * inFilterMAC, * inFilterMAC_DERIV, * outFilterMAC, * outFil
 extern fftw_plan planForwardMAC, planBackwardMAC;
 extern fftw_plan planFilterMAC, planFilterMAC_DERIV;
 
+extern fftw_complex * fftw_G_PSF, * fftw_G_MAC_PSF, * fftw_G_MAC_DERIV_PSF;
+extern fftw_complex * inPSF_MAC, * inMulMacPSF, * inPSF_MAC_DERIV, *inMulMacPSFDeriv, *outConvFilters, * outConvFiltersDeriv;
+extern fftw_plan planForwardPSF_MAC, planForwardPSF_MAC_DERIV,planBackwardPSF_MAC, planBackwardPSF_MAC_DERIV;
+
 int me_der(Cuantic *cuantic,Init_Model *initModel,double * wlines,double *lambda,int nlambda,
 			PRECISION *d_spectra,PRECISION *spectra,double ah,double * slight,int triplete,int calcSpectra, int filter)
 {
@@ -552,12 +556,40 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,double * wlines,double *lambda
 				inFilterMAC_DERIV[i] = (g1[i] / MC * ((((lambda[i] - centro) / ild) * ((lambda[i] - centro) / ild)) - 1.0)) + 0 * _Complex_I;
 			}
 		}
+		if(filter){// if there is PSF filter convolve both gaussian and use the result as the signal to convolve
+			for(i=0;i<numln;i++){ // copy gmac to
+				inPSF_MAC[i] = (g1[i]) + 0 * _Complex_I;
+				inPSF_MAC_DERIV[i] = (g1[i] / MC * ((((lambda[i] - centro) / ild) * ((lambda[i] - centro) / ild)) - 1.0)) + 0 * _Complex_I;
+			}
+			fftw_execute(planForwardPSF_MAC);
+			fftw_execute(planForwardPSF_MAC_DERIV);
+			for(i=0;i<numln;i++){ // multiply both fft gaussians
+				inMulMacPSF[i] = fftw_G_PSF[i] * (fftw_G_MAC_PSF[i]/numln);
+				inMulMacPSFDeriv[i] = fftw_G_PSF[i] * (fftw_G_MAC_DERIV_PSF[i]/numln);
+			}
+			fftw_execute(planBackwardPSF_MAC);
+			fftw_execute(planBackwardPSF_MAC_DERIV);
+			for(i=0,ishift=numln/2;i<numln/2;i++,ishift++){
+				inFilterMAC[ishift]= outConvFilters[i]*numln;
+				inFilterMAC_DERIV[ishift]= outConvFiltersDeriv[i]*numln;
+			}
+			for(i=numln/2,ishift=0;i<numln;i++,ishift++){
+				inFilterMAC[ishift]= outConvFilters[i]*numln;
+				inFilterMAC_DERIV[ishift]= outConvFiltersDeriv[i]*numln;
+			}			
+		}
+		else{
+			for(i=0;i<numln;i++){
+				inFilterMAC[i] = g1[i] + 0 * _Complex_I;
+				//inFilterMAC_DERIV[i] = g2[i]  + 0 * _Complex_I;
+				inFilterMAC_DERIV[i] = (g1[i] / MC * ((((lambda[i] - centro) / ild) * ((lambda[i] - centro) / ild)) - 1.0)) + 0 * _Complex_I;
+			}
+		}
+		fftw_execute(planFilterMAC);
+
+
 		fftw_execute(planFilterMAC);
 		fftw_execute(planFilterMAC_DERIV);
-		/*for(i=0;i<numln;i++){
-			outFilterMAC[i] = outFilterMAC[i]/numln;
-			outFilterMAC_DERIV[i] = outFilterMAC_DERIV[i] / numln;
-		}*/
 		
     	for(il=0;il<4;il++){
     		//if(fabs(mean(spectra+numl*il,numl)) >= 1.e-25){

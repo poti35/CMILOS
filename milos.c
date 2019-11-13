@@ -79,7 +79,11 @@ fftw_plan planForwardPSF, planBackwardPSF;
 fftw_plan planForwardMAC, planBackwardMAC;
 fftw_complex * inFilterMAC, * inFilterMAC_DERIV, * outFilterMAC, * outFilterMAC_DERIV;
 fftw_plan planFilterMAC, planFilterMAC_DERIV;
-fftw_complex * fftw_G_PSF, * fftw_GMAC_PSF;
+
+
+fftw_complex * fftw_G_PSF, * fftw_G_MAC_PSF, * fftw_G_MAC_DERIV_PSF;
+fftw_complex * inPSF_MAC, * inMulMacPSF, * inPSF_MAC_DERIV, *inMulMacPSFDeriv, *outConvFilters, * outConvFiltersDeriv;
+fftw_plan planForwardPSF_MAC, planForwardPSF_MAC_DERIV,planBackwardPSF_MAC, planBackwardPSF_MAC_DERIV;
 
 
 //Convolutions values
@@ -271,7 +275,6 @@ int main(int argc, char **argv)
 			outSpectraBwPSF = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);		
 			planBackwardPSF = fftw_plan_dft_1d(numln, inSpectraBwPSF, outSpectraBwPSF, FFT_BACKWARD, FFTW_EXHAUSTIVE);
 
-
 			fftw_complex * in = (fftw_complex *)fftw_malloc(sizeof(fftw_complex) * numln);
 			int i;
 			for (i = 0; i < numln; i++)
@@ -288,6 +291,20 @@ int main(int argc, char **argv)
 			fftw_destroy_plan(p);
 			fftw_free(in);
 			
+			inPSF_MAC = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
+			fftw_G_MAC_PSF = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
+			planForwardPSF_MAC = fftw_plan_dft_1d(numln, inPSF_MAC, fftw_G_MAC_PSF, FFT_FORWARD, FFTW_EXHAUSTIVE);
+			inMulMacPSF = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
+			outConvFilters = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
+			planBackwardPSF_MAC = fftw_plan_dft_1d(numln, inMulMacPSF, outConvFilters, FFT_BACKWARD, FFTW_EXHAUSTIVE);
+
+
+			inPSF_MAC_DERIV = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
+			fftw_G_MAC_DERIV_PSF = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
+			planForwardPSF_MAC_DERIV = fftw_plan_dft_1d(numln, inPSF_MAC_DERIV, fftw_G_MAC_DERIV_PSF, FFT_FORWARD, FFTW_EXHAUSTIVE);
+			inMulMacPSFDeriv = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
+			outConvFiltersDeriv = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
+			planBackwardPSF_MAC_DERIV = fftw_plan_dft_1d(numln, inMulMacPSFDeriv, outConvFiltersDeriv, FFT_BACKWARD, FFTW_EXHAUSTIVE);			
 
 			
 		}		
