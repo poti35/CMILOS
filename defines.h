@@ -36,7 +36,6 @@
 
 #define CLASSICAL_ESTIMATES_SAMPLE_REF 4 //Muestra referencia para cambio de cuadrante de azimuth. Depende del numero de muestras y posicion Continuo
 
-
 #define NTERMS 11  //ojo si es mayor q 10 casca el svdCordic (esta version)
 
 //##############################################
@@ -89,33 +88,33 @@
 
 //INIT_MODEL=[eta0,magnet,vlos,landadopp,aa,gamma,azi,B1,B2,macro,alfa]
 struct INIT_MODEL{
-	double eta0; // 0
-	double B;//magnetic field    
-	double vlos;
-	double dopp;
-	double aa;
-	double gm; //5
-	double az;
-	double S0;
-	double S1;
-	double mac; //9
-	double alfa;		
+	PRECISION eta0; // 0
+	PRECISION B;//magnetic field    
+	PRECISION vlos;
+	PRECISION dopp;
+	PRECISION aa;
+	PRECISION gm; //5
+	PRECISION az;
+	PRECISION S0;
+	PRECISION S1;
+	PRECISION mac; //9
+	PRECISION alfa;		
 };
 
 struct CUANTIC{  
 	
-	double N_PI;
-	double N_SIG;
-	double * NUB;//size stored in  n_sig
-	double * NUP;//size stored in n_pi
-	double * NUR;//size stored in n_sig
-	double * WEB;//size stored in n_sig
-	double * WEP;//size stored in n_pi
-	double * WER;//size stored in n_sig
-	double GL;
-	double GU;
-	double GEFF;
-	double FO;	
+	PRECISION N_PI;
+	PRECISION N_SIG;
+	PRECISION * NUB;//size stored in  n_sig
+	PRECISION * NUP;//size stored in n_pi
+	PRECISION * NUR;//size stored in n_sig
+	PRECISION * WEB;//size stored in n_sig
+	PRECISION * WEP;//size stored in n_pi
+	PRECISION * WER;//size stored in n_sig
+	PRECISION GL;
+	PRECISION GU;
+	PRECISION GEFF;
+	PRECISION FO;	
 	
 };
 
@@ -136,26 +135,28 @@ void FreeMemoryDerivedSynthesis();
 /******************************************************/
 
 
-Cuantic * create_cuantic(double * dat);
+Cuantic * create_cuantic(PRECISION * dat, int log);
 
-int me_der(Cuantic *cuantic,Init_Model *initModel,double * wlines,double *lambda,int nlambda,
-			PRECISION *d_spectraOut,PRECISION *spectra,double ah,double * slight,int triplete,int calcSpectra,int filter);
+int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *lambda,int nlambda,
+			PRECISION *d_spectraOut,PRECISION *spectra, PRECISION * spectra_slight,PRECISION ah,PRECISION * slight,int calcSpectra,int filter);
 
-int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,double * wlines,double *lambda,int nlambda,PRECISION *spectra,
-			double ah,int triplete,double * slight,PRECISION * spectra_mc, int filter);
+int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *lambda,int nlambda,PRECISION *spectra,
+			PRECISION ah,PRECISION * slight,PRECISION * spectra_mc, int filter);
 			
 
-double * fgauss(double MC, double * eje,int neje,double landa,int deriv);
-double * fgauss_WL(double FWHM, double step_between_lw, double lambda0, double lambdaCentral, int nLambda, int * sizeG);
+PRECISION * fgauss(PRECISION MC, PRECISION * eje,int neje,PRECISION landa,int deriv);
+PRECISION * fgauss_WL(PRECISION FWHM, PRECISION step_between_lw, PRECISION lambda0, PRECISION lambdaCentral, int nLambda, int * sizeG);
 
 
 
 int Guarda(char * nombre,PRECISION *v,int nv);
-int GuardaC(char * nombre,double _Complex *v,int nv,int a);
+int GuardaC(char * nombre,PRECISION _Complex *v,int nv,int a);
 
 int fvoigt(PRECISION damp,PRECISION *vv,int nvv,PRECISION *h, PRECISION *f);
 
 //PRECISION * vgauss(PRECISION fwhm,int nmuestras_G,PRECISION delta);
+
+
 
 
 /******************* DEFINITIONS FOR READ FITS FILE *********************/
@@ -235,46 +236,44 @@ typedef struct FITS_IMAGE FitsImage;
 struct CONFIG_CONTROL{
 
 	int NumberOfCycles;
-	const char * ObservedProfiles;
-	const char * StrayLightFile;
-	const char * PSFFile;
-	const char * WavelengthFile;
-	const char * AtomicParametersFile;
-	const char * InitialGuessModel;
-	PRECISION WeightForStokesI;
-	PRECISION WeightForStokesQ;
-	PRECISION WeightForStokesU;
-	PRECISION WeightForStokesV;
+	char ObservedProfiles[4096];
+	char StrayLightFile[4096];
+	char PSFFile[4096];
+	char WavelengthFile[4096];
+	char AtomicParametersFile[4096];
+	char InitialGuessModel[4096];
+	char InitialGuessModel_2[4096];
 	PRECISION WeightForStokes[4];
 	int InvertMacroturbulence;
 	int InvertFillingFactor;
 	int InvertStrayLightFactor;
-	double mu;
+	PRECISION mu;
 	int EstimatedSNForI;
 	int ContinuumContrast;
-	double ToleranceForSVD;
-	double InitialDiagonalElement;
+	PRECISION ToleranceForSVD;
+	PRECISION InitialDiagonalElement;
 	int useInterpolarSplinesOrLinear; // 0 splines , 1 linear 
 	int ConvolveWithPSF;
-	double FWHM;
-	const char * TypeConvolution;
-	double GasPressureAtSurface1;
-	double GasPressureAtSurface2;
-	double MagneticPressureTerm;
+	PRECISION FWHM;
+	
+	PRECISION GasPressureAtSurface1;
+	PRECISION GasPressureAtSurface2;
+	PRECISION MagneticPressureTerm;
 	int ntl;
 	int nliobs;
-	double CentralWaveLenght;
+	PRECISION CentralWaveLenght;
 	//INIT_MODEL=[eta0,magnet,vlos,landadopp,aa,gamma,azi,B1,B2,macro,alfa]
 	int fix[11]; // eta0, B , vlos, dopp, aa, gm , az, S0, S1, mac, alpha
 	int saveChisqr;
-	double toplim; // Optional minimum relative difference between two succesive merit-function values
-	double sigma [4];
-	double noise;
+	PRECISION toplim; // Optional minimum relative difference between two succesive merit-function values
+	PRECISION sigma [4];
+	PRECISION noise;
 	int UseClassicalEstimates;
 	int UseRTEInversion;
 	int SaveSynthesisProfile;	
-	const char * OutputModelFile;
-	const char * OutputSynthesisFile;
+	char OutputModelFile[4096];
+	char OutputSynthesisFile[4096];
+	
 };
 
 typedef struct CONFIG_CONTROL ConfigControl;

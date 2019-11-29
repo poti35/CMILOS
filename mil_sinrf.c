@@ -4,20 +4,20 @@
 #include <string.h>
 #include "convolution.h"
 #include "fftw.h"
-//#include "mkl_vsl.h"
+#include "milosUtils.h"
 
 //pro me_der,param,wl,lmb,spectra,d_spectra,triplete=triplete,ah=ah,slight=slight,$
-  //         filter=filter
+//         filter=filter
 
 int funcionComponent_sinrf(PRECISION *u,PRECISION ulos,PRECISION shift,int numl,PRECISION *fi_x,
 		PRECISION *shi_x,PRECISION A);
 
-int funcionComponentFor_sinrf(PRECISION *u,int n_pi,int numl,double *wex,PRECISION *nuxB,PRECISION *fi_x,
+int funcionComponentFor_sinrf(PRECISION *u,int n_pi,int numl,PRECISION *wex,PRECISION *nuxB,PRECISION *fi_x,
 												PRECISION *shi_x,PRECISION A,PRECISION MF);
 
 
 
-//PRECISION mean(PRECISION *dat, int numl);
+
 /*
 	E00	int eta0; // 0
 	MF	int B;    
@@ -34,7 +34,6 @@ int funcionComponentFor_sinrf(PRECISION *u,int n_pi,int numl,double *wex,PRECISI
 
 
 extern PRECISION * gp1,*gp2,*dt,*dti,*gp3,*gp4,*gp5,*gp6,*etai_2;
-//extern PRECISION gp4_gp2_rhoq[NLAMBDA],gp5_gp2_rhou[NLAMBDA],gp6_gp2_rhov[NLAMBDA];
 
 extern PRECISION *gp4_gp2_rhoq,*gp5_gp2_rhou,*gp6_gp2_rhov;
 
@@ -48,8 +47,8 @@ PRECISION **uuGlobalInicial;
 PRECISION **HGlobalInicial;
 PRECISION **FGlobalInicial;
 extern int FGlobal,HGlobal,uuGlobal;
-//extern VSLConvTaskPtr taskConv;
-extern PRECISION *G; // VECTOR WITH GAUSSIAN CREATED FOR CONVOLUTION 
+
+extern PRECISION *G, *GMAC; // VECTOR WITH GAUSSIAN CREATED FOR CONVOLUTION 
 
 extern fftw_complex * inSpectraFwMAC, *inSpectraBwMAC, *outSpectraFwMAC, *outSpectraBwMAC;
 extern fftw_complex * inFilterMAC, * inFilterMAC_DERIV, * outFilterMAC, * outFilterMAC_DERIV;
@@ -60,8 +59,8 @@ extern fftw_complex * fftw_G_PSF, * fftw_G_MAC_PSF, * fftw_G_MAC_DERIV_PSF;
 extern fftw_complex * inPSF_MAC, * inMulMacPSF, * inPSF_MAC_DERIV, *inMulMacPSFDeriv, *outConvFilters, * outConvFiltersDeriv;
 extern fftw_plan planForwardPSF_MAC, planForwardPSF_MAC_DERIV,planBackwardPSF_MAC, planBackwardPSF_MAC_DERIV;
 
-int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,double * wlines,double *lambda,int nlambda,PRECISION *spectra,
-			double ah,int triplete,double * slight, PRECISION * spectra_mc, int filter)
+int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *lambda,int nlambda,PRECISION *spectra,
+			PRECISION ah,PRECISION * slight, PRECISION * spectra_mc, int filter)
 {
 
 	int offset,numl;
@@ -72,14 +71,11 @@ int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,double * wlines,double *lam
 
 	int il,i,j;
 	PRECISION E0;	
-	PRECISION ulos,*gMac;
-	PRECISION u[nlambda];
-	/*PRECISION *u;
-
-	u = malloc (nlambda * sizeof(PRECISION));*/
+	PRECISION ulos;
 	
-   
-   int edge,numln,ishift;
+	PRECISION u[nlambda];
+	   
+   int odd,ishift;
    
 	  
 	PRECISION  parcial;
@@ -181,60 +177,47 @@ int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,double * wlines,double *lam
 			shi_r[i]=0;
 		}
 
-		if(!triplete){ // TODO -- contemplar el caso de que triplete este activo porque en este caso no esta contemplado
-			nubB=nubB+nlambda*il*sizeof(PRECISION);
-			nurB=nurB+nlambda*il*sizeof(PRECISION);
-			nupB=nupB+nlambda*il*sizeof(PRECISION);
+
+		// ******* GENERAL MULTIPLET CASE ********
+		
+		nubB=nubB+nlambda*il*sizeof(PRECISION);
+		nurB=nurB+nlambda*il*sizeof(PRECISION);
+		nupB=nupB+nlambda*il*sizeof(PRECISION);
 
 
-			parcial=(((wlines[il+1]*wlines[il+1]))/LD)*(CTE4_6_13);
-			
-			//caso multiplete						
-			for(i=0;i<cuantic[il].N_SIG;i++){
-				nubB[i]=parcial*cuantic[il].NUB[i]; // Spliting	
-			}
-
-			for(i=0;i<cuantic[il].N_PI;i++){
-				nupB[i]=parcial*cuantic[il].NUP[i]; // Spliting			    
-			}						
-
-			for(i=0;i<cuantic[il].N_SIG;i++){
-				nurB[i]=-nubB[(int)cuantic[il].N_SIG-(i+1)]; // Spliting
-			}						
-
-			uuGlobal=0;
-			FGlobal=0;
-			HGlobal=0;
-
-			//central component					    					
-			funcionComponentFor_sinrf(u,cuantic[il].N_PI,numl,cuantic[il].WEP,nupB,fi_p,shi_p,A,MF);
-
-			//blue component
-			funcionComponentFor_sinrf(u,cuantic[il].N_SIG,numl,cuantic[il].WEB,nubB,fi_b,shi_b,A,MF);
-
-			//red component
-			funcionComponentFor_sinrf(u,cuantic[il].N_SIG,numl,cuantic[il].WER,nurB,fi_r,shi_r,A,MF);
-
-			uuGlobal=0;
-			FGlobal=0;
-			HGlobal=0;
-
-
+		parcial=(((wlines[il+1]*wlines[il+1]))/LD)*(CTE4_6_13);
+		
+		//caso multiplete						
+		for(i=0;i<cuantic[il].N_SIG;i++){
+			nubB[i]=parcial*cuantic[il].NUB[i]; // Spliting	
 		}
-		else{
-			printf("error :parte no terminada\n\n");
-			exit(-1);
-			//caso triplete
-			PRECISION shift;
 
-			shift=((MF*wlines[il+1]*wlines[il+1])/LD)*(CTE4_6_13*cuantic[il].GEFF);
-			//central component			
-			funcionComponent_sinrf(u,ulos,0,numl,fi_p,shi_p,A);
-			//blue component
-			funcionComponent_sinrf(u,ulos,shift,numl,fi_b,shi_b,A);
-			//red component
-			funcionComponent_sinrf(u,ulos,-shift,numl,fi_r,shi_r,A);
-		}
+		for(i=0;i<cuantic[il].N_PI;i++){
+			nupB[i]=parcial*cuantic[il].NUP[i]; // Spliting			    
+		}						
+
+		for(i=0;i<cuantic[il].N_SIG;i++){
+			nurB[i]=-nubB[(int)cuantic[il].N_SIG-(i+1)]; // Spliting
+		}						
+
+		uuGlobal=0;
+		FGlobal=0;
+		HGlobal=0;
+
+		//central component					    					
+		funcionComponentFor_sinrf(u,cuantic[il].N_PI,numl,cuantic[il].WEP,nupB,fi_p,shi_p,A,MF);
+
+		//blue component
+		funcionComponentFor_sinrf(u,cuantic[il].N_SIG,numl,cuantic[il].WEB,nubB,fi_b,shi_b,A,MF);
+
+		//red component
+		funcionComponentFor_sinrf(u,cuantic[il].N_SIG,numl,cuantic[il].WER,nurB,fi_r,shi_r,A,MF);
+
+		uuGlobal=0;
+		FGlobal=0;
+		HGlobal=0;
+
+		//*****
 
 		//dispersion profiles				
 		PRECISION E0_2;
@@ -334,61 +317,71 @@ int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,double * wlines,double *lam
 		}
     }
 
+	 int macApplied = 0;
     if(MC > 0.0001 && spectra_mc!=NULL){
 
+		macApplied = 1;
 		//MACROTURBULENCIA            
-		edge=(numl%2)+1;
-		numln=numl-edge+1;
+		odd=(numl%2);
+		int startShift = numl/2;
+		if(odd) startShift+=1;
 
-		gMac=fgauss(MC,lambda,numln,wlines[1],0);   		 
-    	
+		//PRECISION * gMac=fgauss(MC,lambda,numl,wlines[1],0);   		 
+    	fgauss(MC,lambda,numl,wlines[1],0);   		 
     	//convolucion del espectro original
 
 		int i;
 		if(filter){// if there is PSF filter convolve both gaussian and use the result as the signal to convolve
-			for(i=0;i<numln;i++){ // copy gmac to
-				inPSF_MAC[i] = (gMac[i]) + 0 * _Complex_I;
+			for(i=0;i<numl;i++){ // copy gmac to
+				inPSF_MAC[i] = (GMAC[i]) + 0 * _Complex_I;
 			}
 			fftw_execute(planForwardPSF_MAC);
-			for(i=0;i<numln;i++){ // multiply both fft gaussians
-				inMulMacPSF[i] = fftw_G_PSF[i] * (fftw_G_MAC_PSF[i]/numln);
+			/*for(i=0;i<numl;i++){ // multiply both fft gaussians
+				outFilterMAC[i] = (fftw_G_PSF[i]*numl) * (fftw_G_MAC_PSF[i]);
 			}
-			fftw_execute(planBackwardPSF_MAC);
-			for(i=0,ishift=numln/2;i<numln/2;i++,ishift++){
-				inFilterMAC[ishift]= outConvFilters[i]*numln;
+			*/
+			for(i=0;i<numl;i++){ // multiply both fft gaussians
+				inMulMacPSF[i] = fftw_G_PSF[i] * (fftw_G_MAC_PSF[i]/numl);
 			}
-			for(i=numln/2,ishift=0;i<numln;i++,ishift++){
-				inFilterMAC[ishift]= outConvFilters[i]*numln;
+			fftw_execute(planBackwardPSF_MAC);			
+			for(i=0,ishift=startShift;i<numl/2;i++,ishift++){
+				inFilterMAC[ishift]= outConvFilters[i]*numl;
 			}
+			for(i=(numl/2),ishift=0;i<numl;i++,ishift++){
+				inFilterMAC[ishift]= outConvFilters[i]*numl;
+			}
+			
 		}
 		else{
-			for(i=0;i<numln;i++){
-				inFilterMAC[i] = gMac[i] + 0 * _Complex_I;
+			for(i=0;i<numl;i++){
+				inFilterMAC[i] = GMAC[i] + 0 * _Complex_I;
 			}
+			//fftw_execute(planFilterMAC);
 		}
 		fftw_execute(planFilterMAC);
 
     	//convolucion
     	for(il=0;il<4;il++){
     		//if(fabs(mean(spectra+numl*il,numl)) > 1.e-25	){
-				for(i=0;i<numln;i++){
+				for(i=0;i<numl;i++){
 					inSpectraFwMAC[i] = spectra[numl*il+i] + 0 * _Complex_I;
 				}				 
     			fftw_execute(planForwardMAC);
-    			for(i=0;i<numln;i++){
-					inSpectraBwMAC[i]=(outSpectraFwMAC[i]/numln)*(outFilterMAC[i]/numln);
+    			for(i=0;i<numl;i++){
+					inSpectraBwMAC[i]=(outSpectraFwMAC[i]/numl)*(outFilterMAC[i]/numl);
     			}
     			fftw_execute(planBackwardMAC);
-    			//shift: -numln/2
-    			for(i=0,ishift=numln/2;i<numln/2;i++,ishift++){
-    				spectra[ishift+il*numl]=creal(outSpectraBwMAC[i])*numln;
-    			}
-    			for(i=numln/2,ishift=0;i<numln;i++,ishift++){
-    				spectra[ishift+il*numl]=creal(outSpectraBwMAC[i])*numln;
-    			}
+    			//shift: -numl/2				
+				for(i=0,ishift=startShift;i<numl/2;i++,ishift++){
+					spectra[ishift+il*numl]=creal(outSpectraBwMAC[i])*numl;
+				}
+				for(i=(numl/2),ishift=0;i<numl;i++,ishift++){
+					spectra[ishift+il*numl]=creal(outSpectraBwMAC[i])*numl;
+				}					
+				
     		//}
     	}
-		free(gMac);
+		//free(gMac);
 
    }//end if(MC > 0.0001)
     
@@ -399,11 +392,15 @@ int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,double * wlines,double *lam
 
 	}
 
+	/*if(!macApplied && filter){
+		spectral_synthesis_convolution(&nlambda);
+	}*/
+
 	return 1;
 }
 
 
-int funcionComponentFor_sinrf(PRECISION *u,int n_pi,int numl,double *wex,PRECISION *nuxB,PRECISION *fi_x,
+int funcionComponentFor_sinrf(PRECISION *u,int n_pi,int numl,PRECISION *wex,PRECISION *nuxB,PRECISION *fi_x,
 												PRECISION *shi_x,PRECISION A,PRECISION MF)
 {
 	PRECISION *uu,*F,*H;
@@ -444,8 +441,7 @@ int funcionComponentFor_sinrf(PRECISION *u,int n_pi,int numl,double *wex,PRECISI
 /*
  * 
  */
-int funcionComponent_sinrf(PRECISION *u,PRECISION ulos,PRECISION shift,int numl,PRECISION *fi_x,
-		PRECISION *shi_x,PRECISION A){
+int funcionComponent_sinrf(PRECISION *u,PRECISION ulos,PRECISION shift,int numl,PRECISION *fi_x,PRECISION *shi_x,PRECISION A){
 	
 
 	int j;

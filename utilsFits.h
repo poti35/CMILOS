@@ -42,7 +42,7 @@ int readFitsLambdaFile (const char * fitsFileLambda, FitsImage * fitsImage);
  * @param fitsImage --> struct of image 
  * Return 1 If the image has been read corectly if not return 0 
  */
-PRECISION * readFitsStrayLightFile (const char * fitsFileStrayLight, int * dimStrayLight, int numLambda, int numRows, int numCols);
+PRECISION * readFitsStrayLightFile (const char * fitsFileStrayLight, int * dimStrayLight, int numLambda);
 
 /**
  * Clean the memory reserved for the image
@@ -64,8 +64,8 @@ void freeFitsImage(FitsImage * image);
  * @param addChisqr -->  to know if add chisqr at output model file 
  * 
  */
-int writeFitsImageModels(const char * fitsFile, int numRows, int numCols, Init_Model * vInitModel, double * vChisqrf, int * fixed, int addChisqr);
-int writeFitsImageModelsWithArray(char * fitsFile, int numRows, int numCols, double * eta0, double * B, double * vlos, double * dopp, double * aa, double * gm, double * az, double * S0, double * S1, double * mac, double * alfa, double * vChisqrf);
+int writeFitsImageModels(const char * fitsFile, int numRows, int numCols, Init_Model * vInitModel, PRECISION * vChisqrf, int * fixed, int addChisqr);
+int writeFitsImageModelsWithArray(char * fitsFile, int numRows, int numCols, PRECISION * eta0, PRECISION * B, PRECISION * vlos, PRECISION * dopp, PRECISION * aa, PRECISION * gm, PRECISION * az, PRECISION * S0, PRECISION * S1, PRECISION * mac, PRECISION * alfa, PRECISION * vChisqrf);
 /**
  * Print the error status of status. 
  * @param status -> int code with the status error. 
@@ -101,11 +101,11 @@ int writeFitsImageProfiles(const char * fitsProfileFile, const char * fitsFileOr
  * 
  * @return 0 is there is something wrong reading the parameters, 1 is everything was fine. 
  */
-int readParametersFileInput(char * fileParameters, int * maxIter, int * clasicalEstimate, int * printSintesis, char * nameInputFileSpectra, char * nameInputFileLambda,char * nameInputFileLines, char * nameInputFileInitModel,  PRECISION *  centralLambda, char *nameOutputFileModels, char * nameOutputFileProfiles, int * useConvolution, char * nameInputFilePSF, PRECISION * FWHM, int * KIND_CONVOLUTION);
+/*int readParametersFileInput(char * fileParameters, int * maxIter, int * clasicalEstimate, int * printSintesis, char * nameInputFileSpectra, char * nameInputFileLambda,char * nameInputFileLines, char * nameInputFileInitModel,  PRECISION *  centralLambda, char *nameOutputFileModels, char * nameOutputFileProfiles, int * useConvolution, char * nameInputFilePSF, PRECISION * FWHM, int * KIND_CONVOLUTION);
 
 
 
-/*int readFileCuanticLines(char * inputLineFile, PRECISION * cuanticDat, PRECISION centralLambda);
+int readFileCuanticLines(char * inputLineFile, PRECISION * cuanticDat, PRECISION centralLambda);
 
 int readInitialModel(Init_Model * INIT_MODEL, char * fileInitModel);
 

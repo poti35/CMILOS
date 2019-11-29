@@ -10,42 +10,95 @@
 //;landa(amstrong) ;Central wavelength
 //;eje(amstrong) ;Wavelength axis
 //;macro ;Macroturbulence in km/s
+extern PRECISION *GMAC;
 
-double * fgauss(double MC, double *eje, int neje, double landa, int deriv)
+PRECISION * fgauss(PRECISION MC, PRECISION *eje, int neje, PRECISION landa, int deriv)
 {
-	//int fgauss(double MC, double * eje,int neje,double landa,int deriv,double * mtb,int nmtb){
+	//int fgauss(PRECISION MC, PRECISION * eje,int neje,PRECISION landa,int deriv,PRECISION * mtb,int nmtb){
 
-	double centro, *mtb;
-	double ild;
-	double term[neje];
-	double * loai;
-	//double *term, *loai;
+	PRECISION centro;
+	PRECISION ild;
+	PRECISION term[neje];
+	//PRECISION *term, *loai;
 	int i;
-	int nloai, nmtb;
-	double cte;
+	PRECISION cte;
 
 	centro = eje[(int)neje / 2];		  //center of the axis
 	ild = (landa * MC) / 2.99792458e5; //Sigma
 
 	//	printf("ild-> %f  ...\n",ild);
 
-	/*
-	for(i=0;i<neje;i++){
-		printf("eje (%d) %f  ...\n",i,eje[i]);
+
+	for (i = 0; i < neje; i++)
+	{
+		PRECISION aux = ((eje[i] - centro) / ild);
+		term[i] = ( aux * aux) / 2; //exponent
+		//printf("term (%d) %f  ...\n",i,term[i]);
 	}
-*/
-	//term = (double *) malloc (neje * sizeof(double));
+
 
 
 	for (i = 0; i < neje; i++)
 	{
-		double aux = ((eje[i] - centro) / ild);
+		GMAC[i] = exp(-term[i]);
+	}
+
+	cte = 0;
+	//normalization
+	for (i = 0; i < neje; i++)
+	{
+		cte += GMAC[i];
+	}
+	for (i = 0; i < neje; i++)
+	{
+		GMAC[i] /= cte;
+	}
+
+	//In case we need the deriv of f gauss /deriv
+	if (deriv == 1)
+	{
+		for (i = 0; i < neje; i++)
+		{
+			//mtb2=mtb/macro*(((eje-centro)/ILd)^2d0-1d0)
+			GMAC[i] = GMAC[i] / MC * ((((eje[i] - centro) / ild) * ((eje[i] - centro) / ild)) - 1.0);			
+		}
+	}
+
+	//return mtb;
+	return NULL;
+}
+
+
+
+
+/*PRECISION * fgauss(PRECISION MC, PRECISION *eje, int neje, PRECISION landa, int deriv)
+{
+	//int fgauss(PRECISION MC, PRECISION * eje,int neje,PRECISION landa,int deriv,PRECISION * mtb,int nmtb){
+
+	PRECISION centro, *mtb;
+	PRECISION ild;
+	PRECISION *term, *loai;
+	int i;
+	int nloai, nmtb;
+	PRECISION cte;
+
+	centro = eje[(int)neje / 2];		  //center of the axis
+	ild = (landa * MC) / 2.99792458e5; //Sigma
+
+	//	printf("ild-> %f  ...\n",ild);
+
+
+	term = (PRECISION *)calloc(neje, sizeof(PRECISION));
+
+	for (i = 0; i < neje; i++)
+	{
+		PRECISION aux = ((eje[i] - centro) / ild);
 		term[i] = ( aux * aux) / 2; //exponent
 		//printf("term (%d) %f  ...\n",i,term[i]);
 	}
 
 	nloai = 0;
-	loai = calloc(neje, sizeof(double));
+	loai = calloc(neje, sizeof(PRECISION));
 	for (i = 0; i < neje; i++)
 	{
 		if (term[i] < 1e30)
@@ -58,7 +111,7 @@ double * fgauss(double MC, double *eje, int neje, double landa, int deriv)
 	if (nloai > 0)
 	{
 		nmtb = nloai;
-		mtb = calloc(nmtb, sizeof(double));
+		mtb = calloc(nmtb, sizeof(PRECISION));
 		for (i = 0; i < neje; i++)
 		{
 			if (loai[i])
@@ -71,7 +124,7 @@ double * fgauss(double MC, double *eje, int neje, double landa, int deriv)
 	{
 
 		nmtb = neje;
-		mtb = malloc ( nmtb * sizeof(double));
+		mtb = calloc(nmtb, sizeof(PRECISION));
 		for (i = 0; i < neje; i++)
 		{
 			mtb[i] = exp(-term[i]);
@@ -90,7 +143,7 @@ double * fgauss(double MC, double *eje, int neje, double landa, int deriv)
 	}
 
 	free(loai);
-	//free(term);
+	free(term);
 
 	//In case we need the deriv of f gauss /deriv
 	if (deriv == 1)
@@ -103,11 +156,7 @@ double * fgauss(double MC, double *eje, int neje, double landa, int deriv)
 	}
 
 	return mtb;
-}
-
-
-
-
+}*/
 
 
 
@@ -121,15 +170,15 @@ double * fgauss(double MC, double *eje, int neje, double landa, int deriv)
 //;eje(amstrong) ;Wavelength axis
 //;macro ;Macroturbulence in km/s
 
-double * fgauss_WL(double FWHM, double step_between_lw, double lambda0, double lambdaCentral, int nLambda, int * sizeG)
+PRECISION * fgauss_WL(PRECISION FWHM, PRECISION step_between_lw, PRECISION lambda0, PRECISION lambdaCentral, int nLambda, int * sizeG)
 {
-	//int fgauss(double MC, double * eje,int neje,double landa,int deriv,double * mtb,int nmtb){
+	//int fgauss(PRECISION MC, PRECISION * eje,int neje,PRECISION landa,int deriv,PRECISION * mtb,int nmtb){
 
-	double *mtb;
-	double *term, *loai;
+	PRECISION *mtb;
+	PRECISION *term, *loai;
 	int i;
 	int nloai, nmtb;
-	double cte;
+	PRECISION cte;
 	
 
 	//int even = (nLambda%2);
@@ -148,8 +197,8 @@ double * fgauss_WL(double FWHM, double step_between_lw, double lambda0, double l
 	//ild = (landa * MC) / 2.99792458e5; //Sigma
 
 	///Conversion from FWHM to Gaussian sigma (1./(2*sqrt(2*alog2)))
-	//double sigma=FWHM*0.42466090/1000.0; // in Angstroms
-	double sigma = FWHM / (2 * sqrt(2 * log(2)));
+	//PRECISION sigma=FWHM*0.42466090/1000.0; // in Angstroms
+	PRECISION sigma = FWHM / (2 * sqrt(2 * log(2)));
 
 	//printf("lambda0-> %f  ...sigma %lf\n",lambda0,sigma);
 
@@ -159,18 +208,18 @@ double * fgauss_WL(double FWHM, double step_between_lw, double lambda0, double l
 	}
 */
 	//int half = nLambda/2 +1;
-	term = (double *)calloc(*sizeG, sizeof(double));
+	term = (PRECISION *)calloc(*sizeG, sizeof(PRECISION));
 
 	for (i = 0; i < *sizeG; i++)
 	{
-		double lambdaX = lambda0 +i*step_between_lw;
-		double aux = ((lambdaX - lambdaCentral) / sigma);
+		PRECISION lambdaX = lambda0 +i*step_between_lw;
+		PRECISION aux = ((lambdaX - lambdaCentral) / sigma);
 		term[i] = ( aux * aux) / 2; //exponent
 		//printf("term (%d) %f  ...\n",i,term[i]);
 	}
 
 	nloai = 0;
-	loai = calloc(*sizeG, sizeof(double));
+	loai = calloc(*sizeG, sizeof(PRECISION));
 	for (i = 0; i < *sizeG; i++)
 	{
 		if (term[i] < 1e30)
@@ -183,7 +232,7 @@ double * fgauss_WL(double FWHM, double step_between_lw, double lambda0, double l
 	if (nloai > 0)
 	{
 		nmtb = nloai;
-		mtb = calloc(nmtb, sizeof(double));
+		mtb = calloc(nmtb, sizeof(PRECISION));
 		for (i = 0; i < *sizeG; i++)
 		{
 			if (loai[i])
@@ -197,7 +246,7 @@ double * fgauss_WL(double FWHM, double step_between_lw, double lambda0, double l
 	{
 
 		nmtb = *sizeG;
-		mtb = calloc(nmtb, sizeof(double));
+		mtb = calloc(nmtb, sizeof(PRECISION));
 		for (i = 0; i < *sizeG; i++)
 		{
 			mtb[i] = exp(-term[i]);

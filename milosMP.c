@@ -89,26 +89,26 @@ int main(int argc, char **argv)
 {
 
    //omp_set_num_threads(NUM_OPENMP_THREADS);
-	double *wlines;
+	PRECISION *wlines;
 	int nwlines, nlambda, numPixels, iter, nweight, Max_iter;
 	Init_Model *vModels;
-	double chisqrf, * vChisqrf;
-	double slight, toplim;
+	PRECISION chisqrf, * vChisqrf;
+	PRECISION slight, toplim;
 	PRECISION weight[4] = {1., 1., 1., 1.};
 	PRECISION CENTRAL_WL;
 	clock_t t_ini, t_fin;
-	double secs, total_secs;
+	PRECISION secs, total_secs;
 
 	// CONFIGURACION DE PARAMETROS A INVERTIR
 	//INIT_MODEL=[eta0,magnet,vlos,landadopp,aa,gamma,azi,B1,B2,macro,alfa]
 	int fix[] = {1., 1., 1., 1., 1., 1., 1., 1., 1., 0., 0.}; //Parametros invertidos
 	//----------------------------------------------
 
-	double sigma[NPARMS];
-	double vsig;
+	PRECISION sigma[NPARMS];
+	PRECISION vsig;
 	
-	double ilambda;
-	double noise;
+	PRECISION ilambda;
+	PRECISION noise;
 
 	char  nameInputFileSpectra [PATH_MAX];
 	char  nameInputFileLambda [PATH_MAX];
@@ -118,7 +118,7 @@ int main(int argc, char **argv)
 
    FitsImage * fitsImage;
 
-	double dat[7] = {CUANTIC_NWL, CUANTIC_SLOI, CUANTIC_LLOI, CUANTIC_JLOI, CUANTIC_SUPI, CUANTIC_LUPI, CUANTIC_JUPI};
+	PRECISION dat[7] = {CUANTIC_NWL, CUANTIC_SLOI, CUANTIC_LLOI, CUANTIC_JLOI, CUANTIC_SUPI, CUANTIC_LUPI, CUANTIC_JUPI};
 
 	/********************* Read data input from file ******************************/
 
@@ -139,7 +139,7 @@ int main(int argc, char **argv)
 	nweight = 4;
 
 	nwlines = 1;
-	wlines = (double *)calloc(2, sizeof(double));
+	wlines = (PRECISION *)calloc(2, sizeof(PRECISION));
 	wlines[0] = 1;
 	wlines[1] = CENTRAL_WL;
 
@@ -160,7 +160,7 @@ int main(int argc, char **argv)
 	/******************* APPLY GAUSSIAN, CREATE CUANTINC AND INITIALIZE DINAMYC MEMORY*******************/
 
 
-	cuantic = create_cuantic(dat);
+	cuantic = create_cuantic(dat,1);
 	InitializePointerShareCalculation();	
 
 	/****************************************************************************************************/
@@ -168,12 +168,12 @@ int main(int argc, char **argv)
 
 
 	// READ PIXELS FROM IMAGE 
-	double timeReadImage;
+	PRECISION timeReadImage;
 	clock_t t;
 	t = clock();
 	fitsImage = readFitsSpectroImage(nameInputFileSpectra);
 	t = clock() - t;
-	timeReadImage = ((double)t)/CLOCKS_PER_SEC; // in seconds 
+	timeReadImage = ((PRECISION)t)/CLOCKS_PER_SEC; // in seconds 
 	printf("\n +++++++++++++++++++++++");
 	printf("\n TIME TO READ FITS IMAGE:  %f seconds to execute \n", timeReadImage); 
 	printf("\n +++++++++++++++++++++++");
@@ -187,14 +187,14 @@ int main(int argc, char **argv)
 
 			//initializing weights
 			PRECISION *w, *sig;
-			weights_init(sigma, &w, &sig, noise);
+			weights_init(sigma, &sig, noise);
 
 			int indexPixel = 0;
 
 			// ALLOCATE MEMORY FOR STORE THE RESULTS 
 
 			vModels = calloc (fitsImage->numPixels , sizeof(Init_Model));
-			vChisqrf = calloc (fitsImage->numPixels , sizeof(double));
+			vChisqrf = calloc (fitsImage->numPixels , sizeof(PRECISION));
 
 			printf("\n START EXECUTION OF INVERSION ");
 			printf("\n**********");
@@ -246,7 +246,7 @@ int main(int argc, char **argv)
 					initModel.S0 = INITIAL_MODEL_S0;
 
 					lm_mils(cuantic, wlines, fitsImage->pixels[indexPixel].vLambda, fitsImage->pixels[indexPixel].nLambda, fitsImage->pixels[indexPixel].spectro, fitsImage->pixels[indexPixel].nLambda, &initModel, spectra, &chisqrf, NULL, toplim, Max_iter,
-							weight, fix, sig, filter, ilambda, 0,&INSTRUMENTAL_CONVOLUTION,&NMUESTRAS_G);
+							weight, fix, sig, filter, ilambda,&INSTRUMENTAL_CONVOLUTION,&NMUESTRAS_G);
 					printf("\nESCRIBIENDO LOS PRIMEROS VALORES EN LOS VECTORES DE MODELOS Y DE CHI CUADRADAO");
 					printf("\n******************************");
 				}
@@ -258,7 +258,7 @@ int main(int argc, char **argv)
 			}
 		}
 		t = clock() - t;
-		timeReadImage = ((double)t)/CLOCKS_PER_SEC; // in seconds 
+		timeReadImage = ((PRECISION)t)/CLOCKS_PER_SEC; // in seconds 
 		printf("\n FINISH EXECUTION OF INVERSION: %f seconds to execute \n", timeReadImage);
 		printf("\n**********");
 		if(!writeFitsImageModels(nameOutputFileModels,fitsImage->rows,fitsImage->cols,vModels,vChisqrf)){
@@ -273,12 +273,12 @@ int main(int argc, char **argv)
 			{
 
 				Init_Model initModel = vModels[i];
-				//double chisqr = vChisqrf[i];
+				//PRECISION chisqr = vChisqrf[i];
 				int NMODEL = 12; //Numero de parametros del modelo
 
 				mil_sinrf(cuantic, &initModel, wlines, fitsImage->pixels[i].vLambda, nlambda, spectra, AH, 0, filter,NULL);
 
-				me_der(cuantic, &initModel, wlines, fitsImage->pixels[i].vLambda, nlambda, d_spectra, AH, NULL, 0, filter);
+				me_der(cuantic, &initModel, wlines, fitsImage->pixels[i].vLambda, nlambda, d_spectra, spectra,AH, NULL, 0, filter);
 				response_functions_convolution(&nlambda,&INSTRUMENTAL_CONVOLUTION,&NMUESTRAS_G);
 				int kk;
 				for (kk = 0; kk < (nlambda * NPARMS); kk++)

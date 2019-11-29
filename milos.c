@@ -19,6 +19,21 @@
 //
 //
 
+/*
+;      eta0 = line-to-continuum absorption coefficient ratio
+;      B = magnetic field strength       [Gauss]
+;      vlos = line-of-sight velocity     [km/s]
+;      dopp = Doppler width              [Angstroms]
+;      aa = damping parameter
+;      gm = magnetic field inclination   [deg]
+;      az = magnetic field azimuth       [deg]
+;      S0 = source function constant
+;      S1 = source function gradient
+;      mac = macroturbulent velocity     [km/s]
+;      alpha = filling factor of the magnetic component [0->1]
+
+*/
+
 #include <time.h>
 #include "defines.h"
 //#include "nrutil.h"
@@ -33,7 +48,11 @@
 #include <complex.h>
 #include <fftw3.h> //siempre a continuacion de complex.h
 #include "fftw.h"
-#include <omp.h>
+#include <gmp.h>
+#include <mpfr.h>
+
+
+//#include "slog.h"
 //#include "mkl_vsl.h"
 
 long long int c1, c2, cd, semi, c1a, c2a, cda; //variables de 64 bits para leer ciclos de reloj
@@ -46,11 +65,10 @@ PRECISION **PUNTEROS_CALCULOS_COMPARTIDOS;
 int POSW_PUNTERO_CALCULOS_COMPARTIDOS;
 int POSR_PUNTERO_CALCULOS_COMPARTIDOS;
 
+PRECISION *dtaux, *etai_gp3, *ext1, *ext2, *ext3, *ext4;
 PRECISION *gp1, *gp2, *dt, *dti, *gp3, *gp4, *gp5, *gp6, *etai_2;
-
 //PRECISION gp4_gp2_rhoq[NLAMBDA],gp5_gp2_rhou[NLAMBDA],gp6_gp2_rhov[NLAMBDA];
 PRECISION *gp4_gp2_rhoq, *gp5_gp2_rhou, *gp6_gp2_rhov;
-
 PRECISION *dgp1, *dgp2, *dgp3, *dgp4, *dgp5, *dgp6, *d_dt;
 PRECISION *d_ei, *d_eq, *d_eu, *d_ev, *d_rq, *d_ru, *d_rv;
 PRECISION *dfi, *dshi;
@@ -64,11 +82,19 @@ PRECISION **uuGlobalInicial;
 PRECISION **HGlobalInicial;
 PRECISION **FGlobalInicial;
 PRECISION *perfil_instrumental;
-PRECISION *G;
+PRECISION *G, *GMAC;
 PRECISION *interpolatedPSF;
+
+
+PRECISION AP[NTERMS*NTERMS*NPARMS],BT[NPARMS*NTERMS];
+
+
+
+PRECISION * opa;
 int FGlobal, HGlobal, uuGlobal;
 
 PRECISION *d_spectra, *spectra, *spectra_mac;
+
 
 
 // GLOBAL variables to use for FFT calculation 
@@ -89,28 +115,27 @@ fftw_plan planForwardPSF_MAC, planForwardPSF_MAC_DERIV,planBackwardPSF_MAC, plan
 //Convolutions values
 int sizeG = 0;
 PRECISION FWHM = 0;
-int KIND_CONVOLUTION = 0; // 0 --> Discreet convolution ; 1 --> Convolution with FFT
+
 ConfigControl configCrontrolFile;
+
+// fvoigt memory consuption
+_Complex PRECISION *z,* zden, * zdiv;
 
 int main(int argc, char **argv)
 {
-	double *wlines;
+	//slog_init("milos","slog.cfg",0,1);
+	PRECISION *wlines;
 	int nlambda;
 	Init_Model *vModels;
-	double chisqrf, * vChisqrf;
+	PRECISION chisqrf, * vChisqrf;
 	
 	int posCENTRAL_WL; // position central wl in file of LINES
 	Init_Model INITIAL_MODEL;
 	PRECISION * deltaLambda, * PSF;
 	int N_SAMPLES_PSF;
 	clock_t t_ini;
-	
-
 	//----------------------------------------------
-	
-	
-	
-	
+
 	PRECISION * slight = NULL;
 	int dimStrayLight;
 
@@ -119,95 +144,95 @@ int main(int argc, char **argv)
 	const char  * nameOutputFileModels;
 	const char  * nameOutputFilePerfiles;
 	const char	* nameInputFileLines;
-	const char 	* nameInputFileInitModel ;
+	
 	const char	* nameInputFilePSF ;	
 
-   FitsImage * fitsImage;
-	double  dat[7];
+    FitsImage * fitsImage;
+	PRECISION  dat[7];
 
+	/*int fftw_init_threads(void);
+	fftw_plan_with_nthreads(6);*/
 	/********************* Read data input from file ******************************/
 
 	/* Read data input from file */
 
 	loadInitialValues(&configCrontrolFile);
-	readConfigControl(argv[1],&configCrontrolFile,1);
+	//readConfigControl(argv[1],&configCrontrolFile,1);
+	readParametersFileInput(argv[1],&configCrontrolFile,1);
 
 	nameInputFileSpectra = configCrontrolFile.ObservedProfiles;
 	nameInputFileLambda = configCrontrolFile.WavelengthFile;
 	nameInputFileLines = configCrontrolFile.AtomicParametersFile;
-	nameInputFileInitModel = configCrontrolFile.InitialGuessModel;
+	
 	nameOutputFileModels = configCrontrolFile.OutputModelFile;
 	nameOutputFilePerfiles = configCrontrolFile.OutputSynthesisFile;
 	
 	nameInputFilePSF = configCrontrolFile.PSFFile;
 	FWHM = configCrontrolFile.FWHM;
-	if(strcmp(configCrontrolFile.TypeConvolution, CONVOLUTION_FFT)==0)
-		KIND_CONVOLUTION = 1;
-	else if(strcmp(configCrontrolFile.TypeConvolution, CONVOLUTION_DIRECT)==0)
-	{
-		 KIND_CONVOLUTION = 0;
-	}
-	
-	/*if(!readParametersFileInput(argv[1], &configCrontrolFile.NumberOfCycles,&CLASSICAL_ESTIMATES,&PRINT_SINTESIS,nameInputFileSpectra,nameInputFileLambda,nameInputFileLines,nameInputFileInitModel, &CENTRAL_WL, nameOutputFileModels,nameOutputFilePerfiles,&configCrontrolFile.ConvolveWithPSF,nameInputFilePSF,&FWHM,&KIND_CONVOLUTION)){
-		printf("\n********************* EXITING THE PROGRAM . ERROR READING PARAMETERS FILE ****************************\n");
-		return -1;
-	}*/
+
 
 	posCENTRAL_WL = readFileCuanticLines(nameInputFileLines,dat,configCrontrolFile.CentralWaveLenght,1);
 	if(!posCENTRAL_WL){
 		printf("\n CUANTIC LINE NOT FOUND, REVIEW IT. INPUT CENTRAL WAVE LENGHT: %f",configCrontrolFile.CentralWaveLenght);
+		//slog_error(0,"\n CUANTIC LINE NOT FOUND, REVIEW IT. INPUT CENTRAL WAVE LENGHT: %f",configCrontrolFile.CentralWaveLenght);
 		exit(1);
 	}
-	readInitialModel(&INITIAL_MODEL,nameInputFileInitModel);
+	readInitialModel(&INITIAL_MODEL,configCrontrolFile.InitialGuessModel);
 	
 	/*********************************************** INITIALIZE VARIABLES  *********************************/
 
 	CC = PI / 180.0;
 	CC_2 = CC * 2;
 
-	wlines = (double *)calloc(2, sizeof(double));
+	wlines = (PRECISION *)calloc(2, sizeof(PRECISION));
 	wlines[0] = 1;
 	wlines[1] = configCrontrolFile.CentralWaveLenght;
 			
 	/******************* CREATE CUANTINC AND INITIALIZE DINAMYC MEMORY*******************/
 
-	cuantic = create_cuantic(dat);
+	cuantic = create_cuantic(dat,1);
 	InitializePointerShareCalculation();
 
 	/****************************************************************************************************/
-
 	// READ PIXELS FROM IMAGE 
-	double timeReadImage, timeExecuteClassicalEstimates;
+	PRECISION timeReadImage,timeExecuteClassicalEstimates;
 	clock_t t;
 	t = clock();
 	fitsImage = readFitsSpectroImage(nameInputFileSpectra);
 	t = clock() - t;
-	timeReadImage = ((double)t)/CLOCKS_PER_SEC; // in seconds 
+	timeReadImage = ((PRECISION)t)/CLOCKS_PER_SEC; // in seconds 
 	
 	printf("\n\n TIME TO READ FITS IMAGE:  %f seconds to execute \n", timeReadImage); 
-	
+	//slog_info(0,"\n\n TIME TO READ FITS IMAGE:  %f seconds to execute \n", timeReadImage);
 
 	if(fitsImage!=NULL && readFitsLambdaFile(nameInputFileLambda,fitsImage)){
 
-		// check if read stray light
-		if(strcmp(configCrontrolFile.StrayLightFile,"")){ //  IF NOT EMPTY READ stray light file 
-			slight = readFitsStrayLightFile(configCrontrolFile.StrayLightFile,&dimStrayLight,fitsImage->nLambdas,fitsImage->rows,fitsImage->cols);
-		}
+
 		// INTERPOLATE PSF WITH ARRAY OF LAMBDA READ
 		/****************************************************************************************************/	
 		// if parameter name of psf has been apported we read the file, in other case create the gaussian with the parameters	
 		//initializing weights
-		PRECISION *w, *sig;
+		//PRECISION *sig;
 		// THE NUMBER OF LAMBDAS IS READ FROM INPUT FILES 
 		nlambda = fitsImage->nLambdas;
+		// check if read stray light
+		if(access(configCrontrolFile.StrayLightFile,F_OK)!=-1){ //  IF NOT EMPTY READ stray light file 
+			slight = readFitsStrayLightFile(configCrontrolFile.StrayLightFile,&dimStrayLight,fitsImage->nLambdas);
+		}
+		else{
+			printf("\n STRAY LIGHT NOT USED \n");
+			//slog_info(0,"\n STRAY LIGHT NOT USED \n");
+		}
+
 		//***************************************** INIT MEMORY WITH SIZE OF LAMBDA ****************************************************//
 		AllocateMemoryDerivedSynthesis(nlambda);
-		weights_init(configCrontrolFile.sigma, &w, &sig, configCrontrolFile.noise);
+		//weights_init(configCrontrolFile.sigma, &sig, configCrontrolFile.noise);
 
 		// ************************** DEFINE PLANS TO EXECUTE MACROTURBULENCE IF NECESSARY **********************************************//
 		//fftw_init_threads();
-		int edge=(nlambda%2)+1;
-		int numln=nlambda-edge+1;
+		//int edge=(nlambda%2)+1;
+		//int numln=nlambda-edge+1;
+		int numln=nlambda;
 		// MACROTURBULENCE PLANS
 		inFilterMAC = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
 		outFilterMAC = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
@@ -236,6 +261,7 @@ int main(int argc, char **argv)
 					if(fp==NULL)
 					{
 						printf("File \"%s\" does not exist!!!\n",nameInputFilePSF);
+						//slog_error(0,"File \"%s\" does not exist!!!\n",nameInputFilePSF);
 						return 0;
 					}
 
@@ -257,7 +283,7 @@ int main(int argc, char **argv)
 					}
 					else{
 						//G = vgauss(FWHM, NMUESTRAS_G, DELTA);
-						//double * fgauss_WL(double FWHM, double step_between_lw, double lambda0, double lambdaCentral, int nLambda, int * sizeG)
+						//PRECISION * fgauss_WL(PRECISION FWHM, PRECISION step_between_lw, PRECISION lambda0, PRECISION lambdaCentral, int nLambda, int * sizeG)
 						G = fgauss_WL(FWHM,fitsImage->pixels[0].vLambda[1]-fitsImage->pixels[0].vLambda[0],fitsImage->pixels[0].vLambda[0],fitsImage->pixels[0].vLambda[nlambda/2],fitsImage->pixels[0].nLambda,&sizeG);
 					}
 			}else{
@@ -308,17 +334,19 @@ int main(int argc, char **argv)
 
 			
 		}		
+		
 
 		int indexPixel = 0;
 
 		// ALLOCATE MEMORY FOR STORE THE RESULTS 
 
 		vModels = calloc (fitsImage->numPixels , sizeof(Init_Model));
-		vChisqrf = calloc (fitsImage->numPixels , sizeof(double));
+		vChisqrf = calloc (fitsImage->numPixels , sizeof(PRECISION));
 
 		t = clock();
 		
 		printf("\n***********************  PROGRESS INVERSION *******************************\n\n");
+		//slog_info(0,"\n***********************  PROGRESS INVERSION *******************************\n\n");
 
 		for(indexPixel = 0; indexPixel < fitsImage->numPixels; indexPixel++){
 			
@@ -375,22 +403,25 @@ int main(int argc, char **argv)
 						slightPixel = slight+nlambda*indexPixel;
 				}
 				lm_mils(cuantic, wlines, fitsImage->pixels[indexPixel].vLambda, fitsImage->pixels[indexPixel].nLambda, fitsImage->pixels[indexPixel].spectro, fitsImage->pixels[indexPixel].nLambda, &initModel, spectra, &chisqrf, slightPixel, configCrontrolFile.toplim, configCrontrolFile.NumberOfCycles,
-						configCrontrolFile.WeightForStokes, configCrontrolFile.fix, sig, configCrontrolFile.InitialDiagonalElement,0,&configCrontrolFile.ConvolveWithPSF);						
+						configCrontrolFile.WeightForStokes, configCrontrolFile.fix, configCrontrolFile.sigma, configCrontrolFile.InitialDiagonalElement,&configCrontrolFile.ConvolveWithPSF);						
 			}
 
 			vModels[indexPixel] = initModel;
 			vChisqrf[indexPixel] = chisqrf;
 			
-			//printf ("\t\t %.2f seconds -- %.2f %%\r",  ((double)(clock() - t)/CLOCKS_PER_SEC) , ((indexPixel*100.)/fitsImage->numPixels));
+			//printf ("\t\t %.2f seconds -- %.2f %%\r",  ((PRECISION)(clock() - t)/CLOCKS_PER_SEC) , ((indexPixel*100.)/fitsImage->numPixels));
 		}
 		t = clock() - t;
 
-		printf("\n\n TIME EXECUTIN CLASSICAL ESTIMATES: %f seconds to execute \n", ((double)timeExecuteClassicalEstimates)/CLOCKS_PER_SEC);
-		timeReadImage = ((double)t)/CLOCKS_PER_SEC; // in seconds 
+		printf("\n\n TIME EXECUTIN CLASSICAL ESTIMATES: %f seconds to execute \n", ((PRECISION)timeExecuteClassicalEstimates)/CLOCKS_PER_SEC);
+		//slog_info(0,"\n\n TIME EXECUTIN CLASSICAL ESTIMATES: %f seconds to execute \n", ((PRECISION)timeExecuteClassicalEstimates)/CLOCKS_PER_SEC);
+		timeReadImage = ((PRECISION)t)/CLOCKS_PER_SEC; // in seconds 
 		printf("\n FINISH EXECUTION OF INVERSION: %f seconds to execute \n", timeReadImage);
-		printf("\n**********");
+		//slog_info(0,"\n FINISH EXECUTION OF INVERSION: %f seconds to execute \n", timeReadImage);
+		//printf("\n**********");
 		if(!writeFitsImageModels(nameOutputFileModels,fitsImage->rows,fitsImage->cols,vModels,vChisqrf,configCrontrolFile.fix,configCrontrolFile.saveChisqr)){
 				printf("\n ERROR WRITING FILE OF MODELS: %s",nameOutputFileModels);
+				//slog_error(0,"\n ERROR WRITING FILE OF MODELS: %s",nameOutputFileModels);
 		}
 
 		// PROCESS FILE OF SYNTETIC PROFILES
@@ -400,15 +431,15 @@ int main(int argc, char **argv)
 			InitializePointerShareCalculation();
 			AllocateMemoryDerivedSynthesis(nlambda);
 
-			weights_init(configCrontrolFile.sigma,&w, &sig, configCrontrolFile.noise);
+			//weights_init(configCrontrolFile.sigma, &sig, configCrontrolFile.noise);
 			int i;
 			for( i=0;i<fitsImage->numPixels;i++)
 			{
 
 				Init_Model initModel = vModels[i];
-				mil_sinrf(cuantic, &initModel, wlines, fitsImage->pixels[i].vLambda, nlambda, spectra, AH, 0,slight,NULL,configCrontrolFile.ConvolveWithPSF);
+				mil_sinrf(cuantic, &initModel, wlines, fitsImage->pixels[i].vLambda, nlambda, spectra, AH,slight,NULL,configCrontrolFile.ConvolveWithPSF);
 				spectral_synthesis_convolution(&nlambda);
-				me_der(cuantic, &initModel, wlines, fitsImage->pixels[i].vLambda, nlambda, d_spectra, spectra, AH, slight, 0,1,configCrontrolFile.ConvolveWithPSF);
+				me_der(cuantic, &initModel, wlines, fitsImage->pixels[i].vLambda, nlambda, d_spectra, spectra, spectra, AH, slight,1,configCrontrolFile.ConvolveWithPSF);
 				response_functions_convolution(&nlambda);
 				int kk;
 				for (kk = 0; kk < (nlambda * NPARMS); kk++)
@@ -421,6 +452,7 @@ int main(int argc, char **argv)
 
 			if(!writeFitsImageProfiles(nameOutputFilePerfiles,nameInputFileSpectra,fitsImage)){
 				printf("\n ERROR WRITING FILE OF SINTHETIC PROFILES: %s",nameOutputFilePerfiles);
+				//slog_error(0,"\n ERROR WRITING FILE OF SINTHETIC PROFILES: %s",nameOutputFilePerfiles);
 			}
 		}
 		
@@ -439,13 +471,29 @@ int main(int argc, char **argv)
 		fftw_free(outSpectraBwMAC);
 		fftw_destroy_plan(planBackwardMAC);
 
-		if(configCrontrolFile.ConvolveWithPSF && KIND_CONVOLUTION==1){
+		if(configCrontrolFile.ConvolveWithPSF){
 			fftw_free(inSpectraFwPSF);
 			fftw_free(outSpectraFwPSF);
 			fftw_destroy_plan(planForwardPSF);
 			fftw_free(inSpectraBwPSF);
 			fftw_free(outSpectraBwPSF);
 			fftw_destroy_plan(planBackwardPSF);
+
+			fftw_free(fftw_G_PSF);
+			fftw_free(fftw_G_MAC_PSF);
+			fftw_free(fftw_G_MAC_DERIV_PSF);
+
+			fftw_free(inPSF_MAC);
+			fftw_free(inMulMacPSF);
+			fftw_free(inPSF_MAC_DERIV);
+			fftw_free(inMulMacPSFDeriv);
+			fftw_free(outConvFilters);
+			fftw_free(outConvFiltersDeriv);	
+
+			fftw_destroy_plan(planForwardPSF_MAC);
+			fftw_destroy_plan(planForwardPSF_MAC_DERIV);
+			fftw_destroy_plan(planBackwardPSF_MAC);
+			fftw_destroy_plan(planBackwardPSF_MAC_DERIV);		
 		}
 
 		free(vModels);
@@ -453,9 +501,11 @@ int main(int argc, char **argv)
 	}
 	else{
 		printf("\n\n ***************************** FITS FILE WITH THE SPECTRO IMAGE CAN NOT BE READ IT ******************************\n");
+		//slog_error(0,"\n\n ***************************** FITS FILE WITH THE SPECTRO IMAGE CAN NOT BE READ IT ******************************\n");
 	}
 
 	printf(" \n***********************  IMAGE INVERSION DONE, CLEANING MEMORY *********************\n");
+	//slog_info(0," \n***********************  IMAGE INVERSION DONE, CLEANING MEMORY *********************\n");
 
 
 	freeFitsImage(fitsImage);
@@ -463,8 +513,6 @@ int main(int argc, char **argv)
 	free(cuantic);
 	free(wlines);
 	FreeMemoryDerivedSynthesis();
-	if(configCrontrolFile.ConvolveWithPSF)
-		free(fftw_G_PSF);
 	free(G);
 
 	return 0;

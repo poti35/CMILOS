@@ -46,11 +46,9 @@ PRECISION **PUNTEROS_CALCULOS_COMPARTIDOS;
 int POSW_PUNTERO_CALCULOS_COMPARTIDOS;
 int POSR_PUNTERO_CALCULOS_COMPARTIDOS;
 
+PRECISION *dtaux, *etai_gp3, *ext1, *ext2, *ext3, *ext4;
 PRECISION *gp1, *gp2, *dt, *dti, *gp3, *gp4, *gp5, *gp6, *etai_2;
-
-
 PRECISION *gp4_gp2_rhoq, *gp5_gp2_rhou, *gp6_gp2_rhov;
-
 PRECISION *dgp1, *dgp2, *dgp3, *dgp4, *dgp5, *dgp6, *d_dt;
 PRECISION *d_ei, *d_eq, *d_eu, *d_ev, *d_rq, *d_ru, *d_rv;
 PRECISION *dfi, *dshi;
@@ -64,8 +62,12 @@ PRECISION **uuGlobalInicial;
 PRECISION **HGlobalInicial;
 PRECISION **FGlobalInicial;
 PRECISION *perfil_instrumental;
-PRECISION *G;
+PRECISION *G,*GMAC;
 PRECISION *interpolatedPSF;
+PRECISION AP[NTERMS*NTERMS*NPARMS],BT[NPARMS*NTERMS];
+
+PRECISION * opa;
+
 int FGlobal, HGlobal, uuGlobal;
 
 PRECISION *d_spectra, *spectra, *spectra_mac;
@@ -88,8 +90,12 @@ fftw_plan planForwardPSF_MAC, planForwardPSF_MAC_DERIV,planBackwardPSF_MAC, plan
 //Convolutions values
 int sizeG = 0;
 PRECISION FWHM = 0;
-int KIND_CONVOLUTION = 0; // 0 --> Discreet convolution ; 1 --> Convolution with FFT
+
 ConfigControl configCrontrolFile;
+
+// fvoigt memory consuption
+_Complex PRECISION *z,* zden, * zdiv;
+
 
 int main(int argc, char **argv)
 {
@@ -105,7 +111,7 @@ int main(int argc, char **argv)
 		
 	// FINISH STARTING PROGRAM 
 
-	double *wlines;
+	PRECISION *wlines;
 	int nlambda, numPixels, indexPixel;
 
 
@@ -132,33 +138,29 @@ int main(int argc, char **argv)
 	const char  * nameOutputFileModels;
 	const char  * nameOutputFilePerfiles;
 	const char	* nameInputFileLines;
-	const char 	* nameInputFileInitModel ;
+	
 	const char	* nameInputFilePSF ;
 
 
    FitsImage * fitsImage = NULL;
-	double  dat[7];
+	PRECISION  dat[7];
 
 	/********************* Read data input from file ******************************/
 
 	loadInitialValues(&configCrontrolFile);
-	readConfigControl(argv[1],&configCrontrolFile,(idProc==root));
+	//readConfigControl(argv[1],&configCrontrolFile,(idProc==root));
+	readParametersFileInput(argv[1],&configCrontrolFile,(idProc==root));
 
 	nameInputFileSpectra = configCrontrolFile.ObservedProfiles;
 	nameInputFileLambda = configCrontrolFile.WavelengthFile;
 	nameInputFileLines = configCrontrolFile.AtomicParametersFile;
-	nameInputFileInitModel = configCrontrolFile.InitialGuessModel;
+	
 	nameOutputFileModels = configCrontrolFile.OutputModelFile;
 	nameOutputFilePerfiles = configCrontrolFile.OutputSynthesisFile;
 	
 	nameInputFilePSF = configCrontrolFile.PSFFile;
 	FWHM = configCrontrolFile.FWHM;
-	if(strcmp(configCrontrolFile.TypeConvolution, CONVOLUTION_FFT)==0)
-		KIND_CONVOLUTION = 1;
-	else if(strcmp(configCrontrolFile.TypeConvolution, CONVOLUTION_DIRECT)==0)
-	{
-		 KIND_CONVOLUTION = 0;
-	}
+
 
 	/*if(!readParametersFileInput(argv[1], &Max_iter,&CLASSICAL_ESTIMATES,&PRINT_SINTESIS,nameInputFileSpectra,nameInputFileLambda,nameInputFileLines,nameInputFileInitModel, &CENTRAL_WL, nameOutputFileModels,nameOutputFilePerfiles,&INSTRUMENTAL_CONVOLUTION,nameInputFilePSF,&FWHM,&KIND_CONVOLUTION)){
 		printf("\n********************* EXITING THE PROGRAM . ERROR READING PARAMETERS FILE ****************************\n");
@@ -167,10 +169,10 @@ int main(int argc, char **argv)
 	
 	posCENTRAL_WL = readFileCuanticLines(nameInputFileLines,dat,configCrontrolFile.CentralWaveLenght,(idProc==root));
 	if(!posCENTRAL_WL){
-		printf("\n CUANTIC LINE NOT FOUND, REVIEW IT. INPUT CENTRAL WAVE LENGHT: %f",configCrontrolFile.CentralWaveLenght);
+		printf("\n CUANTIC LINE NOT FOUND, REVIEW IT. INPUT CENTRAL WAVE LENGHT: %f",(double)configCrontrolFile.CentralWaveLenght);
 		exit(1);
 	}
-	readInitialModel(&INITIAL_MODEL,nameInputFileInitModel);
+	readInitialModel(&INITIAL_MODEL,configCrontrolFile.InitialGuessModel);
 
 
 
@@ -183,7 +185,7 @@ int main(int argc, char **argv)
 	
 
 	
-	wlines = (double *)calloc(2, sizeof(double));
+	wlines = (PRECISION *)calloc(2, sizeof(PRECISION));
 	wlines[0] = 1;
 	wlines[1] = configCrontrolFile.CentralWaveLenght;
 
@@ -192,7 +194,7 @@ int main(int argc, char **argv)
 	
 	/******************* APPLY GAUSSIAN, CREATE CUANTINC AND INITIALIZE DINAMYC MEMORY*******************/
 
-	cuantic = create_cuantic(dat);
+	cuantic = create_cuantic(dat, (idProc==root));
 	InitializePointerShareCalculation();
 
 	/****************************************************************************************************/
@@ -200,13 +202,13 @@ int main(int argc, char **argv)
 
 	// ROOT PROCESS READ IMAGE FROM FILE 
 	if(idProc==root){
-		double timeReadImage;
+		PRECISION timeReadImage;
 		clock_t t;
 		t = clock();
 		fitsImage = readFitsSpectroImage(nameInputFileSpectra);
 		t = clock() - t;
-		timeReadImage = ((double)t)/CLOCKS_PER_SEC; // in seconds 
-		printf("\n TIME TO READ FITS IMAGE:  %f seconds to execute \n", timeReadImage); 
+		timeReadImage = ((PRECISION)t)/CLOCKS_PER_SEC; // in seconds 
+		printf("\n TIME TO READ FITS IMAGE:  %f seconds to execute \n", (double) timeReadImage); 
 		//READ LAMBDA VALUES FROM FITS FILE
 		t = clock();
 		if(fitsImage!=NULL && readFitsLambdaFile(nameInputFileLambda,fitsImage)){
@@ -219,11 +221,11 @@ int main(int argc, char **argv)
 			return -1; 
 		}
 		t = clock() - t;
-		timeReadImage = ((double)t)/CLOCKS_PER_SEC; // in seconds 
-		printf("\n TIME TO READ FITS IMAGE LAMBDA:  %f seconds to execute \n", timeReadImage); 
+		timeReadImage = ((PRECISION)t)/CLOCKS_PER_SEC; // in seconds 
+		printf("\n TIME TO READ FITS IMAGE LAMBDA:  %f seconds to execute \n", (double) timeReadImage); 
 				// check if read stray light
-		if(strcmp(configCrontrolFile.StrayLightFile,"")){ //  IF NOT EMPTY READ stray light file 
-			slight = readFitsStrayLightFile(configCrontrolFile.StrayLightFile,&dimStrayLight,fitsImage->nLambdas,fitsImage->rows,fitsImage->cols);
+		if(access(configCrontrolFile.StrayLightFile,F_OK)!=-1){ //  IF NOT EMPTY READ stray light file 
+			slight = readFitsStrayLightFile(configCrontrolFile.StrayLightFile,&dimStrayLight,fitsImage->nLambdas);
 		}
 	}
 	// TO-DO send fInterpolated by broadcast 	
@@ -277,16 +279,13 @@ int main(int argc, char **argv)
 	MPI_Bcast(&sizeG, 1, MPI_INT, root , MPI_COMM_WORLD);
 	MPI_Barrier(MPI_COMM_WORLD);
 	if(idProc!=root)
-		G = calloc(sizeG,sizeof(double));
+		G = calloc(sizeG,sizeof(PRECISION));
 	MPI_Bcast(G, sizeG, MPI_DOUBLE, root , MPI_COMM_WORLD);
 	MPI_Barrier(MPI_COMM_WORLD); // WAIT UNTIL G HAS BEEN READ
 	
 	// ************************** DEFINE PLANS TO EXECUTE MACROTURBULENCE IF NECESSARY **********************************************//
+	int numln=nlambda;
 
-	//fftw_init_threads();
-	int edge=(nlambda%2)+1;
-	int numln=nlambda-edge+1;
-	
 	// MACROTURBULENCE PLANS
 	inFilterMAC = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
 	outFilterMAC = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
@@ -345,23 +344,11 @@ int main(int argc, char **argv)
 
 	}
 
-	/*if(idProc == root){
-		printf("\n\n VALORES GAUSSIANA: \n");
-		int i;
-		for(i=0;i<sizeG;i++){
-			printf("%lf\n", G[i]);
-		}
-	}
-	printf("\n*********\n");*/
 
-	//vsldConvNewTask1D(&taskConv,VSL_CONV_MODE_AUTO,nlambda,sizeG,nlambda);
 	// IF THE NUMBER OF PIXELS IS NOT GREATER THAN 0 WE DON'T CONITUNUE 
 
 	if(numPixels > 0){
-		/*printf("\n************************************************");		
-		printf("\n************************************************");		
-		printf("\n ESTOY EN EL PROCESO %d . Número de pixeles leidos: %d", idProc, numPixels);
-		printf("\n************************************************");*/
+
 		double local_start, local_finish, local_elapsed, elapsed;
 		double local_start_execution, local_finish_execution, local_elapsed_execution, elapsed_execution;
 		double local_start_scatter, local_finish_scatter, local_elapsed_scatter, elapsed_scatter;
@@ -369,17 +356,18 @@ int main(int argc, char **argv)
 		
 		Init_Model * resultsInitModel;
 		Init_Model * resultsInitModelTotal;
-		double * chisqrfTotal, * chisqrf;
+		PRECISION * chisqrfTotal, * chisqrf;
 		if(idProc == root){
 			resultsInitModelTotal = calloc (numPixels , sizeof(Init_Model));
-			chisqrfTotal = calloc (numPixels , sizeof(double));
+			chisqrfTotal = calloc (numPixels , sizeof(PRECISION));
 		}
 
 		// allocate memory in all processes 
 		AllocateMemoryDerivedSynthesis(nlambda);
 		//initializing weights
-		PRECISION *w, *sig;
-		weights_init(configCrontrolFile.sigma, &w, &sig, configCrontrolFile.noise);
+		//PRECISION *sig;
+		//weights_init(configCrontrolFile.sigma, &sig, configCrontrolFile.noise);
+
 		MPI_Request mpiRequestSpectro, mpiRequestLambda;
 		
 
@@ -438,14 +426,6 @@ int main(int argc, char **argv)
 		MPI_Barrier(MPI_COMM_WORLD); // Wait until all processes have their vlambda
 		local_start = MPI_Wtime();
 
-		/*if (root == idProc) {
-			for ( i = 0; i < numProcs; i++) {
-				printf("\n sendcounts[%d] sendcountsSpectro[%d] sendcountsLambda[%d] \n", sendcountsPixels[i], sendcountsSpectro[i] , sendcountsLambda[i] );
-				printf("\n displcounts[%d] displSpectro[%d] displLambda[%d] \n", displsPixels[i], displsSpectro[i] , displsLambda[i] );
-				printf("\n**********************************************");
-			}
-		}*/
-
 		// SCATTER VPIXELS 
 		PRECISION  * vSpectraSplit = calloc(sendcountsSpectro[idProc],sizeof(PRECISION));
 		PRECISION  * vLambdaSplit = calloc(sendcountsLambda[idProc],sizeof(PRECISION));
@@ -468,21 +448,10 @@ int main(int argc, char **argv)
 		local_finish_scatter = MPI_Wtime();
 
 		resultsInitModel = calloc(sendcountsPixels[idProc], sizeof(Init_Model));
-		chisqrf = calloc(sendcountsPixels[idProc], sizeof(double));
+		chisqrf = calloc(sendcountsPixels[idProc], sizeof(PRECISION));
 		local_start_execution = MPI_Wtime();
+
 		for(indexPixel = 0; indexPixel < sendcountsPixels[idProc]; indexPixel++){
-			// get spectro and lambdas for the current pixel
-			PRECISION * spectroPixel = calloc(nlambda*NPARMS,sizeof(PRECISION));
-			PRECISION * lambdaPixel = calloc(nlambda,sizeof(PRECISION));
-
-			for( j=0;j<(nlambda*NPARMS);j++){
-				spectroPixel[j] = vSpectraSplit[(indexPixel*(nlambda*NPARMS))+j];
-			}
-		
-			for( j=0;j<(nlambda);j++){
-				lambdaPixel[j] = vLambdaSplit[(indexPixel*(nlambda))+j];
-			}
-
 			//Initial Model
 			Init_Model initModel;
 			initModel.eta0 = INITIAL_MODEL.eta0;
@@ -497,11 +466,12 @@ int main(int argc, char **argv)
 			initModel.S0 = INITIAL_MODEL.S0;
 			initModel.S1 = INITIAL_MODEL.S1;
 
-			double auxChisqrf;
+			PRECISION auxChisqrf;
 
 			if (configCrontrolFile.UseClassicalEstimates)
 			{
-				estimacionesClasicas(wlines[1], lambdaPixel, nlambda, spectroPixel, &initModel);
+				
+				estimacionesClasicas(wlines[1], vLambdaSplit+(indexPixel*(nlambda))+j, nlambda, vSpectraSplit+(indexPixel*(nlambda*NPARMS))+j, &initModel);
 				//Se comprueba si el resultado fue "nan" en las CE
 				if (isnan(initModel.B))
 					initModel.B = 1;
@@ -529,13 +499,10 @@ int main(int argc, char **argv)
 					else 
 						slightPixel = slight+nlambda*indexPixel;
 				}
-				/*lm_mils(cuantic, wlines, nwlines, lambdaPixel, nlambda, spectroPixel, nlambda, &initModel, spectra, &auxChisqrf, NULL, toplim, miter,
-						weight, fix, sig, ilambda,0,&INSTRUMENTAL_CONVOLUTION,&sizeG,&KIND_CONVOLUTION);*/
-				lm_mils(cuantic, wlines, lambdaPixel, nlambda, spectroPixel, nlambda, &initModel, spectra, &auxChisqrf, slightPixel, configCrontrolFile.toplim, configCrontrolFile.NumberOfCycles,
-						configCrontrolFile.WeightForStokes, configCrontrolFile.fix, sig, configCrontrolFile.InitialDiagonalElement, 0,&configCrontrolFile.ConvolveWithPSF);												
+				lm_mils(cuantic, wlines, vLambdaSplit+(indexPixel*(nlambda))+j, nlambda, vSpectraSplit+(indexPixel*(nlambda*NPARMS))+j, nlambda, &initModel, spectra, &auxChisqrf, slightPixel, configCrontrolFile.toplim, configCrontrolFile.NumberOfCycles,
+						configCrontrolFile.WeightForStokes, configCrontrolFile.fix, configCrontrolFile.sigma, configCrontrolFile.InitialDiagonalElement,&configCrontrolFile.ConvolveWithPSF);																		
 			}
-			free(spectroPixel);
-			free(lambdaPixel);
+
 			resultsInitModel[indexPixel] = initModel;
 			chisqrf[indexPixel] = auxChisqrf;
 		}
@@ -596,9 +563,9 @@ int main(int argc, char **argv)
 					Init_Model initModel = resultsInitModelTotal[indexPixel];
 					//double chisqr = vChisqrf[i];
 
-					mil_sinrf(cuantic, &initModel, wlines, fitsImage->pixels[indexPixel].vLambda, nlambda, spectra, AH, 0,slight,NULL,configCrontrolFile.ConvolveWithPSF);
+					mil_sinrf(cuantic, &initModel, wlines, fitsImage->pixels[indexPixel].vLambda, nlambda, spectra, AH,slight,NULL,configCrontrolFile.ConvolveWithPSF);
 					spectral_synthesis_convolution(&nlambda);
-					me_der(cuantic, &initModel, wlines, fitsImage->pixels[indexPixel].vLambda, nlambda, d_spectra,spectra, AH, NULL, 0 ,1,configCrontrolFile.ConvolveWithPSF);
+					me_der(cuantic, &initModel, wlines, fitsImage->pixels[indexPixel].vLambda, nlambda, d_spectra,spectra, spectra, AH, slight,1,configCrontrolFile.ConvolveWithPSF);
 					response_functions_convolution(&nlambda);
 					int kk;
 					for (kk = 0; kk < (nlambda * NPARMS); kk++)
@@ -612,7 +579,7 @@ int main(int argc, char **argv)
 				}
 			}
 
-			//vslConvDeleteTask(&taskConv);
+			
 			free(resultsInitModelTotal);		
 			free(chisqrfTotal);
 		}
@@ -643,13 +610,29 @@ int main(int argc, char **argv)
 		fftw_free(outSpectraBwMAC);
 		fftw_destroy_plan(planBackwardMAC);
 
-		if(configCrontrolFile.ConvolveWithPSF && KIND_CONVOLUTION==1){
+		if(configCrontrolFile.ConvolveWithPSF){
 			fftw_free(inSpectraFwPSF);
 			fftw_free(outSpectraFwPSF);
 			fftw_destroy_plan(planForwardPSF);
 			fftw_free(inSpectraBwPSF);
 			fftw_free(outSpectraBwPSF);
 			fftw_destroy_plan(planBackwardPSF);
+
+			fftw_free(fftw_G_PSF);
+			fftw_free(fftw_G_MAC_PSF);
+			fftw_free(fftw_G_MAC_DERIV_PSF);
+
+			fftw_free(inPSF_MAC);
+			fftw_free(inMulMacPSF);
+			fftw_free(inPSF_MAC_DERIV);
+			fftw_free(inMulMacPSFDeriv);
+			fftw_free(outConvFilters);
+			fftw_free(outConvFiltersDeriv);	
+
+			fftw_destroy_plan(planForwardPSF_MAC);
+			fftw_destroy_plan(planForwardPSF_MAC_DERIV);
+			fftw_destroy_plan(planBackwardPSF_MAC);
+			fftw_destroy_plan(planBackwardPSF_MAC_DERIV);					
 		}
 
 

@@ -1,12 +1,15 @@
 #include "defines.h"
 #include <stdarg.h>
+#include <gmp.h>
+#include <mpfr.h>
 
 extern PRECISION **PUNTEROS_CALCULOS_COMPARTIDOS;
 extern int POSW_PUNTERO_CALCULOS_COMPARTIDOS;
 extern int POSR_PUNTERO_CALCULOS_COMPARTIDOS;
 
-extern PRECISION *gp4_gp2_rhoq, *gp5_gp2_rhou, *gp6_gp2_rhov;
 
+extern PRECISION *dtaux, *etai_gp3, *ext1, *ext2, *ext3, *ext4;
+extern PRECISION *gp4_gp2_rhoq, *gp5_gp2_rhou, *gp6_gp2_rhov;
 extern PRECISION *gp1, *gp2, *dt, *dti, *gp3, *gp4, *gp5, *gp6, *etai_2;
 extern PRECISION *dgp1, *dgp2, *dgp3, *dgp4, *dgp5, *dgp6, *d_dt;
 extern PRECISION *d_ei, *d_eq, *d_eu, *d_ev, *d_rq, *d_ru, *d_rv;
@@ -21,9 +24,12 @@ PRECISION **uuGlobalInicial;
 PRECISION **HGlobalInicial;
 PRECISION **FGlobalInicial;
 extern int FGlobal, HGlobal, uuGlobal;
-
+extern PRECISION *GMAC;
 extern Cuantic *cuantic;
 
+extern PRECISION * opa;
+
+extern _Complex PRECISION *z,* zden, * zdiv;
 
 void InitializePointerShareCalculation()
 {
@@ -109,9 +115,30 @@ void ReadPointerShareCalculation(int Numero, PRECISION **a, ...)
 void AllocateMemoryDerivedSynthesis(int numl)
 {
 
+	/************* ME DER *************************************/
+	dtaux = calloc(numl,sizeof(PRECISION));
+	etai_gp3 = calloc(numl,sizeof(PRECISION));
+	ext1 = calloc(numl,sizeof(PRECISION));
+	ext2 = calloc(numl,sizeof(PRECISION));
+	ext3 = calloc(numl,sizeof(PRECISION));
+	ext4 = calloc(numl,sizeof(PRECISION));
+	/**********************************************************/
+
+	//***** VARIABLES FOR FVOIGT ****************************//
+	z = malloc (numl * sizeof(_Complex PRECISION));
+	zden = malloc (numl * sizeof(_Complex PRECISION));
+	zdiv = malloc (numl * sizeof(_Complex PRECISION));
+	/********************************************************/
+
+
+	GMAC = calloc(numl, sizeof(PRECISION));
+
 	spectra = calloc(numl * NPARMS, sizeof(PRECISION));
 	spectra_mac = calloc(numl * NPARMS, sizeof(PRECISION));
 	d_spectra = calloc(numl * NTERMS * NPARMS, sizeof(PRECISION));
+	
+	
+	opa = calloc(numl,sizeof(PRECISION));
 
 	gp4_gp2_rhoq = calloc(numl, sizeof(PRECISION));
 	gp5_gp2_rhou = calloc(numl, sizeof(PRECISION));
@@ -202,6 +229,18 @@ void AllocateMemoryDerivedSynthesis(int numl)
 
 void FreeMemoryDerivedSynthesis()
 {
+	
+	free(dtaux);
+	free(etai_gp3);
+	free(ext1);
+	free(ext2);
+	free(ext3);
+	free(ext4);	
+
+	free(zden);
+	free(zdiv);
+	free(z);
+
 	free(gp1);
 	free(gp2);
 	free(gp3);
@@ -232,9 +271,13 @@ void FreeMemoryDerivedSynthesis()
 	free(dfi);
 	free(dshi);
 
+	free(GMAC);
+	free(opa);
 	free(spectra);
 	free(spectra_mac);
 	free(d_spectra);
+	
+	
 
 	free(fi_p);
 	free(fi_b);

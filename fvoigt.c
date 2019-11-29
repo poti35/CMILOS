@@ -1,7 +1,7 @@
 
 
 #include "defines.h"
-
+extern _Complex PRECISION *z,* zden, * zdiv;
 //pro fvoigt,damp,vv,h,f
 int fvoigt(PRECISION damp, PRECISION *vv, int nvv, PRECISION *h, PRECISION *f)
 {
@@ -16,8 +16,8 @@ int fvoigt(PRECISION damp, PRECISION *vv, int nvv, PRECISION *h, PRECISION *f)
 									348.703917719495792, 170.354001821091472, 53.992906912940207,
 									10.479857114260399, 1.};
 
-	_Complex PRECISION z[nvv],zden[nvv],zdiv[nvv];
-	/*_Complex PRECISION *z, *zden, *zdiv;
+	/*_Complex PRECISION z[nvv],zden[nvv],zdiv[nvv];
+	_Complex PRECISION *z, *zden, *zdiv;
 
 	z = malloc (nvv * sizeof(_Complex PRECISION));
 	zden = malloc (nvv * sizeof(_Complex PRECISION));

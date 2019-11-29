@@ -9,8 +9,17 @@
 #include <gsl/gsl_blas.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <gmp.h>
+#include <mpfr.h>
+
+
 //#include <omp.h>
 //#include "mkl_cblas.h"
+
+
+
+extern PRECISION AP[NTERMS*NTERMS*NPARMS],BT[NPARMS*NTERMS];
+extern PRECISION * opa;
 
 
 /*
@@ -24,38 +33,43 @@ return
 */
 
 int covarm(PRECISION *w,PRECISION *sig,PRECISION *spectro,int nspectro,PRECISION *spectra,PRECISION  *d_spectra,
-		PRECISION *beta,PRECISION *alpha){
-
-	
-	
+		PRECISION *beta,PRECISION *alpha){	
 	
 	int j,i,bt_nf,bt_nc,aux_nf,aux_nc;
-
-	static PRECISION AP[NTERMS*NTERMS*NPARMS],BT[NPARMS*NTERMS];
-	PRECISION opa[nspectro];
+	//static PRECISION AP[NTERMS*NTERMS*NPARMS],BT[NPARMS*NTERMS];
+	//PRECISION opa[nspectro];
+	
 	PRECISION *BTaux,*APaux;
+	PRECISION auxWeight,aux;
 	//PRECISION *opa;
 	//opa = calloc(nspectro,sizeof(PRECISION));
-	
+	//printf("\nVALORES DEL SIGMA SQUARE\n");
+
 	for(j=0;j<NPARMS;j++){
 		for(i=0;i<nspectro;i++){
 			opa[i]=w[j]*(spectra[i+nspectro*j]-spectro[i+nspectro*j]);
 		}
+		if(sig[j] == 0 || w[j] == 0) 
+			auxWeight = 0;
+		else 
+			auxWeight = (w[j]/(sig[j]));
 
 		BTaux=BT+(j*NTERMS);
-		multmatrixIDLValue(opa,nspectro,1,d_spectra+j*nspectro*NTERMS,NTERMS,nspectro,BTaux,&bt_nf,&bt_nc,sig[j]*sig[j]); //bt de tam NTERMS x 1
-		// multmatrixIDLValue(opa,nspectro,1,d_spectra+j*nspectro*NTERMS,NTERMS,nspectro,BTaux,&bt_nf,&bt_nc,1); //bt de tam NTERMS x 1
-	
-		//
 		APaux=AP+(j*NTERMS*NTERMS);
-		multmatrix_transpose_cblas(d_spectra+j*nspectro*NTERMS,NTERMS,nspectro,d_spectra+j*nspectro*NTERMS,NTERMS,nspectro,
-													APaux,&aux_nf,&aux_nc,w[j]/(sig[j]*sig[j]));//ap de tam NTERMS x NTERMS
-		 // multmatrix_transpose(d_spectra+j*nspectro*NTERMS,NTERMS,nspectro,d_spectra+j*nspectro*NTERMS,NTERMS,nspectro,
-													 // APaux,&aux_nf,&aux_nc,1);//ap de tam NTERMS x NTERMS													
+		
+		multmatrixIDLValue(opa,nspectro,1,d_spectra+j*nspectro*NTERMS,NTERMS,nspectro,BTaux,&bt_nf,&bt_nc,sig[j]); //bt de tam NTERMS x 1
+		//multmatrix_transpose(d_spectra+j*nspectro*NTERMS,NTERMS,nspectro,d_spectra+j*nspectro*NTERMS,NTERMS,nspectro,APaux,&aux_nf,&aux_nc,w[j]/(sig[j]*sig[j]));//ap de tam NTERMS x NTERMS
+		multmatrix_transpose_param(d_spectra+j*nspectro*NTERMS,NTERMS,nspectro,d_spectra+j*nspectro*NTERMS,NTERMS,nspectro,APaux,&aux_nf,&aux_nc);//ap de tam NTERMS x NTERMS
+		//printf("\n FIRST PART OF ALFA MATRIX:\n ");
+		for(i=0;i<aux_nf*aux_nc;i++){
+			//printf("\nVALUE OF APAUX[I]=%lf  \t VALUE OF AUX WEIGHT=%lf",APaux[i], auxWeight);
+			//APaux[i] *= auxWeight;
+			aux = APaux[i] * auxWeight;
+			APaux[i] =  aux;
+			//printf("\n VALUE OF APAUX[i] alter mult: %lf",APaux[i]);
+		}
 	}
 
-	//free(opa);
-	
 	totalParcialf(BT,NPARMS,NTERMS,beta); //beta de tam 1 x NTERMS
 	totalParcialMatrixf(AP,NTERMS,NTERMS,NPARMS,alpha); //alpha de tam NTERMS x NTERMS
 	
@@ -64,10 +78,10 @@ int covarm(PRECISION *w,PRECISION *sig,PRECISION *spectro,int nspectro,PRECISION
 
 
 
-double fchisqr(PRECISION * spectra,int nspectro,PRECISION *spectro,PRECISION *w,PRECISION *sig,double nfree){
+PRECISION fchisqr(PRECISION * spectra,int nspectro,PRECISION *spectro,PRECISION *w,PRECISION *sig,PRECISION nfree){
 	
-	double TOT,dif;	
-	double opa;
+	PRECISION TOT,dif;	
+	PRECISION opa;
 	int i,j;
 
 	TOT=0;
@@ -77,7 +91,8 @@ double fchisqr(PRECISION * spectra,int nspectro,PRECISION *spectro,PRECISION *w,
 			dif=spectra[i+nspectro*j]-spectro[i+nspectro*j];
 			opa+= (dif*dif);
 		}
-		TOT+=((w[j]*opa)/(sig[j]*sig[j]));
+		TOT+=((w[j]*opa)/(sig[j]));
+		//TOT+=((w[j]*opa)/(sig[j]*sig[j]));
 		//TOT+= opa;///(sig[j]*sig[j]);
 	}
 		
@@ -86,33 +101,6 @@ double fchisqr(PRECISION * spectra,int nspectro,PRECISION *spectro,PRECISION *w,
 	
 }
 
-
-double * leeVector(char *nombre,int tam)
-{
-	FILE *fichero;
-
-	double *v,a;
-	int n;
-
-	//lectura
-	fichero= fopen(nombre,"r");
-	if(fichero==NULL){
-		printf("leevector : Error de apertura, es posible que el fichero no exista.\n");
-		return 0;
-	}
-
-	v=calloc(tam,sizeof(double));		
-
-	n=0;
-	while (fscanf(fichero,"%lf",&a)!= EOF ){
-		v[n]=a;
-		n++;			
-	}
-	fclose(fichero);
-
-	return v;
-
-}
 
 /*
 
@@ -126,73 +114,6 @@ double * leeVector(char *nombre,int tam)
 	El tamaño de columnas de b, nbc, debe de ser igual al de filas de a, naf.
 
 */
-int multmatrixIDL(double *a,int naf,int nac, double *b,int nbf,int nbc,double **resultOut,int *fil,int *col){
-    
-     int i,j,k;
-    double sum;
-	double *result;
-	
-	if(naf==nbc){
-		(*fil)=nbf;
-		(*col)=nac;
-		
-//		free(*result);
-		result=calloc((nbf)*(nac),sizeof(double));
-//		printf("a ver ..\n");
-
-		for ( i = 0; i < nbf; i++){
-		    for ( j = 0; j < nac; j++){
-				sum=0;
-				for ( k = 0;  k < naf; k++){
-//					printf("i: %d,j:%d,k=%d .. a[%d][%d]:%f  .. b[%d][%d]:%f\n",i,j,k,k,j,a[k*nac+j],i,k,b[i*nbc+k]);
-					sum += a[k*nac+j] * b[i*nbc+k];
-				}
-//				printf("Sum, result[%d][%d] : %f \n",i,j,sum);
-				result[((nac)*i)+j] = sum;
-      		} 
-		}
-		*resultOut=result;
-		return 1;
-	}
-	else
-		printf("\n \n Error en multmatrixIDL no coinciden nac y nbf!!!! ..\n\n");
-	return 0;
-}
-
-
-int multmatrixIDLf(PRECISION *a,int naf,int nac,PRECISION *b,int nbf,int nbc,PRECISION **resultOut,int *fil,int *col){
-    
-     int i,j,k;
-    PRECISION sum;
-	PRECISION *result;
-	
-	if(naf==nbc){
-		(*fil)=nbf;
-		(*col)=nac;
-		
-//		free(*result);
-		result=calloc((nbf)*(nac),sizeof(PRECISION));
-//		printf("a ver ..\n");
-
-		for ( i = 0; i < nbf; i++){
-		    for ( j = 0; j < nac; j++){
-				sum=0;
-				for ( k = 0;  k < naf; k++){
-//					printf("i: %d,j:%d,k=%d .. a[%d][%d]:%f  .. b[%d][%d]:%f\n",i,j,k,k,j,a[k*nac+j],i,k,b[i*nbc+k]);
-					sum += a[k*nac+j] * b[i*nbc+k];
-				}
-//				printf("Sum, result[%d][%d] : %f \n",i,j,sum);
-				result[((nac)*i)+j] = sum;
-      		} 
-		}
-		*resultOut=result;
-		return 1;
-	}
-	else
-		printf("\n \n Error en multmatrixIDL no coinciden nac y nbf!!!! ..\n\n");
-	return 0;
-}
-
 int multmatrixIDLValue(PRECISION *a,int naf,int nac,PRECISION *b,int nbf,int nbc,PRECISION *result,int *fil,int *col,PRECISION value){
     
      int i,j,k;
@@ -210,65 +131,33 @@ int multmatrixIDLValue(PRECISION *a,int naf,int nac,PRECISION *b,int nbf,int nbc
 		    for ( j = 0; j < nac; j++){
 				sum=0;
 				for ( k = 0;  k < naf; k++){
-//					printf("i: %d,j:%d,k=%d .. a[%d][%d]:%f  .. b[%d][%d]:%f\n",i,j,k,k,j,a[k*nac+j],i,k,b[i*nbc+k]);
+					//printf("i: %d,j:%d,k=%d .. a[%d][%d]:%f  .. b[%d][%d]:%f\n",i,j,k,k,j,a[k*nac+j],i,k,b[i*nbc+k]);
 					sum += a[k*nac+j] * b[i*nbc+k];
 				}
-//				printf("Sum, result[%d][%d] : %f \n",i,j,sum);
+				//printf("Sum, result[%d][%d] : %f \n",i,j,sum);
 				result[((nac)*i)+j] = sum/value;
       		} 
 		}
 		return 1;
 	}
 	else
-		printf("\n \n Error en multmatrixIDL no coinciden nac y nbf!!!! ..\n\n");
+		printf("\n \n Error en multmatrixIDLValue no coinciden nac y nbf!!!! ..\n\n");
 	return 0;
-}
-
-double * transpose(double *mat,int fil,int col){
-	
-	int i,j;
-	double *result;
-	
-	result=calloc(fil*col,sizeof(double));
-	
-	for(i=0;i<fil;i++){
-		for(j=0;j<col;j++){
-			result[j*fil+i]=mat[i*col+j];
-		}
-	}
-	
-	return result;
-}
-
-PRECISION * transposef(PRECISION *mat,int fil,int col){
-	
-	int i,j;
-	PRECISION *result;
-	
-	result=calloc(fil*col,sizeof(PRECISION));
-	
-	for(i=0;i<fil;i++){
-		for(j=0;j<col;j++){
-			result[j*fil+i]=mat[i*col+j];
-		}
-	}
-	
-	return result;
 }
 
 
 /*
 	dire:
-		1: suma por filas, return double * de tam f
-		2: suma por columnas, return double * de tam c
+		1: suma por filas, return PRECISION * de tam f
+		2: suma por columnas, return PRECISION * de tam c
 */
 
-double *totalParcial(double * A, int f,int c,int dire){
+PRECISION *totalParcial(PRECISION * A, int f,int c,int dire){
 
 	int i,j;
-//	double 	sum;
-	double *result;	
-	result=calloc(dire==1?f:c,sizeof(double));
+//	PRECISION 	sum;
+	PRECISION *result;	
+	result=calloc(dire==1?f:c,sizeof(PRECISION));
 
 	for(i=0;i<f;i++)
 		for(j=0;j<c;j++){
@@ -281,9 +170,9 @@ double *totalParcial(double * A, int f,int c,int dire){
 void totalParcialf(PRECISION * A, int f,int c,PRECISION * result){
 
 	int i,j;
-//	double 	sum;
+//	PRECISION 	sum;
 
-//	result=calloc(dire==1?f:c,sizeof(double));
+//	result=calloc(dire==1?f:c,sizeof(PRECISION));
 	
 	for(i=0;i<c;i++){
 		result[i]=0;
@@ -298,12 +187,12 @@ void totalParcialf(PRECISION * A, int f,int c,PRECISION * result){
 return matriz de tam f*c
 */
 
-double *totalParcialMatrix(double * A, int f,int c,int p){
+PRECISION *totalParcialMatrix(PRECISION * A, int f,int c,int p){
 
 	int i,j,k;
-//	double 	sum;
-	double *result;	
-	result=calloc(f*c,sizeof(double));
+//	PRECISION 	sum;
+	PRECISION *result;	
+	result=calloc(f*c,sizeof(PRECISION));
 
 	for(i=0;i<f;i++)
 		for(j=0;j<c;j++){
@@ -317,9 +206,9 @@ double *totalParcialMatrix(double * A, int f,int c,int p){
 void totalParcialMatrixf(PRECISION * A, int f,int c,int p,PRECISION *result){
 
 	int i,j,k;
-//	double 	sum;
-//	double *result;	
-//	result=calloc(f*c,sizeof(double));
+//	PRECISION 	sum;
+//	PRECISION *result;	
+//	result=calloc(f*c,sizeof(PRECISION));
 
 	for(i=0;i<f;i++)
 		for(j=0;j<c;j++){
@@ -332,10 +221,10 @@ void totalParcialMatrixf(PRECISION * A, int f,int c,int p,PRECISION *result){
 }
 
 
-double total(double * A, int f,int c){
+PRECISION total(PRECISION * A, int f,int c){
 
 	int i,j;
-	double 	sum;
+	PRECISION 	sum;
 	sum=0;
 	for(i=0;i<f;i++)
 		for(j=0;j<c;j++)
@@ -367,7 +256,7 @@ int multmatrix(PRECISION *a,int naf,int nac, PRECISION *b,int nbf,int nbc,PRECIS
 		(*col)=nbc;
 		
 //		free(*result);
-//		*result=calloc((*fil)*(*col),sizeof(double));
+//		*result=calloc((*fil)*(*col),sizeof(PRECISION));
 //		printf("a ver ..\n");
 
 		for ( i = 0; i < naf; i++)
@@ -416,65 +305,7 @@ int multmatrixCblas(PRECISION *a,int naf,int nac, PRECISION *b,int nbf,int nbc,P
 
 }
 
-int multmatrix2(double *a,int naf,int nac, PRECISION *b,int nbf,int nbc,double **result,int *fil,int *col){
-    
-    int i,j,k;
-    double sum;
-    
-	if(nac==nbf){
-		(*fil)=naf;
-		(*col)=nbc;
-		
-//		free(*result);
-		*result=calloc((*fil)*(*col),sizeof(double));
-//		printf("a ver ..\n");
 
-		for ( i = 0; i < naf; i++)
-		    for ( j = 0; j < nbc; j++){
-				sum=0;
-				for ( k = 0;  k < nbf; k++){
-//					printf("i: %d,j:%d,k=%d .. a[%d][%d]  .. b[%d][%d]\n",i,j,k,i,k,k,j);
-					sum += a[i*nac+k] * b[k*nbc+j];
-				}
-//				printf("Sum\n");
-				(*result)[(*col)*i+j] = sum;
-
-      		} 
-
-		return 1;
-	}
-	return 0;
-}
-
-int multmatrix3(PRECISION *a,int naf,int nac,double *b,int nbf,int nbc,double **result,int *fil,int *col){
-    
-    int i,j,k;
-    double sum;
-    
-	if(nac==nbf){
-		(*fil)=naf;
-		(*col)=nbc;
-		
-//		free(*result);
-		*result=calloc((*fil)*(*col),sizeof(double));
-//		printf("a ver ..\n");
-
-		for ( i = 0; i < naf; i++)
-		    for ( j = 0; j < nbc; j++){
-				sum=0;
-				for ( k = 0;  k < nbf; k++){
-//					printf("i: %d,j:%d,k=%d .. a[%d][%d]  .. b[%d][%d]\n",i,j,k,i,k,k,j);
-					sum += a[i*nac+k] * b[k*nbc+j];
-				}
-//				printf("Sum\n");
-				(*result)[(*col)*i+j] = sum;
-
-      		} 
-
-		return 1;
-	}
-	return 0;
-}
 
 int multmatrix_transpose(PRECISION *a,int naf,int nac, PRECISION *b,int nbf,int nbc,PRECISION *result,int *fil,int *col,PRECISION value){
     
@@ -485,7 +316,7 @@ int multmatrix_transpose(PRECISION *a,int naf,int nac, PRECISION *b,int nbf,int 
 		(*fil)=naf;
 		(*col)=nbf;
 		
-		for ( i = 0; i < naf; i++)
+		for ( i = 0; i < naf; i++){
 		    for ( j = 0; j < nbf; j++){
 				sum=0;
 				for ( k = 0;  k < nbc; k++){
@@ -493,8 +324,12 @@ int multmatrix_transpose(PRECISION *a,int naf,int nac, PRECISION *b,int nbf,int 
 				}
 
 				result[(*col)*i+j] = (sum)*value;
-      		} 
-
+				//result[(*col)*i+j] = sum;
+     		} 
+		
+		}
+		/*for(i=0;i<(*fil)*(*col);i++)
+			result[i] *=value;*/
 		return 1;
 	}else{
 		printf("\n \n Error en multmatrix_transpose no coinciden nac y nbc!!!! ..\n\n");
@@ -502,6 +337,37 @@ int multmatrix_transpose(PRECISION *a,int naf,int nac, PRECISION *b,int nbf,int 
 
 	return 0;
 }
+
+int multmatrix_transpose_param(PRECISION *a,int naf,int nac, PRECISION *b,int nbf,int nbc,PRECISION *result,int *fil,int *col){
+    
+    int i,j,k;
+    PRECISION sum;
+    
+	if(nac==nbc){
+		(*fil)=naf;
+		(*col)=nbf;
+		
+		for ( i = 0; i < naf; i++){
+		    for ( j = 0; j < nbf; j++){
+				sum=0;
+				for ( k = 0;  k < nbc; k++){
+					sum += a[i*nac+k] * b[j*nbc+k];
+				}
+
+				result[(*col)*i+j] = (sum);
+     		} 
+		
+		}
+		return 1;
+	}else{
+		printf("\n \n Error en multmatrix_transpose no coinciden nac y nbc!!!! ..\n\n");
+	}
+
+	return 0;
+}
+
+
+
 
 /*int multmatrix_transpose_omp(PRECISION *a,int naf,int nac, PRECISION *b,int nbf,int nbc,PRECISION *result,int *fil,int *col,PRECISION value){
     
@@ -574,39 +440,14 @@ int multmatrix_transpose_cblas(PRECISION *a,int naf,int nac, PRECISION *b,int nb
 
 }
 
-int multmatrix_transposeD(double *a,int naf,int nac, double *b,int nbf,int nbc,double *result,int *fil,int *col){
-    
-    int i,j,k;
-    double sum;
-    
-	if(nac==nbc){
-		(*fil)=naf;
-		(*col)=nbf;
-		
-		for ( i = 0; i < naf; i++)
-		    for ( j = 0; j < nbf; j++){
-				sum=0;
-				for ( k = 0;  k < nbc; k++){
-					sum += a[i*nac+k] * b[j*nbc+k];
-				}
 
-				result[(*col)*i+j] = (sum);
-      		} 
-
-		return 1;
-	}else{
-		printf("\n \n Error en multmatrix_transposeD no coinciden nac y nbc!!!! ..\n\n");
-	}
-
-	return 0;
-}
 
 
 
 //Media de un vector de longitud numl
-PRECISION mean(double *dat, int numl){
+PRECISION mean(PRECISION *dat, int numl){
 	
-	double auxsum;
+	PRECISION auxsum;
 	int i;
 
 	auxsum=0;
@@ -657,7 +498,7 @@ int CalculaNfree(int nspectro)
 
 
 
-void printProgress (double percentage)
+void printProgress (PRECISION percentage)
 {
     //int val = (int) (percentage * 100);
     //int lpad = (int) (percentage * PBWIDTH);
@@ -674,3 +515,14 @@ int isDirectory(const char *path) {
        return 0;
    return S_ISDIR(statbuf.st_mode);
 }
+
+
+void myMemCpy(PRECISION *dest, PRECISION *src, size_t n) 
+{ 
+   // Typecast src and dest addresses to (char *) 
+	size_t i;
+   // Copy contents of src[] to dest[] 
+   for (i=0; i<n; i++) 
+      dest[i] = src[i]; 
+} 
+

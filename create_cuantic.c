@@ -1,16 +1,16 @@
 
 #include "defines.h"
-
-int Cuanten(Cuantic *cuantic, double sl, double ll, double jl, double su, double lu, double ju, double fos);
+#include "slog.h"
+int Cuanten(Cuantic *cuantic, PRECISION sl, PRECISION ll, PRECISION jl, PRECISION su, PRECISION lu, PRECISION ju, PRECISION fos,int log);
 
 //data -> [lines, sl,ll,jl,su,lu,ju, fos]  (fos only if lines>1)
 
-Cuantic *create_cuantic(double *dat)
+Cuantic *create_cuantic(PRECISION *dat,int log)
 {
 	Cuantic *cuantic;
 
 	int i;
-	double lines;
+	PRECISION lines;
 
 	lines = dat[0];
 
@@ -22,13 +22,13 @@ Cuantic *create_cuantic(double *dat)
 				  dat[i * 7 + 4],
 				  dat[i * 7 + 5],
 				  dat[i * 7 + 6],
-				  (lines > 1 ? dat[i * 7 + 7] : 1));
+				  (lines > 1 ? dat[i * 7 + 7] : 1),log);
 	}
 
 	return cuantic;
 }
 
-int Cuanten(Cuantic *cuantic, double sl, double ll, double jl, double su, double lu, double ju, double fos)
+int Cuanten(Cuantic *cuantic, PRECISION sl, PRECISION ll, PRECISION jl, PRECISION su, PRECISION lu, PRECISION ju, PRECISION fos, int log)
 {
 	//SL(I),     SU(I),     LL(I),    LU(I),    JL(I),   JU(I)
 	//,NUB,NUP,NUR,WEB,WEP,WER,GLO,GUP,GEF
@@ -37,10 +37,10 @@ int Cuanten(Cuantic *cuantic, double sl, double ll, double jl, double su, double
 
 	int *m1, *m2, im, i, j;
 	int jj, n_pi, n_sig;
-	double g1, g2, geff;
-	double *pi, *sig1, *sig2, *mpi, *msig1, *msig2;
+	PRECISION g1, g2, geff;
+	PRECISION *pi, *sig1, *sig2, *mpi, *msig1, *msig2;
 	int ipi, isig1, isig2;
-	double sumpi, sumsig1, sumsig2;
+	PRECISION sumpi, sumsig1, sumsig2;
 
 	//lande factors (with 'if' because j could be cero)
 	if (jl != 0)
@@ -82,12 +82,12 @@ int Cuanten(Cuantic *cuantic, double sl, double ll, double jl, double su, double
 	//RED COMPONENT => Mlo-Mup = -1
 	//CENTRAL COMPONENT => Mlo-Mup = 0
 
-	pi = calloc(n_pi, sizeof(double));
-	sig1 = calloc(n_sig, sizeof(double));
-	sig2 = calloc(n_sig, sizeof(double));
-	mpi = calloc(n_pi, sizeof(double));
-	msig1 = calloc(n_sig, sizeof(double));
-	msig2 = calloc(n_sig, sizeof(double));
+	pi = calloc(n_pi, sizeof(PRECISION));
+	sig1 = calloc(n_sig, sizeof(PRECISION));
+	sig2 = calloc(n_sig, sizeof(PRECISION));
+	mpi = calloc(n_pi, sizeof(PRECISION));
+	msig1 = calloc(n_sig, sizeof(PRECISION));
+	msig2 = calloc(n_sig, sizeof(PRECISION));
 
 	//counters for the components
 	ipi = 0;
@@ -213,6 +213,60 @@ int Cuanten(Cuantic *cuantic, double sl, double ll, double jl, double su, double
 	cuantic->GU = g2;
 	cuantic->GEFF = geff;
 	cuantic->FO = fos;
+
+	if(log){
+		printf("\n\n------------    QUANTUM NUMBERS   --------------");
+		printf("\n------------------------------------------------\n");
+		printf("\nNumber of Pi components:\t\t %lf",cuantic->N_PI);
+		printf("\nNumber of Sigma components:\t\t %lf",cuantic->N_SIG);
+		printf("\nLower level lande factor:\t\t %lf",cuantic->GL);
+		printf("\nUpper level lande factor:\t\t %lf",cuantic->GU);
+		printf("\nEffective lande factor:\t\t\t   %lf",cuantic->GEFF);
+		printf("\nShifts principal component:\t\t");
+		for(i=0;i<cuantic->N_PI;i++){
+			if(i<(cuantic->N_PI-1) )
+				printf(" %lf\t",cuantic->NUP[i]);
+			else
+				printf(" %lf ",cuantic->NUP[i]);
+		}
+		printf("\nShifts blue component:\t\t\t ");
+		for(i=0;i<cuantic->N_SIG;i++){
+			if(i<(cuantic->N_SIG-1) )
+				printf(" %lf\t",cuantic->NUB[i]);
+			else
+				printf(" %lf ",cuantic->NUB[i]);
+		}
+		printf("\nShifts red component:\t\t\t ");
+		for(i=0;i<cuantic->N_SIG;i++){
+			if(i<(cuantic->N_SIG-1) )
+				printf(" %lf\t",cuantic->NUR[i]);
+			else
+				printf(" %lf ",cuantic->NUR[i]);
+		}
+		printf("\nStrength principal component:\t\t ");
+		for(i=0;i<cuantic->N_PI;i++){
+			if(i<(cuantic->N_PI-1) )
+				printf(" %lf\t",cuantic->WEP[i]);
+			else
+				printf(" %lf ",cuantic->WEP[i]);
+		}
+		printf("\nStrength blue component:\t\t ");
+		for(i=0;i<cuantic->N_SIG;i++){
+			if(i<(cuantic->N_SIG-1) )
+				printf(" %lf\t",cuantic->WEB[i]);
+			else
+				printf(" %lf ",cuantic->WEB[i]);
+		}
+		printf("\nStrength red component:\t\t\t ");
+		for(i=0;i<cuantic->N_SIG;i++){
+			if(i<(cuantic->N_SIG-1) )
+				printf(" %lf\t",cuantic->WER[i]);
+			else
+				printf(" %lf ",cuantic->WER[i]);
+		}
+		printf("\nRelative line strength:\t\t\t %lf",cuantic->FO);
+		printf("\n\n------------------------------------------------\n");	
+	}
 
 	free(m1);
 	free(m2);

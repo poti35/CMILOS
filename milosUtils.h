@@ -34,7 +34,8 @@ int mil_svd(PRECISION *h, PRECISION *beta, PRECISION *delta);
 /**
  * 
  */
-void weights_init(double *sigma, PRECISION **wOut, PRECISION **sigOut, double noise);
+//void weights_init(PRECISION *sigma, PRECISION **wOut, PRECISION **sigOut, PRECISION noise);
+void weights_init(PRECISION *sigma, PRECISION **sigOut, PRECISION noise);
 
 /*
 *
@@ -57,6 +58,10 @@ void weights_init(double *sigma, PRECISION **wOut, PRECISION **sigOut, double no
 */
 void estimacionesClasicas(PRECISION lambda_0, PRECISION *lambda, int nlambda, PRECISION *spectro, Init_Model *initModel);
 
+/**
+ * 
+ * */
+void AplicaSlight(PRECISION * d_spectra, int numl, PRECISION ALFA, PRECISION * slight);
 
 /*
  *
@@ -66,10 +71,10 @@ void estimacionesClasicas(PRECISION lambda_0, PRECISION *lambda, int nlambda, PR
 			longitud nlambda
  * spectra : IQUV por filas, longitud ny=nlambda
  */
-int lm_mils(Cuantic *cuantic, double *wlines, double *lambda, int nlambda, PRECISION *spectro, int nspectro,
-				Init_Model *initModel, PRECISION *spectra, double *chisqrf,
-				double * slight, double toplim, int miter, PRECISION *weight, int *fix,
-				PRECISION *sigma, double ilambda, int triplete, int * INSTRUMENTAL_CONVOLUTION);
+int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda, PRECISION *spectro, int nspectro,
+				Init_Model *initModel, PRECISION *spectra, PRECISION *chisqrf,
+				PRECISION * slight, PRECISION toplim, int miter, PRECISION *weight, int *fix,
+				PRECISION *sigma, PRECISION ilambda, int * INSTRUMENTAL_CONVOLUTION);
 
 
 

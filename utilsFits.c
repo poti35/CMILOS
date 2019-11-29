@@ -284,12 +284,14 @@ FitsImage *  readFitsSpectroImage (const char * fitsFileSpectra){
 				// allocate memory for reorder the image
 				image->pixels = calloc(image->numPixels, sizeof(vpixels));
 				image->vLambdaImagen = calloc(image->numPixels*image->nLambdas, sizeof(PRECISION));
+				//image->vLambdaImagen = calloc(image->numPixels*32, sizeof(PRECISION));
 				image->spectroImagen = calloc(image->numPixels*image->nLambdas*image->numStokes, sizeof(PRECISION));
 				//printf("\n Número de pixeles: %d", image->numPixels);
 				//printf("\n ***********************************************");
 				for( i=0;i<image->numPixels;i++){
 					image->pixels[i].spectro = calloc ((image->numStokes*image->nLambdas),sizeof(PRECISION));
 					image->pixels[i].vLambda = calloc (image->nLambdas, sizeof(PRECISION));
+					//image->pixels[i].vLambda = calloc (32, sizeof(PRECISION));
 					image->pixels[i].nLambda = image->nLambdas;
 				}
 				int currentLambda = 0, currentRow = 0, currentStokeParameter=0, currentCol = 0, currentPixel;
@@ -549,7 +551,7 @@ int  readFitsLambdaFile (const char * fitsFileLambda, FitsImage * fitsImage){
 
 }
 
-PRECISION * readFitsStrayLightFile (const char * fitsFileStrayLight, int * dimStrayLight, int numLambda, int numRows, int numCols){
+PRECISION * readFitsStrayLightFile (const char * fitsFileStrayLight, int * dimStrayLight, int numLambda){
 	
 	fitsfile *fptr;   /* FITS file pointer, defined in fitsio.h */
 	int status = 0;   /* CFITSIO status value MUST be initialized to zero! */
@@ -581,38 +583,22 @@ PRECISION * readFitsStrayLightFile (const char * fitsFileStrayLight, int * dimSt
 					break;
 			}*/
 
-			if(naxis!=1  || naxis!=3){
-				
-				if(naxis == 1){ // array of lambads 
-					if(naxes[0]!=numLambda){ // image of stray light has different si
-						printf("\n DIM OF STRAYLIGHT HAS DIFFERENT SIZE OF SPECTRO. NUMBER OF LAMBDAS IN SPECTRA IMAGE %d NUMBER OF DIM IN STRAY LIGHT FILE  %ld ", numLambda ,naxes[0]);
-						return NULL;
-					}
-					*dimStrayLight = naxes[0];
-					vStrayLight = calloc(*dimStrayLight, sizeof(PRECISION));
-					long fpixel [1] = {1};
-					fits_read_pix(fptr, TDOUBLE, fpixel, *dimStrayLight, &nulval, vStrayLight, &anynul, &status) ;
-					if(status){
-						fits_report_error(stderr, status);
-						return NULL;	
-					}								
+			if(naxis==2){
+				if( naxes[0]!= numLambda || naxes[1]!= NPARMS){ // stray light has different size of spectra image 
+					printf("\n STRAY LIGHT FILE HAS DIFFERENT SIZE OF SPECTRA IMAGE. SIZE SPECTRA %d X %d X . STRAY LIGHT SIZE %ld X %ld ", numLambda, NPARMS , naxes[0], naxes[1]);
+					return NULL;
 				}
-				else if(naxis == 3){  // matrix of lambdas  
-					if( naxes[0]!= numRows || naxes[1]!= numCols || naxes[2]!=numLambda){ // stray light has different size of spectra image 
-						printf("\n STRAY LIGHT FILE HAS DIFFERENT SIZE OF SPECTRA IMAGE. SIZE SPECTRA %d X %d X %d. STRAY LIGHT SIZE %ld X %ld X %ld", numRows, numCols , numLambda, naxes[0], naxes[1], naxes[2]);
-						return NULL;
-					}
-					// READ ALL FILE IN ONLY ONE ARRAY 
-					// WE ASSUME THAT DATA COMES IN THE FORMAT ROW x COL x LAMBDA
-					*dimStrayLight = naxes[0]*naxes[1]*naxes[2];
-					vStrayLight = calloc(*dimStrayLight, sizeof(PRECISION));
-					long fpixel [3] = {1,1,1};
-					fits_read_pix(fptr, TDOUBLE, fpixel, *dimStrayLight, &nulval, vStrayLight, &anynul, &status);
-					if(status){
-						fits_report_error(stderr, status);
-						return NULL;	
-					}
+				// READ ALL FILE IN ONLY ONE ARRAY 
+				// WE ASSUME THAT DATA COMES IN THE FORMAT ROW x COL x LAMBDA
+				*dimStrayLight = naxes[0]*naxes[1];
+				vStrayLight = calloc(*dimStrayLight, sizeof(PRECISION));
+				long fpixel [3] = {1,1,1};
+				fits_read_pix(fptr, TDOUBLE, fpixel, *dimStrayLight, &nulval, vStrayLight, &anynul, &status);
+				if(status){
+					fits_report_error(stderr, status);
+					return NULL;	
 				}
+				printf("\n STRAY LIGHT LEIDO: \n");
 			}
 			else{
 				printf("\n NAXIS FROM STRAY LIGHT FILE IS NOT VALID %d ** \n", naxis);
@@ -661,7 +647,7 @@ void freeFitsImage(FitsImage * image){
  * fixed = array with positions to write in the file, Positions are in the following order: 
  * [Eta0,Strength,Vlos,Lambdadopp,Damp,Gamma,Azimuth,S0,S1,Macro,Alpha]
  * */
-int writeFitsImageModels(const char * fitsFile, int numRows, int numCols, Init_Model * vInitModel, double * vChisqrf, int * fixed, int addChiqr){
+int writeFitsImageModels(const char * fitsFile, int numRows, int numCols, Init_Model * vInitModel, PRECISION * vChisqrf, int * fixed, int addChiqr){
 
 	fitsfile *fptr;       /* pointer to the FITS file, defined in fitsio.h */
    int status;
@@ -698,7 +684,7 @@ int writeFitsImageModels(const char * fitsFile, int numRows, int numCols, Init_M
 		return 0;
 	}
 
-	double * vModel = calloc(naxes[0] * naxes[1] * naxes[2], sizeof(double));
+	PRECISION * vModel = calloc(naxes[0] * naxes[1] * naxes[2], sizeof(PRECISION));
 
 	for( i=0;i<sizeToCheck;i++){
 		if(i<NUMBER_PARAM_MODELS){
@@ -838,7 +824,7 @@ int writeFitsImageProfiles(const char * fitsProfileFile, const char * fitsFileOr
 	// ALLOCATE MEMORY TO WRITE THE IMAGE
 	int numElemWrite = naxes[3]*naxes[2]*naxes[1]*naxes[0];
 
-	double * outputImage = calloc(numElemWrite, sizeof(double));
+	PRECISION * outputImage = calloc(numElemWrite, sizeof(PRECISION));
 	int currentLambda = 0, currentRow = 0, currentStokeParameter=0, currentCol = 0;
 	 
 	int pos_lambda = image->pos_lambda;
@@ -957,7 +943,7 @@ int writeFitsImageProfiles(const char * fitsProfileFile, const char * fitsFileOr
 	return 1;
 }
 
-int writeFitsImageModelsWithArray(char * fitsFile, int numRows, int numCols, double * eta0, double * B, double * vlos, double * dopp, double * aa, double * gm, double * az, double * S0, double * S1, double * mac, double * alfa, double * vChisqrf){
+int writeFitsImageModelsWithArray(char * fitsFile, int numRows, int numCols, PRECISION * eta0, PRECISION * B, PRECISION * vlos, PRECISION * dopp, PRECISION * aa, PRECISION * gm, PRECISION * az, PRECISION * S0, PRECISION * S1, PRECISION * mac, PRECISION * alfa, PRECISION * vChisqrf){
 
 	fitsfile *fptr;       /* pointer to the FITS file, defined in fitsio.h */
    int status;
@@ -983,7 +969,7 @@ int writeFitsImageModelsWithArray(char * fitsFile, int numRows, int numCols, dou
 		return 0;
 	}
 
-	double * vModel = malloc(numRows * numCols * NUMBER_PARAM_MODELS);
+	PRECISION * vModel = malloc(numRows * numCols * NUMBER_PARAM_MODELS);
 
 	int indexModel = 0;
 	for( i=0;i<NUMBER_PARAM_MODELS;i++){
@@ -1081,179 +1067,4 @@ void printerror( int status)
 }
 
 
-int readParametersFileInput(char * fileParameters, int * maxIter, int * clasicalEstimate, int * printSintesis, char * nameInputFileSpectra, char * nameInputFileLambda,char * nameInputFileLines, char * nameInputFileInitModel,  PRECISION *  centralLambda, char *nameOutputFileModels, char * nameOutputFileProfiles, int * useConvolution, char * nameInputFilePSF, PRECISION * FWHM, int * KIND_CONVOLUTION){
 
-	// try open the file with the 
-	FILE * fReadParameters;
-	char LINE [4096], * returnLine;
-	char comment[200], name[100];
-	fReadParameters = fopen(fileParameters, "r");
-	if (fReadParameters == NULL)
-	{
-		printf("Error opening the file of parameters, it's possible that the file doesn't exist. Please verify it. \n");
-		printf("\n ******* THIS IS THE NAME OF THE FILE RECEVIED : %s \n", fileParameters);
-		return 0;
-	}
-	int rfscanf; 
-	// READ NUM_ITER
-	returnLine = fgets(LINE,4096,fReadParameters);
-	if(returnLine == NULL) return 0;
-	rfscanf = sscanf(LINE,"%99[^:]:%i%99[^!]!",name, maxIter,comment);
-	
-	if(rfscanf ==0 || rfscanf == EOF){
-		printf("Error reading the file of parameters, param MAX_ITER. Please verify it. \n");
-		printf("\n ******* THIS IS THE NAME OF THE FILE RECEVIED : %s \n", fileParameters);
-		return 0;		
-	}
-	if( *maxIter <= 0){
-		printf("milos: Error in MAX_ITER parameter. review it. Not accepted: %d\n", *maxIter);
-		return 0;
-	}
-
-
-	// READ CLASICAL ESTIMATE
-	returnLine = fgets(LINE,4096,fReadParameters);
-	if(returnLine == NULL) return 0;
-	rfscanf = sscanf(LINE,"%99[^:]:%i%99[^!]!", name, clasicalEstimate, comment);
-	if(rfscanf ==0 || rfscanf == EOF){
-		printf("Error reading the file of parameters, param CLASICAL_ESTIMATE. Please verify it. \n");
-		printf("\n ******* THIS IS THE NAME OF THE FILE RECEVIED : %s \n", fileParameters);
-		return 0;		
-	}
-	if (*clasicalEstimate != 0 && *clasicalEstimate != 1 && *clasicalEstimate != 2)
-	{
-		printf("milos: Error in CLASSICAL_ESTIMATES parameter. [0,1,2] are valid values. Not accepted: %d\n", *clasicalEstimate);
-		return 0;
-	}
-
-
-	// READ if print printSintesis
-	returnLine = fgets(LINE,4096,fReadParameters);
-	if(returnLine == NULL) return 0;
-	rfscanf = sscanf(LINE,"%99[^:]:%i%99[^!]!",name, printSintesis, comment);
-	if(rfscanf ==0 || rfscanf == EOF){
-		printf("Error reading the file of parameters, param PRINT_SINTESIS. Please verify it. \n");
-		printf("\n ******* THIS IS THE NAME OF THE FILE RECEVIED : %s \n", fileParameters);
-		return 0;		
-	}
-
-	// READ nameInputFileSpectra
-	returnLine = fgets(LINE,4096,fReadParameters);
-	if(returnLine == NULL) return 0;
-	rfscanf = sscanf(LINE,"%99[^:]:%s%99[^!]!",name, nameInputFileSpectra,comment);
-	if(rfscanf ==0 || rfscanf == EOF){
-		printf("Error reading the file of parameters, param INPUT FILE SPECTRO. Please verify it. \n");
-		printf("\n ******* THIS IS THE NAME OF THE FILE RECEVIED : %s \n", fileParameters);
-		return 0;		
-	}
-
-	// READ nameInputFileLambda
-	returnLine = fgets(LINE,4096,fReadParameters);
-	if(returnLine == NULL) return 0;	
-	rfscanf = sscanf(LINE,"%99[^:]:%s%99[^!]!", name, nameInputFileLambda,comment);
-	if(rfscanf ==0 || rfscanf == EOF){
-		printf("Error reading the file of parameters, param INPUT FILE OF LAMBDAS. Please verify it. \n");
-		printf("\n ******* THIS IS THE NAME OF THE FILE RECEVIED : %s \n", fileParameters);
-		return 0;		
-	}
-
-	// READ nameInputFileLines
-	returnLine = fgets(LINE,4096,fReadParameters);
-	if(returnLine == NULL) return 0;
-	rfscanf = sscanf(LINE,"%99[^:]:%s%99[^!]!",name, nameInputFileLines,comment);
-
-	if(rfscanf ==0 || rfscanf == EOF){
-		printf("Error reading the file of parameters, param INUT FILE LINES. Please verify it. \n");
-		printf("\n ******* THIS IS THE NAME OF THE FILE RECEVIED : %s \n", fileParameters);
-		return 0;		
-	}
-
-	// READ nameInputFileInitModel
-	returnLine = fgets(LINE,4096,fReadParameters);
-	if(returnLine == NULL) return 0;
-	rfscanf = sscanf(LINE,"%99[^:]:%s%99[^!]!",name, nameInputFileInitModel,comment);
-
-	if(rfscanf ==0 || rfscanf == EOF){
-		printf("Error reading the file of parameters, param INUT FILE LINES. Please verify it. \n");
-		printf("\n ******* THIS IS THE NAME OF THE FILE RECEVIED : %s \n", fileParameters);
-		return 0;		
-	}
-
-
-	// READ CENTRAL LAMBDA
-	returnLine = fgets(LINE,4096,fReadParameters);
-	if(returnLine == NULL) return 0;						
-	rfscanf = sscanf(LINE,"%99[^:]:%lf%99[^!]!",name, centralLambda,comment);
-	if(rfscanf ==0 || rfscanf == EOF){
-		printf("Error reading the file of parameters, param Central Lambda. Please verify it. \n");
-		printf("\n ******* THIS IS THE NAME OF THE FILE RECEVIED : %s \n", fileParameters);
-		return 0;		
-	}
-
-
-	// READ nameOutputFileModels
-	returnLine = fgets(LINE,4096,fReadParameters);
-	if(returnLine == NULL) return 0;		
-	rfscanf = sscanf(LINE,"%99[^:]:%s%99[^!]!", name, nameOutputFileModels, comment);
-	if(rfscanf ==0 || rfscanf == EOF){
-		printf("Error reading the file of parameters, param OUTPUT FILE OF MODELS. Please verify it. \n");
-		printf("\n ******* THIS IS THE NAME OF THE FILE RECEVIED : %s \n", fileParameters);
-		return 0;		
-	}
-
-	//READ nameOutputFileProfiles
-	returnLine = fgets(LINE,4096,fReadParameters);
-	if(returnLine == NULL) return 0;			
-	rfscanf = sscanf(LINE,"%99[^:]:%s%99[^!]!", name, nameOutputFileProfiles,comment);
-	if(rfscanf ==0 || rfscanf == EOF){
-		printf("Error reading the file of parameters, param OUTPUT FILE PROFILES Please verify it. \n");
-		printf("\n ******* THIS IS THE NAME OF THE FILE RECEVIED : %s \n", fileParameters);
-		return 0;		
-	}
-	// READ if use Convolution
-	returnLine = fgets(LINE,4096,fReadParameters);
-	if(returnLine == NULL) return 0;				
-	rfscanf = sscanf(LINE,"%99[^:]:%i%99[^!]!", name, useConvolution,comment);
-	if(rfscanf ==0 || rfscanf == EOF){
-		printf("Error reading the file of parameters, param IF USE CONVOLUTION. Please verify it. \n");
-		printf("\n ******* THIS IS THE NAME OF THE FILE RECEVIED : %s \n", fileParameters);
-		return 0;		
-	}
-
-
-	// READ nameInputFilePSF
-	returnLine = fgets(LINE,4096,fReadParameters);
-	if(returnLine == NULL) return 0;
-	rfscanf = sscanf(LINE,"%99[^:]:%s%99[^!]!",name, nameInputFilePSF,comment);
-
-	if(rfscanf ==0 || rfscanf == EOF){
-		printf("Error reading the file of parameters, param INUT FILE LINES. Please verify it. \n");
-		printf("\n ******* THIS IS THE NAME OF THE FILE RECEVIED : %s \n", fileParameters);
-		return 0;		
-	}
-	
-
-	if(*useConvolution==1){
-		// READ FWHM
-		returnLine = fgets(LINE,4096,fReadParameters);
-		if(returnLine == NULL) return 0;						
-		rfscanf = sscanf(LINE,"%99[^:]:%lf%99[^!]!", name, FWHM,comment);
-		if(rfscanf ==0 || rfscanf == EOF){
-			printf("Error reading the file of parameters, param FWHM. Please verify it. \n");
-			printf("\n ******* THIS IS THE NAME OF THE FILE RECEVIED : %s \n", fileParameters);
-			return 0;		
-		}
-
-		// READ if use Convolution
-		returnLine = fgets(LINE,4096,fReadParameters);
-		if(returnLine == NULL) return 0;				
-		rfscanf = sscanf(LINE,"%99[^:]:%i%99[^!]!", name, KIND_CONVOLUTION,comment);
-		if(rfscanf ==0 || rfscanf == EOF){
-			printf("Error reading the file of parameters, param KIND OF CONVOLUTION . Please verify it. \n");
-			printf("\n ******* THIS IS THE NAME OF THE FILE RECEVIED : %s \n", fileParameters);
-			return 0;		
-		}				
-	}
-	return 1;
-
-}

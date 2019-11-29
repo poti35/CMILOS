@@ -3,13 +3,13 @@
 #include <math.h>
 #include <stdio.h>
 #include "fftw.h"
-
+#include "defines.h"
 /*
 	
 	direc : FFT_FORWARD (-1) or FFT_BACKWARD (+1)
 */
 
-double _Complex *fft_d(double *spectra, int nspectra, int direc)
+PRECISION _Complex *fft_d(PRECISION *spectra, int nspectra, int direc)
 {
 
 	fftw_complex *in, *out;
@@ -26,10 +26,10 @@ double _Complex *fft_d(double *spectra, int nspectra, int direc)
 
 	fftw_free(in);
 
-	return (double _Complex *) out;
+	return (PRECISION _Complex *) out;
 }
 
-double _Complex *fft_c(double _Complex *spectra, int nspectra, int direc)
+PRECISION _Complex *fft_c(PRECISION _Complex *spectra, int nspectra, int direc)
 {
 
 	fftw_complex *out;
@@ -52,13 +52,13 @@ double _Complex *fft_c(double _Complex *spectra, int nspectra, int direc)
 
 	fftw_destroy_plan(p);
 
-	return (double _Complex *)out;
+	return (PRECISION _Complex *)out;
 }
 
 
 
 //Convout's array size must be 2*size.
-void FFTConvolve( double * data,  double * kernel, int n, int h)
+void FFTConvolve( PRECISION * data,  PRECISION * kernel, int n, int h)
 {
     
     int i;
@@ -130,7 +130,7 @@ void FFTConvolve( double * data,  double * kernel, int n, int h)
 
 
 
-void FFTConvolve1D( double * data, int sizeData, int h, fftw_complex * kernel, fftw_complex * in_data, fftw_complex * freq_data, fftw_complex * rev_data, fftw_complex * time_data, fftw_plan p2, fftw_plan rev)
+void FFTConvolve1D( PRECISION * data, int sizeData, int h, fftw_complex * kernel, fftw_complex * in_data, fftw_complex * freq_data, fftw_complex * rev_data, fftw_complex * time_data, fftw_plan p2, fftw_plan rev)
 {
     
     int i;
