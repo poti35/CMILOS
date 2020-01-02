@@ -74,7 +74,7 @@ void AplicaSlight(PRECISION * d_spectra, int numl, PRECISION ALFA, PRECISION * s
 int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda, PRECISION *spectro, int nspectro,
 				Init_Model *initModel, PRECISION *spectra, PRECISION *chisqrf,
 				PRECISION * slight, PRECISION toplim, int miter, PRECISION *weight, int *fix,
-				PRECISION *sigma, PRECISION ilambda, int * INSTRUMENTAL_CONVOLUTION, int * iter);
+				PRECISION *sigma, PRECISION ilambda, int * INSTRUMENTAL_CONVOLUTION);
 
 
 

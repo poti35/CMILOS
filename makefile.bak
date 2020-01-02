@@ -16,8 +16,8 @@ CFLAGS+=-fno-omit-frame-pointer
 #CFLAGS+=-Wno-unused-but-set-variable -Wno-unused-parameter
 
 #LDFLAGS=-L/home/bsc15/bsc15557/root/usr/lib/
-LDLIBS= -fopenmp -lm -lcfitsio -lnsl -lgsl -lgslcblas  -lfftw3_omp -lfftw3 -ldl -lpthread  -pg  # -shared-intel
-BIN= milos milosMPI milosMPI_DIR 
+LDLIBS= -fopenmp -lm -lcfitsio -lnsl -lgsl -lgslcblas  -lfftw3_omp -lfftw3 -ldl -lpthread # -shared-intel
+BIN= milos milosMPI 
 
 
 all: $(BIN)
@@ -26,7 +26,7 @@ milos: calculosCompartidos.o fftw.o fgauss.o fvoigt.o  milos.o me_der.o mil_sinr
 
 milosMPI:  calculosCompartidos.o fgauss.o fvoigt.o  milosMPI.o me_der.o mil_sinrf.o lib.o create_cuantic.o utilsFits.o milosUtils.o convolution.o readConfig.o slog.o
 
-milosMPI_DIR:  calculosCompartidos.o fgauss.o fvoigt.o  milosMPI_DIR.o me_der.o mil_sinrf.o lib.o create_cuantic.o utilsFits.o milosUtils.o convolution.o readConfig.o slog.o
+
 
 clean:
 	rm -f *.o $(BIN)

@@ -23,15 +23,6 @@ void freeVpixels(vpixels * image, int numPixels);
  */
 FitsImage * readFitsSpectroImage (const char * fitsFileSpectra);
 
-
-
-/**
- * This function read the spectro image from the file "fitsFileSpectra" and store it into a struct of FitsImage
- * @param fitsFileSpectra --> name of the fits file to read 
- * Return the image read or NULL if something was wrong during the lecture. 
- */
-FitsImage * readFitsSpectroImageRectangular (const char * fitsFileSpectra, ConfigControl * configCrontrolFile);
-
 /**
  * This function read the lambda values for the image from the file "fitsFileLambda" and store it into a struct of FitsImage. The file of spectro must
  * be read it before call this method. 
@@ -41,10 +32,7 @@ FitsImage * readFitsSpectroImageRectangular (const char * fitsFileSpectra, Confi
  */
 int readFitsLambdaFile (const char * fitsFileLambda, FitsImage * fitsImage);
 
-/**
- * 
- * */
-int  readFitsLambdaToArray (const char * fitsFileLambda, int numRow, int numCol, int nLambda, PRECISION * vLambda);
+
 
 /**
  * This function read the Stray Light values from the file "fitsFileStrayLight" and store it into a vector , in dimStrayLight will be stored the tam of fits file:
@@ -76,9 +64,7 @@ void freeFitsImage(FitsImage * image);
  * @param addChisqr -->  to know if add chisqr at output model file 
  * 
  */
-int writeFitsImageModels(const char * fitsFile, int numRows, int numCols, Init_Model * vInitModel, PRECISION * vChisqrf, int * vNumIterPixel, int addChiqr);
-//int writeFitsImageModels(const char * fitsFile, int numRows, int numCols, Init_Model * vInitModel, PRECISION * vChisqrf, int * fixed, int addChisqr);
-
+int writeFitsImageModels(const char * fitsFile, int numRows, int numCols, Init_Model * vInitModel, PRECISION * vChisqrf, int * fixed, int addChisqr);
 int writeFitsImageModelsWithArray(char * fitsFile, int numRows, int numCols, PRECISION * eta0, PRECISION * B, PRECISION * vlos, PRECISION * dopp, PRECISION * aa, PRECISION * gm, PRECISION * az, PRECISION * S0, PRECISION * S1, PRECISION * mac, PRECISION * alfa, PRECISION * vChisqrf);
 /**
  * Print the error status of status. 

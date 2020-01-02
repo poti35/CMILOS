@@ -48,8 +48,8 @@
 #include <complex.h>
 #include <fftw3.h> //siempre a continuacion de complex.h
 #include "fftw.h"
-#include <gmp.h>
-#include <mpfr.h>
+//#include <gmp.h>
+//#include <mpfr.h>
 
 
 //#include "slog.h"
@@ -128,6 +128,7 @@ int main(int argc, char **argv)
 	int nlambda;
 	Init_Model *vModels;
 	PRECISION chisqrf, * vChisqrf;
+	int * vNumIter; // to store the number of iterations used to converge for each pixel
 	
 	int posCENTRAL_WL; // position central wl in file of LINES
 	Init_Model INITIAL_MODEL;
@@ -193,323 +194,569 @@ int main(int argc, char **argv)
 	cuantic = create_cuantic(dat,1);
 	InitializePointerShareCalculation();
 
-	/****************************************************************************************************/
-	// READ PIXELS FROM IMAGE 
-	PRECISION timeReadImage,timeExecuteClassicalEstimates;
-	clock_t t;
-	t = clock();
-	fitsImage = readFitsSpectroImage(nameInputFileSpectra);
-	t = clock() - t;
-	timeReadImage = ((PRECISION)t)/CLOCKS_PER_SEC; // in seconds 
-	
-	printf("\n\n TIME TO READ FITS IMAGE:  %f seconds to execute \n", timeReadImage); 
-	//slog_info(0,"\n\n TIME TO READ FITS IMAGE:  %f seconds to execute \n", timeReadImage);
-
-	if(fitsImage!=NULL && readFitsLambdaFile(nameInputFileLambda,fitsImage)){
-
-
-		// INTERPOLATE PSF WITH ARRAY OF LAMBDA READ
-		/****************************************************************************************************/	
-		// if parameter name of psf has been apported we read the file, in other case create the gaussian with the parameters	
-		//initializing weights
-		//PRECISION *sig;
-		// THE NUMBER OF LAMBDAS IS READ FROM INPUT FILES 
-		nlambda = fitsImage->nLambdas;
-		// check if read stray light
-		if(access(configCrontrolFile.StrayLightFile,F_OK)!=-1){ //  IF NOT EMPTY READ stray light file 
-			slight = readFitsStrayLightFile(configCrontrolFile.StrayLightFile,&dimStrayLight,fitsImage->nLambdas);
-		}
-		else{
-			printf("\n STRAY LIGHT NOT USED \n");
-			//slog_info(0,"\n STRAY LIGHT NOT USED \n");
-		}
-
-		//***************************************** INIT MEMORY WITH SIZE OF LAMBDA ****************************************************//
-		AllocateMemoryDerivedSynthesis(nlambda);
-		//weights_init(configCrontrolFile.sigma, &sig, configCrontrolFile.noise);
-
-		// ************************** DEFINE PLANS TO EXECUTE MACROTURBULENCE IF NECESSARY **********************************************//
-		//fftw_init_threads();
-		//int edge=(nlambda%2)+1;
-		//int numln=nlambda-edge+1;
-		int numln=nlambda;
-		// MACROTURBULENCE PLANS
-		inFilterMAC = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
-		outFilterMAC = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
-		planFilterMAC = fftw_plan_dft_1d(numln, inFilterMAC, outFilterMAC, FFT_FORWARD, FFTW_EXHAUSTIVE);
-		inFilterMAC_DERIV = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
-		outFilterMAC_DERIV = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
-		planFilterMAC_DERIV = fftw_plan_dft_1d(numln, inFilterMAC_DERIV, outFilterMAC_DERIV, FFT_FORWARD, FFTW_EXHAUSTIVE);
-
-
-		inSpectraFwMAC = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
-		outSpectraFwMAC = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
-		planForwardMAC = fftw_plan_dft_1d(numln, inSpectraFwMAC, outSpectraFwMAC, FFT_FORWARD, FFTW_EXHAUSTIVE);
-		inSpectraBwMAC = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
-		outSpectraBwMAC = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);		
-		planBackwardMAC = fftw_plan_dft_1d(numln, inSpectraBwMAC, outSpectraBwMAC, FFT_BACKWARD, FFTW_EXHAUSTIVE);
-
-		// ********************************************* IF PSF HAS BEEN SELECTEC IN TROL READ PSF FILE OR CREATE GAUSSIAN FILTER ***********//
-		if(configCrontrolFile.ConvolveWithPSF){
-			if(access(nameInputFilePSF,F_OK) != -1){
-				// read the number of lines 
-					FILE *fp;
-					char ch;
-					N_SAMPLES_PSF=0;
-					//open file in read more
-					fp=fopen(nameInputFilePSF,"r");
-					if(fp==NULL)
-					{
-						printf("File \"%s\" does not exist!!!\n",nameInputFilePSF);
-						//slog_error(0,"File \"%s\" does not exist!!!\n",nameInputFilePSF);
-						return 0;
-					}
-
-					//read character by character and check for new line	
-					while((ch=fgetc(fp))!=EOF)
-					{
-						if(ch=='\n')
-							N_SAMPLES_PSF++;
-					}
-					
-					//close the file
-					fclose(fp);
-					if(N_SAMPLES_PSF>0){
-						deltaLambda = calloc(N_SAMPLES_PSF,sizeof(PRECISION));
-						PSF = calloc(N_SAMPLES_PSF,sizeof(PRECISION));
-						readPSFFile(deltaLambda,PSF,nameInputFilePSF);
-						PRECISION * fInterpolated = calloc(nlambda,sizeof(PRECISION));
-						interpolationLinearPSF(deltaLambda,  PSF, fitsImage->pixels[0].vLambda ,configCrontrolFile.CentralWaveLenght, N_SAMPLES_PSF,fInterpolated, nlambda);						
-					}
-					else{
-						//G = vgauss(FWHM, NMUESTRAS_G, DELTA);
-						//PRECISION * fgauss_WL(PRECISION FWHM, PRECISION step_between_lw, PRECISION lambda0, PRECISION lambdaCentral, int nLambda, int * sizeG)
-						G = fgauss_WL(FWHM,fitsImage->pixels[0].vLambda[1]-fitsImage->pixels[0].vLambda[0],fitsImage->pixels[0].vLambda[0],fitsImage->pixels[0].vLambda[nlambda/2],fitsImage->pixels[0].nLambda,&sizeG);
-					}
-			}else{
-				//G = vgauss(FWHM, NMUESTRAS_G, DELTA);
-				G = fgauss_WL(FWHM,fitsImage->pixels[0].vLambda[1]-fitsImage->pixels[0].vLambda[0],fitsImage->pixels[0].vLambda[0],fitsImage->pixels[0].vLambda[nlambda/2],fitsImage->pixels[0].nLambda,&sizeG);
-			}
-
-
-			
-			//PSF FILTER PLANS 
-			inSpectraFwPSF = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
-			outSpectraFwPSF = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
-			planForwardPSF = fftw_plan_dft_1d(numln, inSpectraFwPSF, outSpectraFwPSF, FFT_FORWARD, FFTW_EXHAUSTIVE);
-			inSpectraBwPSF = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
-			outSpectraBwPSF = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);		
-			planBackwardPSF = fftw_plan_dft_1d(numln, inSpectraBwPSF, outSpectraBwPSF, FFT_BACKWARD, FFTW_EXHAUSTIVE);
-
-			fftw_complex * in = (fftw_complex *)fftw_malloc(sizeof(fftw_complex) * numln);
-			int i;
-			for (i = 0; i < numln; i++)
-			{
-				in[i] = G[i] + 0 * _Complex_I;
-			}
-			fftw_G_PSF = (fftw_complex *)fftw_malloc(sizeof(fftw_complex) * numln);
-			fftw_plan p = fftw_plan_dft_1d(numln, in, fftw_G_PSF, FFT_FORWARD, FFTW_ESTIMATE);
-			fftw_execute(p);
-			for (i = 0; i < numln; i++)
-			{
-				fftw_G_PSF[i] = fftw_G_PSF[i] / numln;
-			}
-			fftw_destroy_plan(p);
-			fftw_free(in);
-			
-			inPSF_MAC = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
-			fftw_G_MAC_PSF = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
-			planForwardPSF_MAC = fftw_plan_dft_1d(numln, inPSF_MAC, fftw_G_MAC_PSF, FFT_FORWARD, FFTW_EXHAUSTIVE);
-			inMulMacPSF = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
-			outConvFilters = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
-			planBackwardPSF_MAC = fftw_plan_dft_1d(numln, inMulMacPSF, outConvFilters, FFT_BACKWARD, FFTW_EXHAUSTIVE);
-
-
-			inPSF_MAC_DERIV = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
-			fftw_G_MAC_DERIV_PSF = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
-			planForwardPSF_MAC_DERIV = fftw_plan_dft_1d(numln, inPSF_MAC_DERIV, fftw_G_MAC_DERIV_PSF, FFT_FORWARD, FFTW_EXHAUSTIVE);
-			inMulMacPSFDeriv = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
-			outConvFiltersDeriv = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
-			planBackwardPSF_MAC_DERIV = fftw_plan_dft_1d(numln, inMulMacPSFDeriv, outConvFiltersDeriv, FFT_BACKWARD, FFTW_EXHAUSTIVE);			
-
-			
-		}		
-		
-
-		int indexPixel = 0;
-
-		// ALLOCATE MEMORY FOR STORE THE RESULTS 
-
-		vModels = calloc (fitsImage->numPixels , sizeof(Init_Model));
-		vChisqrf = calloc (fitsImage->numPixels , sizeof(PRECISION));
-
-		t = clock();
-		
-		printf("\n***********************  PROGRESS INVERSION *******************************\n\n");
-		//slog_info(0,"\n***********************  PROGRESS INVERSION *******************************\n\n");
-
-		for(indexPixel = 0; indexPixel < fitsImage->numPixels; indexPixel++){
-			
-
-			//Initial Model
-			Init_Model initModel;
-			initModel.eta0 = INITIAL_MODEL.eta0;
-			initModel.B = INITIAL_MODEL.B; //200 700
-			initModel.gm = INITIAL_MODEL.gm;
-			initModel.az = INITIAL_MODEL.az;
-			initModel.vlos = INITIAL_MODEL.vlos; //km/s 0
-			initModel.mac = INITIAL_MODEL.mac;
-			initModel.dopp = INITIAL_MODEL.dopp;
-			initModel.aa = INITIAL_MODEL.aa;
-			initModel.alfa = INITIAL_MODEL.alfa; //0.38; //stray light factor
-			initModel.S0 = INITIAL_MODEL.S0;
-			initModel.S1 = INITIAL_MODEL.S1;
-			
-
-			if (configCrontrolFile.UseClassicalEstimates)
-			{
-
-				t_ini = clock();
-				estimacionesClasicas(wlines[1], fitsImage->pixels[indexPixel].vLambda, fitsImage->pixels[indexPixel].nLambda, fitsImage->pixels[indexPixel].spectro, &initModel);
-				
-				timeExecuteClassicalEstimates += (clock() - t_ini);  
-				
-
-				//Se comprueba si el resultado fue "nan" en las CE
-				if (isnan(initModel.B))
-					initModel.B = 1;
-				if (isnan(initModel.vlos))
-					initModel.vlos = 1e-3;
-				if (isnan(initModel.gm))
-					initModel.gm = 1;
-				if (isnan(initModel.az))
-					initModel.az = 1;
-
-			}
-
-			//inversion
-			if (configCrontrolFile.UseRTEInversion)
-			{
-				//Se introduce en S0 el valor de Blos si solo se calculan estimaciones clásicas
-				//Aqui se anula esa asignación porque se va a realizar la inversion RTE completa
-				initModel.S0 = INITIAL_MODEL.S0;
-				PRECISION * slightPixel;
-				if(slight==NULL) 
-					slightPixel = NULL;
-				else{
-					if(dimStrayLight==nlambda) 
-						slightPixel = slight;
-					else 
-						slightPixel = slight+nlambda*indexPixel;
-				}
-				lm_mils(cuantic, wlines, fitsImage->pixels[indexPixel].vLambda, fitsImage->pixels[indexPixel].nLambda, fitsImage->pixels[indexPixel].spectro, fitsImage->pixels[indexPixel].nLambda, &initModel, spectra, &chisqrf, slightPixel, configCrontrolFile.toplim, configCrontrolFile.NumberOfCycles,
-						configCrontrolFile.WeightForStokes, configCrontrolFile.fix, configCrontrolFile.sigma, configCrontrolFile.InitialDiagonalElement,&configCrontrolFile.ConvolveWithPSF);						
-			}
-
-			vModels[indexPixel] = initModel;
-			vChisqrf[indexPixel] = chisqrf;
-			
-			//printf ("\t\t %.2f seconds -- %.2f %%\r",  ((PRECISION)(clock() - t)/CLOCKS_PER_SEC) , ((indexPixel*100.)/fitsImage->numPixels));
-		}
-		t = clock() - t;
-
-		printf("\n\n TIME EXECUTIN CLASSICAL ESTIMATES: %f seconds to execute \n", ((PRECISION)timeExecuteClassicalEstimates)/CLOCKS_PER_SEC);
-		//slog_info(0,"\n\n TIME EXECUTIN CLASSICAL ESTIMATES: %f seconds to execute \n", ((PRECISION)timeExecuteClassicalEstimates)/CLOCKS_PER_SEC);
-		timeReadImage = ((PRECISION)t)/CLOCKS_PER_SEC; // in seconds 
-		printf("\n FINISH EXECUTION OF INVERSION: %f seconds to execute \n", timeReadImage);
-		//slog_info(0,"\n FINISH EXECUTION OF INVERSION: %f seconds to execute \n", timeReadImage);
-		//printf("\n**********");
-		if(!writeFitsImageModels(nameOutputFileModels,fitsImage->rows,fitsImage->cols,vModels,vChisqrf,configCrontrolFile.fix,configCrontrolFile.saveChisqr)){
-				printf("\n ERROR WRITING FILE OF MODELS: %s",nameOutputFileModels);
-				//slog_error(0,"\n ERROR WRITING FILE OF MODELS: %s",nameOutputFileModels);
-		}
-
-		// PROCESS FILE OF SYNTETIC PROFILES
-
-		if(configCrontrolFile.SaveSynthesisProfile){
-			FreeMemoryDerivedSynthesis();
-			InitializePointerShareCalculation();
-			AllocateMemoryDerivedSynthesis(nlambda);
-
-			//weights_init(configCrontrolFile.sigma, &sig, configCrontrolFile.noise);
-			int i;
-			for( i=0;i<fitsImage->numPixels;i++)
-			{
-
-				Init_Model initModel = vModels[i];
-				mil_sinrf(cuantic, &initModel, wlines, fitsImage->pixels[i].vLambda, nlambda, spectra, AH,slight,NULL,configCrontrolFile.ConvolveWithPSF);
-				spectral_synthesis_convolution(&nlambda);
-				me_der(cuantic, &initModel, wlines, fitsImage->pixels[i].vLambda, nlambda, d_spectra, spectra, spectra, AH, slight,1,configCrontrolFile.ConvolveWithPSF);
-				response_functions_convolution(&nlambda);
-				int kk;
-				for (kk = 0; kk < (nlambda * NPARMS); kk++)
-				{
-					fitsImage->pixels[i].spectro[kk] = spectra[kk] ;
-				}
-
-			}
-			// WRITE SINTHETIC PROFILES TO FITS FILE
-
-			if(!writeFitsImageProfiles(nameOutputFilePerfiles,nameInputFileSpectra,fitsImage)){
-				printf("\n ERROR WRITING FILE OF SINTHETIC PROFILES: %s",nameOutputFilePerfiles);
-				//slog_error(0,"\n ERROR WRITING FILE OF SINTHETIC PROFILES: %s",nameOutputFilePerfiles);
-			}
-		}
-		
-		//vslConvDeleteTask(&taskConv);
-		// FREE MACROTURBULENCE PLANS AND MEMORY
-		fftw_free(inFilterMAC);
-		fftw_free(outFilterMAC);
-		fftw_destroy_plan(planFilterMAC);
-		fftw_free(inFilterMAC_DERIV);
-		fftw_free(outFilterMAC_DERIV);
-		fftw_destroy_plan(planFilterMAC_DERIV);
-		fftw_free(inSpectraFwMAC);
-		fftw_free(outSpectraFwMAC);
-		fftw_destroy_plan(planForwardMAC);
-		fftw_free(inSpectraBwMAC);
-		fftw_free(outSpectraBwMAC);
-		fftw_destroy_plan(planBackwardMAC);
-
-		if(configCrontrolFile.ConvolveWithPSF){
-			fftw_free(inSpectraFwPSF);
-			fftw_free(outSpectraFwPSF);
-			fftw_destroy_plan(planForwardPSF);
-			fftw_free(inSpectraBwPSF);
-			fftw_free(outSpectraBwPSF);
-			fftw_destroy_plan(planBackwardPSF);
-
-			fftw_free(fftw_G_PSF);
-			fftw_free(fftw_G_MAC_PSF);
-			fftw_free(fftw_G_MAC_DERIV_PSF);
-
-			fftw_free(inPSF_MAC);
-			fftw_free(inMulMacPSF);
-			fftw_free(inPSF_MAC_DERIV);
-			fftw_free(inMulMacPSFDeriv);
-			fftw_free(outConvFilters);
-			fftw_free(outConvFiltersDeriv);	
-
-			fftw_destroy_plan(planForwardPSF_MAC);
-			fftw_destroy_plan(planForwardPSF_MAC_DERIV);
-			fftw_destroy_plan(planBackwardPSF_MAC);
-			fftw_destroy_plan(planBackwardPSF_MAC_DERIV);		
-		}
-
-		free(vModels);
-		free(vChisqrf);
+	/***************** READ WAVELENGHT FROM GRID OR FITS ********************************/
+	PRECISION * vLambda;
+	if(access(configCrontrolFile.MallaGrid,F_OK)!=-1){ //  IF NOT EMPTY GRID FILE, read 
+		int i;
+      PRECISION initialLambda, step, finalLambda;
+      readMallaGrid(configCrontrolFile.MallaGrid, &initialLambda, &step, &finalLambda, 1);      
+      nlambda = ((finalLambda-initialLambda)/step)+1;
+      // pass to armstrong 
+      initialLambda = initialLambda/1000;
+      step = step/1000;
+      finalLambda = finalLambda/1000;
+      //int numLambdaTest = configCrontrolFile.nliobs;
+      vLambda = calloc(nlambda,sizeof(PRECISION));
+      vLambda[0]=configCrontrolFile.CentralWaveLenght+(initialLambda);
+      for(i=1;i<nlambda;i++){
+         vLambda[i]=vLambda[i-1]+step;
+      }
 	}
 	else{
-		printf("\n\n ***************************** FITS FILE WITH THE SPECTRO IMAGE CAN NOT BE READ IT ******************************\n");
-		//slog_error(0,"\n\n ***************************** FITS FILE WITH THE SPECTRO IMAGE CAN NOT BE READ IT ******************************\n");
+		vLambda = calloc(configCrontrolFile.nliobs, sizeof(PRECISION));
+		int readOK = readFitsLambdaToArray(configCrontrolFile.WavelengthFile,0,0,configCrontrolFile.nliobs,vLambda);
+
+		if(!readOK){
+			printf("\n FILE WITH WAVELENGHT HAS NOT BEEN READ PROPERLY, please check it.\n");
+			free(vLambda);
+			exit(EXIT_FAILURE);
+		}
 	}
 
-	printf(" \n***********************  IMAGE INVERSION DONE, CLEANING MEMORY *********************\n");
-	//slog_info(0," \n***********************  IMAGE INVERSION DONE, CLEANING MEMORY *********************\n");
+
+	/****************************************************************************************************/
+	//  IF NUMBER OF CYCLES IS 0 THEN READ PER FILE AND PROCESS ONLY ONE PIXEL
+
+	if(configCrontrolFile.NumberOfCycles==0){
+     /* int k, kk,i;
+      // READ MALLA GRID 
+
+      PRECISION * spectroTest = calloc(numLambdaTest*NPARMS,sizeof(PRECISION));      
+      AllocateMemoryDerivedSynthesis(numLambdaTest);
+      if(access(configCrontrolFile.StrayLightFile,F_OK)!=-1){ //  IF NOT EMPTY READ stray light file 
+         slight = readFitsStrayLightFile(configCrontrolFile.StrayLightFile,&dimStrayLight,numLambdaTest);
+         printf("\n STRAY LIGHT READ \n");
+      }
+      else{
+         printf("\n STRAY LIGHT NOT USED \n");
+      }      
+      Init_Model initModel;
+      initModel.eta0 = INITIAL_MODEL.eta0;
+      initModel.B = INITIAL_MODEL.B; //200 700
+      initModel.gm = INITIAL_MODEL.gm;
+      initModel.az = INITIAL_MODEL.az;
+      initModel.vlos = INITIAL_MODEL.vlos; //km/s 0
+      initModel.mac = INITIAL_MODEL.mac;
+      initModel.dopp = INITIAL_MODEL.dopp;
+      initModel.aa = INITIAL_MODEL.aa;
+      initModel.alfa = INITIAL_MODEL.alfa; //0.38; //stray light factor
+      initModel.S0 = INITIAL_MODEL.S0;
+      initModel.S1 = INITIAL_MODEL.S1;
+      printf("\n MODELO INICIAL: \n");
+      printf("\n ETA0: %lf",initModel.eta0);
+      printf("\n B: %lf",initModel.B);
+      printf("\n gm: %lf",initModel.gm);
+      printf("\n az: %lf",initModel.az);
+      printf("\n vlos: %lf",initModel.vlos);
+      printf("\n mac: %lf",initModel.mac);
+      printf("\n dopp: %lf",initModel.dopp);
+      printf("\n aa: %lf",initModel.aa);
+      printf("\n alfa: %lf",initModel.alfa);
+      printf("\n S0: %lf",initModel.S0);
+      printf("\n S1: %lf",initModel.S1);    
+
+      FILE * fReadSpectro;
+      char * line = NULL;
+      size_t len = 0;
+      ssize_t read;
+      fReadSpectro = fopen(configCrontrolFile.ObservedProfiles, "r");
+      double indexLine;
+      int contLine=0;
+      if (fReadSpectro == NULL)
+      {
+         printf("Error opening the file of parameters, it's possible that the file doesn't exist. Please verify it. \n");
+         printf("\n ******* THIS IS THE NAME OF THE FILE RECEVIED : %s \n", configCrontrolFile.ObservedProfiles);
+         fclose(fReadSpectro);
+         exit(EXIT_FAILURE);
+      }
+      PRECISION dummy;
+      while ((read = getline(&line, &len, fReadSpectro)) != -1 && contLine<numLambdaTest) {
+         //sscanf(line,"%le %le %le %le %le %le",&indexLine,&vLambdaTest[contLine],&spectroTest[contLine], &spectroTest[contLine + numLambdaTest], &spectroTest[contLine + numLambdaTest * 2], &spectroTest[contLine + numLambdaTest * 3]);
+         sscanf(line,"%le %le %le %le %le %le",&indexLine,&dummy,&spectroTest[contLine], &spectroTest[contLine + numLambdaTest], &spectroTest[contLine + numLambdaTest * 2], &spectroTest[contLine + numLambdaTest * 3]);
+         //sscanf(line,"%le %le %le %le %le",&vLambdaTest[contLine],&spectroTest[contLine], &spectroTest[contLine + numLambdaTest], &spectroTest[contLine + numLambdaTest * 2], &spectroTest[contLine + numLambdaTest * 3]);
+         contLine++;
+      }
+      printf("\n valores de spectro leido \n");
+      for (kk = 0; kk < numLambdaTest; kk++)
+      {
+         printf("%f\t%lf\t%lf\t%lf\t%lf\n",vLambdaTest[kk] , spectroTest[kk], spectroTest[kk + numLambdaTest], spectroTest[kk + numLambdaTest * 2], spectroTest[kk + numLambdaTest * 3]);
+      }
+      G = fgauss_WL(FWHM, vLambdaTest[1]-vLambdaTest[0], vLambdaTest[0], vLambdaTest[numLambdaTest/2],numLambdaTest, &sizeG); 
+
+      
+      // MACROTURBULENCE PLANS
+      inFilterMAC = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
+      outFilterMAC = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
+      planFilterMAC = fftw_plan_dft_1d(numln, inFilterMAC, outFilterMAC, FFT_FORWARD, FFTW_EXHAUSTIVE);
+      inFilterMAC_DERIV = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
+      outFilterMAC_DERIV = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
+      planFilterMAC_DERIV = fftw_plan_dft_1d(numln, inFilterMAC_DERIV, outFilterMAC_DERIV, FFT_FORWARD, FFTW_EXHAUSTIVE);
 
 
-	freeFitsImage(fitsImage);
+      inSpectraFwMAC = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
+      outSpectraFwMAC = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
+      planForwardMAC = fftw_plan_dft_1d(numln, inSpectraFwMAC, outSpectraFwMAC, FFT_FORWARD, FFTW_EXHAUSTIVE);
+      inSpectraBwMAC = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
+      outSpectraBwMAC = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);		
+      planBackwardMAC = fftw_plan_dft_1d(numln, inSpectraBwMAC, outSpectraBwMAC, FFT_BACKWARD, FFTW_EXHAUSTIVE);
 
+
+      //fft_d(G,numln,FFT_FORWARD);
+      //PSF FILTER PLANS 
+      inSpectraFwPSF = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
+      outSpectraFwPSF = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
+      planForwardPSF = fftw_plan_dft_1d(numln, inSpectraFwPSF, outSpectraFwPSF, FFT_FORWARD, FFTW_MEASURE);
+      inSpectraBwPSF = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
+      outSpectraBwPSF = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);		
+      planBackwardPSF = fftw_plan_dft_1d(numln, inSpectraBwPSF, outSpectraBwPSF, FFT_BACKWARD, FFTW_MEASURE);
+
+      fftw_complex * in = (fftw_complex *)fftw_malloc(sizeof(fftw_complex) * numln);
+      for (i = 0; i < numln; i++)
+      {
+         in[i] = G[i] + 0 * _Complex_I;
+      }
+      fftw_G_PSF = (fftw_complex *)fftw_malloc(sizeof(fftw_complex) * numln);
+      fftw_plan p = fftw_plan_dft_1d(numln, in, fftw_G_PSF, FFT_FORWARD, FFTW_ESTIMATE);
+      fftw_execute(p);
+      for (i = 0; i < numln; i++)
+      {
+         fftw_G_PSF[i] = fftw_G_PSF[i] / numln;
+      }
+      fftw_destroy_plan(p);
+      fftw_free(in);
+      
+      inPSF_MAC = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
+      fftw_G_MAC_PSF = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
+      planForwardPSF_MAC = fftw_plan_dft_1d(numln, inPSF_MAC, fftw_G_MAC_PSF, FFT_FORWARD, FFTW_EXHAUSTIVE);
+      inMulMacPSF = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
+      outConvFilters = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
+      planBackwardPSF_MAC = fftw_plan_dft_1d(numln, inMulMacPSF, outConvFilters, FFT_BACKWARD, FFTW_EXHAUSTIVE);
+
+
+      inPSF_MAC_DERIV = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
+      fftw_G_MAC_DERIV_PSF = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
+      planForwardPSF_MAC_DERIV = fftw_plan_dft_1d(numln, inPSF_MAC_DERIV, fftw_G_MAC_DERIV_PSF, FFT_FORWARD, FFTW_EXHAUSTIVE);
+      inMulMacPSFDeriv = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
+      outConvFiltersDeriv = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
+      planBackwardPSF_MAC_DERIV = fftw_plan_dft_1d(numln, inMulMacPSFDeriv, outConvFiltersDeriv, FFT_BACKWARD, FFTW_EXHAUSTIVE);	
+
+      printf("\n\n VALORES GAUSSIANA aux: \n");
+      printf("[");
+      for(i=0;i<numLambdaTest;i++){
+         printf("%lf\t%le\n",vLambdaTest[i], G[i]);
+      }
+      printf("]\n");  
+
+      FreeMemoryDerivedSynthesis();
+      InitializePointerShareCalculation();
+      AllocateMemoryDerivedSynthesis(numLambdaTest);
+
+
+      int numIter;
+      configCrontrolFile.NumberOfCycles = 100;
+      lm_mils(cuantic, wlines, vLambdaTest, numLambdaTest, spectroTest, numLambdaTest, &initModel, spectra, &chisqrf, slight, configCrontrolFile.toplim, configCrontrolFile.NumberOfCycles,
+               configCrontrolFile.WeightForStokes, configCrontrolFile.fix, configCrontrolFile.sigma, configCrontrolFile.InitialDiagonalElement,&configCrontrolFile.ConvolveWithPSF,&numIter);
+
+      FILE * fptr = fopen(configCrontrolFile.OutputModelFile, "w");
+      if(fptr!=NULL){
+         fprintf(fptr,"\n MODEL_ETHA0: %lf",initModel.eta0);
+         fprintf(fptr,"\n MODEL_B: %lf",initModel.B);
+         fprintf(fptr,"\n MODEL_VLOS: %lf",initModel.vlos);
+         fprintf(fptr,"\n MODEL_LAMBDADOPP: %lf",initModel.dopp);
+         fprintf(fptr,"\n MODEL_AA: %lf",initModel.aa);
+         fprintf(fptr,"\n MODEL_GM: %lf",initModel.gm);
+         fprintf(fptr,"\n MODEL_AZI: %lf",initModel.az);
+         fprintf(fptr,"\n MODEL_S0: %lf",initModel.S0);
+         fprintf(fptr,"\n MODEL_S1: %lf",initModel.S1);
+         fprintf(fptr,"\n MODEL_MAC: %lf",initModel.mac);
+         fprintf(fptr,"\n MODEL_ALFA: %lf",initModel.alfa);
+         fprintf(fptr,"\n NUMBER ITERATIONS TO CONVERGE: %d",numIter);
+         fprintf(fptr,"\n Chisqrf %le",chisqrf);
+         fprintf(fptr,"\n\n");
+      }
+      else{
+         printf("\n ¡¡¡¡¡ ERROR: OUTPUT MODEL FILE CAN NOT BE OPENED\n !!!!! ");
+      }
+      fclose(fptr);
+      printf("\n\nVALORES MODELO DESPUÉS DE LA INVERSION COMPLETA");
+      printf("\n ETA0: %lf",initModel.eta0);
+      printf("\n B: %lf",initModel.B);
+      printf("\n vlos: %lf",initModel.vlos);
+      printf("\n dopp: %lf",initModel.dopp);
+      printf("\n aa: %lf",initModel.aa);
+      printf("\n gm: %lf",initModel.gm);
+      printf("\n az: %lf",initModel.az);
+      printf("\n S9: %lf",initModel.S0);
+      printf("\n S1: %lf",initModel.S1);
+      printf("\n mac: %lf",initModel.mac);
+      printf("\n alfa: %lf",initModel.alfa);
+      printf("\n Chisqrf %le",chisqrf);
+      printf("\n Num Iterations to converge: %d",numIter);
+      printf("\n\n");
+
+      free(vLambdaTest);
+      free(spectroTest);	*/	
+	}
+	else{
+		// READ PIXELS FROM IMAGE 
+		PRECISION timeReadImage,timeExecuteClassicalEstimates;
+		clock_t t;
+		t = clock();
+		
+		fitsImage = readFitsSpectroImageRectangular(nameInputFileSpectra,&configCrontrolFile);
+		//fitsImage = readFitsSpectroImage(nameInputFileSpectra);
+		t = clock() - t;
+		timeReadImage = ((PRECISION)t)/CLOCKS_PER_SEC; // in seconds 
+		
+		printf("\n\n TIME TO READ FITS IMAGE:  %f seconds to execute \n", timeReadImage); 
+		//slog_info(0,"\n\n TIME TO READ FITS IMAGE:  %f seconds to execute \n", timeReadImage);
+
+		if(fitsImage!=NULL && readFitsLambdaFile(nameInputFileLambda,fitsImage)){
+
+
+			// INTERPOLATE PSF WITH ARRAY OF LAMBDA READ
+			/****************************************************************************************************/	
+			// if parameter name of psf has been apported we read the file, in other case create the gaussian with the parameters	
+			//initializing weights
+			//PRECISION *sig;
+			// THE NUMBER OF LAMBDAS IS READ FROM INPUT FILES 
+			nlambda = fitsImage->nLambdas;
+			// check if read stray light
+			if(access(configCrontrolFile.StrayLightFile,F_OK)!=-1){ //  IF NOT EMPTY READ stray light file 
+				slight = readFitsStrayLightFile(configCrontrolFile.StrayLightFile,&dimStrayLight,fitsImage->nLambdas);
+			}
+
+			//***************************************** INIT MEMORY WITH SIZE OF LAMBDA ****************************************************//
+			AllocateMemoryDerivedSynthesis(nlambda);
+			//weights_init(configCrontrolFile.sigma, &sig, configCrontrolFile.noise);
+
+			// ************************** DEFINE PLANS TO EXECUTE MACROTURBULENCE IF NECESSARY **********************************************//
+			//fftw_init_threads();
+			//int edge=(nlambda%2)+1;
+			//int numln=nlambda-edge+1;
+			int numln=nlambda;
+			// MACROTURBULENCE PLANS
+			inFilterMAC = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
+			outFilterMAC = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
+			planFilterMAC = fftw_plan_dft_1d(numln, inFilterMAC, outFilterMAC, FFT_FORWARD, FFTW_EXHAUSTIVE);
+			inFilterMAC_DERIV = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
+			outFilterMAC_DERIV = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
+			planFilterMAC_DERIV = fftw_plan_dft_1d(numln, inFilterMAC_DERIV, outFilterMAC_DERIV, FFT_FORWARD, FFTW_EXHAUSTIVE);
+
+
+			inSpectraFwMAC = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
+			outSpectraFwMAC = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
+			planForwardMAC = fftw_plan_dft_1d(numln, inSpectraFwMAC, outSpectraFwMAC, FFT_FORWARD, FFTW_EXHAUSTIVE);
+			inSpectraBwMAC = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
+			outSpectraBwMAC = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);		
+			planBackwardMAC = fftw_plan_dft_1d(numln, inSpectraBwMAC, outSpectraBwMAC, FFT_BACKWARD, FFTW_EXHAUSTIVE);
+
+			// ********************************************* IF PSF HAS BEEN SELECTEC IN TROL READ PSF FILE OR CREATE GAUSSIAN FILTER ***********//
+			if(configCrontrolFile.ConvolveWithPSF){
+				if(access(nameInputFilePSF,F_OK) != -1){
+					// read the number of lines 
+						FILE *fp;
+						char ch;
+						N_SAMPLES_PSF=0;
+						//open file in read more
+						fp=fopen(nameInputFilePSF,"r");
+						if(fp==NULL)
+						{
+							printf("File \"%s\" does not exist!!!\n",nameInputFilePSF);
+							//slog_error(0,"File \"%s\" does not exist!!!\n",nameInputFilePSF);
+							return 0;
+						}
+
+						//read character by character and check for new line	
+						while((ch=fgetc(fp))!=EOF)
+						{
+							if(ch=='\n')
+								N_SAMPLES_PSF++;
+						}
+						
+						//close the file
+						fclose(fp);
+						if(N_SAMPLES_PSF>0){
+							deltaLambda = calloc(N_SAMPLES_PSF,sizeof(PRECISION));
+							PSF = calloc(N_SAMPLES_PSF,sizeof(PRECISION));
+							readPSFFile(deltaLambda,PSF,nameInputFilePSF);
+							PRECISION * fInterpolated = calloc(nlambda,sizeof(PRECISION));
+							interpolationLinearPSF(deltaLambda,  PSF, fitsImage->pixels[0].vLambda ,configCrontrolFile.CentralWaveLenght, N_SAMPLES_PSF,fInterpolated, nlambda);						
+						}
+						else{
+							//G = vgauss(FWHM, NMUESTRAS_G, DELTA);
+							//PRECISION * fgauss_WL(PRECISION FWHM, PRECISION step_between_lw, PRECISION lambda0, PRECISION lambdaCentral, int nLambda, int * sizeG)
+							G = fgauss_WL(FWHM,fitsImage->pixels[0].vLambda[1]-fitsImage->pixels[0].vLambda[0],fitsImage->pixels[0].vLambda[0],fitsImage->pixels[0].vLambda[nlambda/2],fitsImage->pixels[0].nLambda,&sizeG);
+						}
+				}else{
+					//G = vgauss(FWHM, NMUESTRAS_G, DELTA);
+					G = fgauss_WL(FWHM,fitsImage->pixels[0].vLambda[1]-fitsImage->pixels[0].vLambda[0],fitsImage->pixels[0].vLambda[0],fitsImage->pixels[0].vLambda[nlambda/2],fitsImage->pixels[0].nLambda,&sizeG);
+				}
+
+
+				
+				//PSF FILTER PLANS 
+				inSpectraFwPSF = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
+				outSpectraFwPSF = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
+				planForwardPSF = fftw_plan_dft_1d(numln, inSpectraFwPSF, outSpectraFwPSF, FFT_FORWARD, FFTW_EXHAUSTIVE);
+				inSpectraBwPSF = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
+				outSpectraBwPSF = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);		
+				planBackwardPSF = fftw_plan_dft_1d(numln, inSpectraBwPSF, outSpectraBwPSF, FFT_BACKWARD, FFTW_EXHAUSTIVE);
+
+				fftw_complex * in = (fftw_complex *)fftw_malloc(sizeof(fftw_complex) * numln);
+				int i;
+				for (i = 0; i < numln; i++)
+				{
+					in[i] = G[i] + 0 * _Complex_I;
+				}
+				fftw_G_PSF = (fftw_complex *)fftw_malloc(sizeof(fftw_complex) * numln);
+				fftw_plan p = fftw_plan_dft_1d(numln, in, fftw_G_PSF, FFT_FORWARD, FFTW_ESTIMATE);
+				fftw_execute(p);
+				for (i = 0; i < numln; i++)
+				{
+					fftw_G_PSF[i] = fftw_G_PSF[i] / numln;
+				}
+				fftw_destroy_plan(p);
+				fftw_free(in);
+				
+				inPSF_MAC = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
+				fftw_G_MAC_PSF = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
+				planForwardPSF_MAC = fftw_plan_dft_1d(numln, inPSF_MAC, fftw_G_MAC_PSF, FFT_FORWARD, FFTW_EXHAUSTIVE);
+				inMulMacPSF = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
+				outConvFilters = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
+				planBackwardPSF_MAC = fftw_plan_dft_1d(numln, inMulMacPSF, outConvFilters, FFT_BACKWARD, FFTW_EXHAUSTIVE);
+
+
+				inPSF_MAC_DERIV = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
+				fftw_G_MAC_DERIV_PSF = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
+				planForwardPSF_MAC_DERIV = fftw_plan_dft_1d(numln, inPSF_MAC_DERIV, fftw_G_MAC_DERIV_PSF, FFT_FORWARD, FFTW_EXHAUSTIVE);
+				inMulMacPSFDeriv = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
+				outConvFiltersDeriv = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
+				planBackwardPSF_MAC_DERIV = fftw_plan_dft_1d(numln, inMulMacPSFDeriv, outConvFiltersDeriv, FFT_BACKWARD, FFTW_EXHAUSTIVE);			
+
+				
+			}		
+			
+
+			int indexPixel = 0;
+
+			// ALLOCATE MEMORY FOR STORE THE RESULTS 
+
+			vModels = calloc (fitsImage->numPixels , sizeof(Init_Model));
+			vChisqrf = calloc (fitsImage->numPixels , sizeof(PRECISION));
+			vNumIter = calloc (fitsImage->numPixels , sizeof(int));
+
+			t = clock();
+			
+			printf("\n***********************  PROGRESS INVERSION *******************************\n\n");
+			//slog_info(0,"\n***********************  PROGRESS INVERSION *******************************\n\n");
+
+			for(indexPixel = 0; indexPixel < fitsImage->numPixels; indexPixel++){
+				
+
+				//Initial Model
+				Init_Model initModel;
+				initModel.eta0 = INITIAL_MODEL.eta0;
+				initModel.B = INITIAL_MODEL.B; //200 700
+				initModel.gm = INITIAL_MODEL.gm;
+				initModel.az = INITIAL_MODEL.az;
+				initModel.vlos = INITIAL_MODEL.vlos; //km/s 0
+				initModel.mac = INITIAL_MODEL.mac;
+				initModel.dopp = INITIAL_MODEL.dopp;
+				initModel.aa = INITIAL_MODEL.aa;
+				initModel.alfa = INITIAL_MODEL.alfa; //0.38; //stray light factor
+				initModel.S0 = INITIAL_MODEL.S0;
+				initModel.S1 = INITIAL_MODEL.S1;
+				
+
+				if (configCrontrolFile.UseClassicalEstimates)
+				{
+
+					t_ini = clock();
+					estimacionesClasicas(wlines[1], fitsImage->pixels[indexPixel].vLambda, fitsImage->pixels[indexPixel].nLambda, fitsImage->pixels[indexPixel].spectro, &initModel);
+					
+					timeExecuteClassicalEstimates += (clock() - t_ini);  
+					
+
+					//Se comprueba si el resultado fue "nan" en las CE
+					if (isnan(initModel.B))
+						initModel.B = 1;
+					if (isnan(initModel.vlos))
+						initModel.vlos = 1e-3;
+					if (isnan(initModel.gm))
+						initModel.gm = 1;
+					if (isnan(initModel.az))
+						initModel.az = 1;
+
+				}
+
+				//inversion
+				if (configCrontrolFile.UseRTEInversion)
+				{
+					//Se introduce en S0 el valor de Blos si solo se calculan estimaciones clásicas
+					//Aqui se anula esa asignación porque se va a realizar la inversion RTE completa
+					initModel.S0 = INITIAL_MODEL.S0;
+					PRECISION * slightPixel;
+					if(slight==NULL) 
+						slightPixel = NULL;
+					else{
+						if(dimStrayLight==nlambda) 
+							slightPixel = slight;
+						else 
+							slightPixel = slight+nlambda*indexPixel;
+					}
+					lm_mils(cuantic, wlines, fitsImage->pixels[indexPixel].vLambda, fitsImage->pixels[indexPixel].nLambda, fitsImage->pixels[indexPixel].spectro, fitsImage->pixels[indexPixel].nLambda, &initModel, spectra, &vChisqrf[indexPixel], slightPixel, configCrontrolFile.toplim, configCrontrolFile.NumberOfCycles,
+							configCrontrolFile.WeightForStokes, configCrontrolFile.fix, configCrontrolFile.sigma, configCrontrolFile.InitialDiagonalElement,&configCrontrolFile.ConvolveWithPSF,&vNumIter[indexPixel]);						
+				}
+
+				vModels[indexPixel] = initModel;
+				//vChisqrf[indexPixel] = chisqrf;
+				
+				//printf ("\t\t %.2f seconds -- %.2f %%\r",  ((PRECISION)(clock() - t)/CLOCKS_PER_SEC) , ((indexPixel*100.)/fitsImage->numPixels));
+			}
+			t = clock() - t;
+
+			printf("\n\n TIME EXECUTIN CLASSICAL ESTIMATES: %f seconds to execute \n", ((PRECISION)timeExecuteClassicalEstimates)/CLOCKS_PER_SEC);
+			//slog_info(0,"\n\n TIME EXECUTIN CLASSICAL ESTIMATES: %f seconds to execute \n", ((PRECISION)timeExecuteClassicalEstimates)/CLOCKS_PER_SEC);
+			timeReadImage = ((PRECISION)t)/CLOCKS_PER_SEC; // in seconds 
+			printf("\n FINISH EXECUTION OF INVERSION: %f seconds to execute \n", timeReadImage);
+			//slog_info(0,"\n FINISH EXECUTION OF INVERSION: %f seconds to execute \n", timeReadImage);
+			//printf("\n**********");
+			if(configCrontrolFile.typeFileOutputModel==0){ // write to fits file
+				if(!writeFitsImageModels(nameOutputFileModels,fitsImage->rows,fitsImage->cols,vModels,vChisqrf,vNumIter,configCrontrolFile.saveChisqr)){
+						printf("\n ERROR WRITING FILE OF MODELS: %s",nameOutputFileModels);
+						//slog_error(0,"\n ERROR WRITING FILE OF MODELS: %s",nameOutputFileModels);
+				}
+			}
+			else{ // write to MOD file.
+				
+				FILE *fptr = fopen(configCrontrolFile.OutputModelFile, "w");
+				if(fptr!=NULL){
+					int i,j;
+					for(i=0;i<fitsImage->rows;i++){
+						for(j=0;j<fitsImage->cols;j++){
+							fprintf(fptr,"\nPIXEL INTERTED:[%i][%i]\n",i,j);
+							fprintf(fptr,"\n MODEL_ETHA0: %lf",vModels[( i*fitsImage->cols) + j].eta0);
+							fprintf(fptr,"\n MODEL_B: %lf",vModels[( i*fitsImage->cols) + j].B);
+							fprintf(fptr,"\n MODEL_VLOS: %lf",vModels[( i*fitsImage->cols) + j].vlos);
+							fprintf(fptr,"\n MODEL_LAMBDADOPP: %lf",vModels[( i*fitsImage->cols) + j].dopp);
+							fprintf(fptr,"\n MODEL_AA: %lf",vModels[( i*fitsImage->cols) + j].aa);
+							fprintf(fptr,"\n MODEL_GM: %lf",vModels[( i*fitsImage->cols) + j].gm);
+							fprintf(fptr,"\n MODEL_AZI: %lf",vModels[( i*fitsImage->cols) + j].az);
+							fprintf(fptr,"\n MODEL_S0: %lf",vModels[( i*fitsImage->cols) + j].S0);
+							fprintf(fptr,"\n MODEL_S1: %lf",vModels[( i*fitsImage->cols) + j].S1);
+							fprintf(fptr,"\n MODEL_MAC: %lf",vModels[( i*fitsImage->cols) + j].mac);
+							fprintf(fptr,"\n MODEL_ALFA: %lf",vModels[( i*fitsImage->cols) + j].alfa);
+							fprintf(fptr,"\n NUMBER ITERATIONS TO CONVERGE: %d",vNumIter[( i*fitsImage->cols) + j]);
+							fprintf(fptr,"\n Chisqrf %le",vChisqrf[( i*fitsImage->cols) + j]);
+							fprintf(fptr,"\n\n");
+						}
+					}
+				}
+				else{
+					printf("\n ¡¡¡¡¡ ERROR: OUTPUT MODEL FILE CAN NOT BE OPENED\n !!!!! ");
+				}
+				fclose(fptr);
+			}
+
+
+			// PROCESS FILE OF SYNTETIC PROFILES
+
+			if(configCrontrolFile.SaveSynthesisProfile){
+				FreeMemoryDerivedSynthesis();
+				InitializePointerShareCalculation();
+				AllocateMemoryDerivedSynthesis(nlambda);
+
+				//weights_init(configCrontrolFile.sigma, &sig, configCrontrolFile.noise);
+				int i;
+				for( i=0;i<fitsImage->numPixels;i++)
+				{
+
+					Init_Model initModel = vModels[i];
+					mil_sinrf(cuantic, &initModel, wlines, fitsImage->pixels[i].vLambda, nlambda, spectra, AH,slight,NULL,configCrontrolFile.ConvolveWithPSF);
+					spectral_synthesis_convolution(&nlambda);
+					me_der(cuantic, &initModel, wlines, fitsImage->pixels[i].vLambda, nlambda, d_spectra, spectra, spectra, AH, slight,1,configCrontrolFile.ConvolveWithPSF);
+					response_functions_convolution(&nlambda);
+					int kk;
+					for (kk = 0; kk < (nlambda * NPARMS); kk++)
+					{
+						fitsImage->pixels[i].spectro[kk] = spectra[kk] ;
+					}
+
+				}
+				// WRITE SINTHETIC PROFILES TO FITS FILE
+
+				if(!writeFitsImageProfiles(nameOutputFilePerfiles,nameInputFileSpectra,fitsImage)){
+					printf("\n ERROR WRITING FILE OF SINTHETIC PROFILES: %s",nameOutputFilePerfiles);
+					//slog_error(0,"\n ERROR WRITING FILE OF SINTHETIC PROFILES: %s",nameOutputFilePerfiles);
+				}
+			}
+			
+			//vslConvDeleteTask(&taskConv);
+			// FREE MACROTURBULENCE PLANS AND MEMORY
+			fftw_free(inFilterMAC);
+			fftw_free(outFilterMAC);
+			fftw_destroy_plan(planFilterMAC);
+			fftw_free(inFilterMAC_DERIV);
+			fftw_free(outFilterMAC_DERIV);
+			fftw_destroy_plan(planFilterMAC_DERIV);
+			fftw_free(inSpectraFwMAC);
+			fftw_free(outSpectraFwMAC);
+			fftw_destroy_plan(planForwardMAC);
+			fftw_free(inSpectraBwMAC);
+			fftw_free(outSpectraBwMAC);
+			fftw_destroy_plan(planBackwardMAC);
+
+			if(configCrontrolFile.ConvolveWithPSF){
+				fftw_free(inSpectraFwPSF);
+				fftw_free(outSpectraFwPSF);
+				fftw_destroy_plan(planForwardPSF);
+				fftw_free(inSpectraBwPSF);
+				fftw_free(outSpectraBwPSF);
+				fftw_destroy_plan(planBackwardPSF);
+
+				fftw_free(fftw_G_PSF);
+				fftw_free(fftw_G_MAC_PSF);
+				fftw_free(fftw_G_MAC_DERIV_PSF);
+
+				fftw_free(inPSF_MAC);
+				fftw_free(inMulMacPSF);
+				fftw_free(inPSF_MAC_DERIV);
+				fftw_free(inMulMacPSFDeriv);
+				fftw_free(outConvFilters);
+				fftw_free(outConvFiltersDeriv);	
+
+				fftw_destroy_plan(planForwardPSF_MAC);
+				fftw_destroy_plan(planForwardPSF_MAC_DERIV);
+				fftw_destroy_plan(planBackwardPSF_MAC);
+				fftw_destroy_plan(planBackwardPSF_MAC_DERIV);		
+			}
+
+			free(vModels);
+			free(vChisqrf);
+			free(vNumIter);
+		}
+		else{
+			printf("\n\n ***************************** FITS FILE WITH THE SPECTRO IMAGE CAN NOT BE READ IT ******************************\n");
+			//slog_error(0,"\n\n ***************************** FITS FILE WITH THE SPECTRO IMAGE CAN NOT BE READ IT ******************************\n");
+		}
+
+		printf(" \n***********************  IMAGE INVERSION DONE, CLEANING MEMORY *********************\n");
+		//slog_info(0," \n***********************  IMAGE INVERSION DONE, CLEANING MEMORY *********************\n");
+
+
+		freeFitsImage(fitsImage);
+	}
 	free(cuantic);
 	free(wlines);
 	FreeMemoryDerivedSynthesis();

@@ -1,5 +1,4 @@
 #include "defines.h"
-#include <string.h>
 #include "lib.h"
 #include <gsl/gsl_cblas.h>
 #include <gsl/gsl_math.h>
@@ -50,24 +49,25 @@ int covarm(PRECISION *w,PRECISION *sig,PRECISION *spectro,int nspectro,PRECISION
 		for(i=0;i<nspectro;i++){
 			opa[i]=w[j]*(spectra[i+nspectro*j]-spectro[i+nspectro*j]);
 		}
-		auxWeight = (w[j]/(sig[j]));
-		//auxWeight = (w[j]);
+		if(sig[j] == 0 || w[j] == 0) 
+			auxWeight = 0;
+		else 
+			auxWeight = (w[j]/(sig[j]));
 
 		BTaux=BT+(j*NTERMS);
 		APaux=AP+(j*NTERMS*NTERMS);
 		
 		multmatrixIDLValue(opa,nspectro,1,d_spectra+j*nspectro*NTERMS,NTERMS,nspectro,BTaux,&bt_nf,&bt_nc,sig[j]); //bt de tam NTERMS x 1
 		//multmatrix_transpose(d_spectra+j*nspectro*NTERMS,NTERMS,nspectro,d_spectra+j*nspectro*NTERMS,NTERMS,nspectro,APaux,&aux_nf,&aux_nc,w[j]/(sig[j]*sig[j]));//ap de tam NTERMS x NTERMS
-		multmatrix_transpose(d_spectra+j*nspectro*NTERMS,NTERMS,nspectro,d_spectra+j*nspectro*NTERMS,NTERMS,nspectro,APaux,&aux_nf,&aux_nc,auxWeight);//ap de tam NTERMS x NTERMS
-		//multmatrix_transpose_param(d_spectra+j*nspectro*NTERMS,NTERMS,nspectro,d_spectra+j*nspectro*NTERMS,NTERMS,nspectro,APaux,&aux_nf,&aux_nc);//ap de tam NTERMS x NTERMS
+		multmatrix_transpose_param(d_spectra+j*nspectro*NTERMS,NTERMS,nspectro,d_spectra+j*nspectro*NTERMS,NTERMS,nspectro,APaux,&aux_nf,&aux_nc);//ap de tam NTERMS x NTERMS
 		//printf("\n FIRST PART OF ALFA MATRIX:\n ");
-		//for(i=0;i<aux_nf*aux_nc;i++){
+		for(i=0;i<aux_nf*aux_nc;i++){
 			//printf("\nVALUE OF APAUX[I]=%lf  \t VALUE OF AUX WEIGHT=%lf",APaux[i], auxWeight);
 			//APaux[i] *= auxWeight;
-			/*aux = APaux[i] * auxWeight;
-			APaux[i] =  aux;*/
+			aux = APaux[i] * auxWeight;
+			APaux[i] =  aux;
 			//printf("\n VALUE OF APAUX[i] alter mult: %lf",APaux[i]);
-		//}
+		}
 	}
 
 	totalParcialf(BT,NPARMS,NTERMS,beta); //beta de tam 1 x NTERMS
@@ -324,9 +324,12 @@ int multmatrix_transpose(PRECISION *a,int naf,int nac, PRECISION *b,int nbf,int 
 				}
 
 				result[(*col)*i+j] = (sum)*value;
+				//result[(*col)*i+j] = sum;
      		} 
 		
 		}
+		/*for(i=0;i<(*fil)*(*col);i++)
+			result[i] *=value;*/
 		return 1;
 	}else{
 		printf("\n \n Error en multmatrix_transpose no coinciden nac y nbc!!!! ..\n\n");
@@ -523,17 +526,3 @@ void myMemCpy(PRECISION *dest, PRECISION *src, size_t n)
       dest[i] = src[i]; 
 } 
 
-
-
-void strip_ext(char *fname)
-{
-    char *end = fname + strlen(fname);
-
-    while (end > fname && *end != '.' && *end != '\\' && *end != '/') {
-        --end;
-    }
-    if ((end > fname && *end == '.') &&
-        (*(end - 1) != '\\' && *(end - 1) != '/')) {
-        *end = '\0';
-    }  
-}

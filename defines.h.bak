@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <complex.h>
-#include "fitsio.h"
+#include <fitsio.h>
 //#include <fftw3.h> //siempre detras de complex.h!
 //#include <math.h>
 //#include <stdio.h>
@@ -255,18 +255,12 @@ struct CONFIG_CONTROL{
 	int useInterpolarSplinesOrLinear; // 0 splines , 1 linear 
 	int ConvolveWithPSF;
 	PRECISION FWHM;
+	
 	PRECISION GasPressureAtSurface1;
 	PRECISION GasPressureAtSurface2;
 	PRECISION MagneticPressureTerm;
 	int ntl;
 	int nliobs;
-	int nx;
-	int ny;
-	int subx1;
-	int subx2;
-	int suby1;
-	int suby2;
-	char outputPrefix[4096];
 	PRECISION CentralWaveLenght;
 	//INIT_MODEL=[eta0,magnet,vlos,landadopp,aa,gamma,azi,B1,B2,macro,alfa]
 	int fix[11]; // eta0, B , vlos, dopp, aa, gm , az, S0, S1, mac, alpha
@@ -277,10 +271,8 @@ struct CONFIG_CONTROL{
 	int UseClassicalEstimates;
 	int UseRTEInversion;
 	int SaveSynthesisProfile;	
-	int typeFileOutputModel; // 0 print to FITS , 1 print to TXT. 
 	char OutputModelFile[4096];
 	char OutputSynthesisFile[4096];
-	char MallaGrid[4096];
 	
 };
 
@@ -361,12 +353,4 @@ typedef struct CONFIG_CONTROL ConfigControl;
 #define PBSTR "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"
 #define PBWIDTH 60
 
-struct NAME_FILE {
-	char  name [PATH_MAX];
-};
-
-typedef struct NAME_FILE nameFile;
-
 #endif /*DEFINES_H_*/
-
-

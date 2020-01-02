@@ -99,8 +99,7 @@ _Complex PRECISION *z,* zden, * zdiv;
 
 int main(int argc, char **argv)
 {
-	//int i, j;  // indexes 
-	int i;
+	int i, j;  // indexes 
 	// INIT MPI  PROGRAM 
 	int numProcs, idProc;
 	MPI_Init(&argc, &argv);
@@ -127,6 +126,9 @@ int main(int argc, char **argv)
 	// CONFIGURACION DE PARAMETROS A INVERTIR
 	//INIT_MODEL=[eta0,magnet,vlos,landadopp,aa,gamma,azi,B1,B2,macro,alfa]
 	//----------------------------------------------
+
+	
+
 	
 	PRECISION * slight = NULL;
 	int dimStrayLight;
@@ -178,6 +180,10 @@ int main(int argc, char **argv)
 
 	CC = PI / 180.0;
 	CC_2 = CC * 2;
+
+
+	
+
 	
 	wlines = (PRECISION *)calloc(2, sizeof(PRECISION));
 	wlines[0] = 1;
@@ -199,8 +205,7 @@ int main(int argc, char **argv)
 		PRECISION timeReadImage;
 		clock_t t;
 		t = clock();
-		fitsImage = readFitsSpectroImageRectangular(nameInputFileSpectra,&configCrontrolFile);
-		//fitsImage = readFitsSpectroImage(nameInputFileSpectra);
+		fitsImage = readFitsSpectroImage(nameInputFileSpectra);
 		t = clock() - t;
 		timeReadImage = ((PRECISION)t)/CLOCKS_PER_SEC; // in seconds 
 		printf("\n TIME TO READ FITS IMAGE:  %f seconds to execute \n", (double) timeReadImage); 
@@ -352,12 +357,9 @@ int main(int argc, char **argv)
 		Init_Model * resultsInitModel;
 		Init_Model * resultsInitModelTotal;
 		PRECISION * chisqrfTotal, * chisqrf;
-		int * vNumIterTotal, * vNumIter;
-
 		if(idProc == root){
 			resultsInitModelTotal = calloc (numPixels , sizeof(Init_Model));
 			chisqrfTotal = calloc (numPixels , sizeof(PRECISION));
-			vNumIterTotal = calloc (numPixels , sizeof(int));
 		}
 
 		// allocate memory in all processes 
@@ -447,7 +449,6 @@ int main(int argc, char **argv)
 
 		resultsInitModel = calloc(sendcountsPixels[idProc], sizeof(Init_Model));
 		chisqrf = calloc(sendcountsPixels[idProc], sizeof(PRECISION));
-		vNumIter = calloc (sendcountsPixels[idProc], sizeof(int));
 		local_start_execution = MPI_Wtime();
 
 		for(indexPixel = 0; indexPixel < sendcountsPixels[idProc]; indexPixel++){
@@ -465,12 +466,12 @@ int main(int argc, char **argv)
 			initModel.S0 = INITIAL_MODEL.S0;
 			initModel.S1 = INITIAL_MODEL.S1;
 
-			
+			PRECISION auxChisqrf;
 
 			if (configCrontrolFile.UseClassicalEstimates)
 			{
 				
-				estimacionesClasicas(wlines[1], vLambdaSplit+(indexPixel*(nlambda)), nlambda, vSpectraSplit+(indexPixel*(nlambda*NPARMS)), &initModel);
+				estimacionesClasicas(wlines[1], vLambdaSplit+(indexPixel*(nlambda))+j, nlambda, vSpectraSplit+(indexPixel*(nlambda*NPARMS))+j, &initModel);
 				//Se comprueba si el resultado fue "nan" en las CE
 				if (isnan(initModel.B))
 					initModel.B = 1;
@@ -498,12 +499,12 @@ int main(int argc, char **argv)
 					else 
 						slightPixel = slight+nlambda*indexPixel;
 				}
-				lm_mils(cuantic, wlines, vLambdaSplit+(indexPixel*(nlambda)), nlambda, vSpectraSplit+(indexPixel*(nlambda*NPARMS)), nlambda, &initModel, spectra, &chisqrf[indexPixel], slightPixel, configCrontrolFile.toplim, configCrontrolFile.NumberOfCycles,
-						configCrontrolFile.WeightForStokes, configCrontrolFile.fix, configCrontrolFile.sigma, configCrontrolFile.InitialDiagonalElement,&configCrontrolFile.ConvolveWithPSF,&vNumIter[indexPixel]);																		
+				lm_mils(cuantic, wlines, vLambdaSplit+(indexPixel*(nlambda))+j, nlambda, vSpectraSplit+(indexPixel*(nlambda*NPARMS))+j, nlambda, &initModel, spectra, &auxChisqrf, slightPixel, configCrontrolFile.toplim, configCrontrolFile.NumberOfCycles,
+						configCrontrolFile.WeightForStokes, configCrontrolFile.fix, configCrontrolFile.sigma, configCrontrolFile.InitialDiagonalElement,&configCrontrolFile.ConvolveWithPSF);																		
 			}
 
 			resultsInitModel[indexPixel] = initModel;
-			//chisqrf[indexPixel] = auxChisqrf;
+			chisqrf[indexPixel] = auxChisqrf;
 		}
 		local_finish_execution = MPI_Wtime();
 
@@ -519,7 +520,6 @@ int main(int argc, char **argv)
 
 		MPI_Igatherv(resultsInitModel, sendcountsPixels[idProc], mpiInitModel, resultsInitModelTotal, sendcountsPixels, displsPixels, mpiInitModel, root, MPI_COMM_WORLD,&mpiRequestSpectro);
 		MPI_Igatherv(chisqrf, sendcountsPixels[idProc], MPI_DOUBLE, chisqrfTotal, sendcountsPixels, displsPixels, MPI_DOUBLE, root, MPI_COMM_WORLD,&mpiRequestLambda);		
-		MPI_Gatherv(vNumIter, sendcountsPixels[idProc], MPI_INT, vNumIterTotal, sendcountsPixels, displsPixels, MPI_INT, root, MPI_COMM_WORLD);		
 		MPI_Wait(&mpiRequestSpectro, MPI_STATUS_IGNORE);
 		MPI_Wait(&mpiRequestLambda, MPI_STATUS_IGNORE);		
 		local_finish_gather = MPI_Wtime();
@@ -549,7 +549,7 @@ int main(int argc, char **argv)
 			double timeWriteImage;
 			clock_t t;
 			t = clock();
-			if(!writeFitsImageModels(nameOutputFileModels,fitsImage->rows,fitsImage->cols,resultsInitModelTotal,chisqrfTotal,vNumIterTotal,configCrontrolFile.saveChisqr)){
+			if(!writeFitsImageModels(nameOutputFileModels,fitsImage->rows,fitsImage->cols,resultsInitModelTotal,chisqrfTotal,configCrontrolFile.fix,configCrontrolFile.saveChisqr)){
 					printf("\n ERROR WRITING FILE OF MODELS: %s",nameOutputFileModels);
 			}
 			t = clock() - t;
@@ -582,14 +582,12 @@ int main(int argc, char **argv)
 			
 			free(resultsInitModelTotal);		
 			free(chisqrfTotal);
-			free(vNumIterTotal);
 		}
 		else{
 			free(vSpectraSplit);
 			free(vLambdaSplit);
 			free(resultsInitModel);				
 			free(chisqrf);
-			free(vNumIter);
 		}
 		free(sendcountsPixels); // array describing how many elements to send to each process
 		free(sendcountsSpectro);

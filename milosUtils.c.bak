@@ -600,11 +600,11 @@ void estimacionesClasicas(PRECISION lambda_0, PRECISION *lambda, int nlambda, PR
 int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda, PRECISION *spectro, int nspectro,
 				Init_Model *initModel, PRECISION *spectra, PRECISION *chisqrf,
 				PRECISION * slight, PRECISION toplim, int miter, PRECISION *weight, int *fix,
-				PRECISION *sigma, PRECISION ilambda, int * INSTRUMENTAL_CONVOLUTION, int * iter)
+				PRECISION *sigma, PRECISION ilambda, int * INSTRUMENTAL_CONVOLUTION)
 {
 
 	
-	//int iter;
+	int iter;
 	int i, *fixed, nfree;
 	static PRECISION delta[NTERMS];
 	
@@ -616,6 +616,8 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 	Init_Model model;
 
 	
+	iter = 0;
+
 	nfree = CalculaNfree(nspectro);
 
 
@@ -640,7 +642,7 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 	}
 
 	clanda = 0;
-	*iter = 0;
+	iter = 0;
 
 	static PRECISION covar[NTERMS * NTERMS];
 	static PRECISION betad[NTERMS];
@@ -781,9 +783,7 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 		//printf("\n CHISQR EN LA ITERACION %d,: %f",iter,chisqr);
 		
 		/**************************************************************************/
-		if ((fabs((ochisqr-chisqr)*100/chisqr) < toplim) || (chisqr < 0.0001)) // condition to exit of the loop 
-			clanda = 1;		
-		if (chisqr - ochisqr < 0.)
+		if (chisqr - ochisqr < 0)
 		{
 
 			flambda = flambda / 10.0;
@@ -821,6 +821,10 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 			printf("\n");
 
 			exit(1);*/
+			
+			
+			if ((fabs((ochisqr-chisqr)*100/chisqr) < toplim) || (chisqr < 0.0001)) // condition to exit of the loop 
+				clanda = 1;
 
 			FijaACeroDerivadasNoNecesarias(d_spectra,fixed,nlambda);	
 			covarm(weight, sigma, spectro, nlambda, spectra, d_spectra, beta, alpha);
@@ -844,9 +848,10 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 		if ((flambda > 1e+7) || (flambda < 1e-25)) 
 			clanda=1 ; // condition to exit of the loop 		
 
-		(*iter)++;
 		
-	} while (*iter < miter && !clanda);
+		iter++;
+		
+	} while (iter <= miter && !clanda);
 
 	*chisqrf = ochisqr;
 	
