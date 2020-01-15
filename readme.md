@@ -10,8 +10,42 @@ Look **Deployment** to understand how to execute the program.
 
 ### Pre-conditions 
 
-The libraries CFITSIO AND OpenMPI must be installed in the version 3.3.4 and 1.4-4, respectively. 
+The following libraries and tools must be installed in your system: 
 
+- [OpenMPI](https://www.open-mpi.org/) (Minor version tested 1.4-4)
+- [CFITSIO](https://heasarc.gsfc.nasa.gov/fitsio/) (Minor version tested 3.3.4.0)
+- [FFTW](http://www.fftw.org/)  (Minot version tested 3.3.3)
+- [GSL](https://www.gnu.org/software/gsl/) (Minor version tested 1.13-3)
+  
+There are many differents ways to install them depending of OS what we are using. In our case we have been using Ubuntu 18.04 as OS, and these are the command to install each library, if you are in the same situation. For other OS, it's in your hands install the specific libraries.
+
+OpenMPI: 
+
+```
+sudo apt-get update -y 
+sudo apt-get install openmpi-bin
+```
+
+CFITSIO:
+
+```
+sudo apt-get update -y 
+sudo apt-get install libcfitsio*
+```
+
+FFTW:
+
+```
+sudo apt-get update -y 
+sudo apt-get install libfftw3-*
+```
+
+GSL:
+
+```
+sudo apt-get update -y 
+sudo apt-get install libgsl*
+```
 
 ### Instalation
 
