@@ -83,10 +83,10 @@ The program must be executed by passing the configuration file as a parameter:
 
 ### milosMPI
 
-For the parallel program the execution is similar, except that in this case the file that we must pass as a parameter to the executable will be of type **.init** . As for the **.trol** file, we leave you an example inside the run folder [cmilos.init](run/cmilos.init)
+For the parallel program the execution is a bit different. In this case the file that we must pass as a parameter to the executable will be of type **.init** . As for the **.trol** file, we leave you an example inside the run folder [cmilos.init](run/cmilos.init)
 
-The program must be executed by passing the configuration file as a parameter:
+The program must be executed using the command of **mpirun** or **mpiexec**. a simple use of parallelization on the local machine, would be to specify the number of processes with the *-np* option:
 
 ```
-./milosMPI run/cmilos.init
+mpiexec -np 12 ./milosMPI run/cmilos.init
 ```
