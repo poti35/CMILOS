@@ -173,7 +173,7 @@ void freeVpixels(vpixels * image, int numPixels){
  */
 FitsImage *  readFitsSpectroImage (const char * fitsFileSpectra){
    fitsfile *fptr;   /* FITS file pointer, defined in fitsio.h */
-	FitsImage * image =  malloc(sizeof(FitsImage));
+   FitsImage * image =  malloc(sizeof(FitsImage));
    int status = 0;   /* CFITSIO status value MUST be initialized to zero! */
 	PRECISION nulval = 0.; // define null value to 0 because the performance to read from fits file is better doing this. 
    int bitpix, naxis, anynul, numPixelsFitsFile;
@@ -845,14 +845,15 @@ int  readFitsLambdaFile (const char * fitsFileLambda, FitsImage * fitsImage){
  * be read it before call this method. 
  * fitsFileLambda --> name of the fits file to read with lambda values 
  * fitsImage --> struct of image 
- * Return 1 If the image has been read corectly if not return 0 
+ * @return Vector with 
  */
 
-int  readFitsLambdaToArray (const char * fitsFileLambda, int numRow, int numCol, int nLambda, PRECISION * vLambda){
+PRECISION * readFitsLambdaToArray (const char * fitsFileLambda, int numRow, int numCol, int * indexLine, int * nLambda){
 	int i, j, k;
 	fitsfile *fptr;   /* FITS file pointer, defined in fitsio.h */
 	int status = 0;   /* CFITSIO status value MUST be initialized to zero! */
 	PRECISION  nulval = 0.; // define null value to 0 because the performance to read from fits file is better doing this. 
+	PRECISION * vLambda = NULL;
 	int bitpix, naxis, anynul;
 	long naxes [4] = {1,1,1,1}; /* The maximun number of dimension that we will read is 4*/
 	
@@ -860,35 +861,39 @@ int  readFitsLambdaToArray (const char * fitsFileLambda, int numRow, int numCol,
 	printf("\n**********");*/
 	if (!fits_open_file(&fptr, fitsFileLambda, READONLY, &status)){
 		if (!fits_get_img_param(fptr, 4, &bitpix, &naxis, naxes, &status) ){
-			if(naxis!=1  || naxis!=3){
-				if(naxis == 1){ // array of lambads 
-					if(naxes[0]!=nLambda){ // image of lambas has different size of spectra image 
-						printf("\n IMAGE OF LAMBAS HAS DIFFERENT SIZE OF SPECTRA IMAGE. NUMBER OF LAMBDAS IN SPECTRA IMAGE %d NUMBER OF LAMBDA IMAGE %ld ", nLambda, naxes[0]);
-						return 0;
+			if(naxis!=2  || naxis!=4){
+				if(naxis == 2){ // array of lambads 
+
+					*nLambda = naxes[0];
+					long fpixel [2] = {1,1};
+					i=0;
+					vLambda = calloc(*nLambda,sizeof(PRECISION));
+					for(fpixel[1]=1;fpixel[1]<=naxes[1];fpixel[1]++){
+						for(fpixel[0]=1;fpixel[0]<=naxes[0];fpixel[0]++){
+							PRECISION lambdaAux;
+							fits_read_pix(fptr, TDOUBLE, fpixel, 1, &nulval, &lambdaAux, &anynul, &status) ;		
+							if(fpixel[1]==1)
+								*indexLine = (int) lambdaAux;
+							else
+								vLambda[i++] = lambdaAux;
+						}
 					}
-					
-					
-					long fpixel [1] = {1};
-					fits_read_pix(fptr, TDOUBLE, fpixel, naxes[0], &nulval, vLambda, &anynul, &status) ;
+					printf("\nLAMBDAS LEIDOS:\n");
+					for(i=0;i<*nLambda;i++){
+						printf(" %lf ",vLambda[i]);
+					}
+					printf("\n");
+					//fits_read_pix(fptr, TDOUBLE, fpixel, naxes[0]*naxes[1], &nulval, data, &anynul, &status) ;
 					if(status){
 						fits_report_error(stderr, status);
 						free(vLambda);
 						return 0;	
 					}
-
-													
 				}
-				else if(naxis == 3){  // matrix of lambdas  
-					if( naxes[0]!=numRow || naxes[1]!= numCol || naxes[2]!=nLambda){ // image of lambas has different size of spectra image 
-						printf("\n IMAGE OF LAMBAS HAS DIFFERENT SIZE OF SPECTRA IMAGE. SIZE SPECTRA %d X %d X %d. SIZE LAMBDA IMAGE %ld X %ld X %ld", numRow, numCol, nLambda, naxes[0], naxes[1], naxes[2]);
-						return 0;
-					}
+				else if(naxis == 4){  // matrix of lambdas  
 					// READ ALL FILE IN ONLY ONE ARRAY 
-					// WE ASSUME THAT DATA COMES IN THE FORMAT ROW x COL x LAMBDA
-					
+					// WE ASSUME THAT DATA COMES IN THE FORMAT ROW x COL x LAMBDA					
 					int numLambdas2Read = naxes[0]*naxes[1]*naxes[2];
-					
-					
 					//fits_read_img(fptr, datatype, first, numLambdas2Read, &nulval, vAuxLambdas, &anynul, &status);
 					long fpixel [3] = {1,1,1};
 					fits_read_pix(fptr, TDOUBLE, fpixel, numLambdas2Read, &nulval, vLambda, &anynul, &status);
@@ -924,7 +929,7 @@ int  readFitsLambdaToArray (const char * fitsFileLambda, int numRow, int numCol,
 	/*printf("\n LAMBDA IMAGE READ");
 	printf("\n**********");*/
 
-	return 1;
+	return vLambda;
 
 }
 
@@ -1420,7 +1425,7 @@ int writeFitsImageProfiles(const char * fitsProfileFile, const char * fitsFileOr
 					}
 					//double pixel = image->pixels[(currentRow*image->cols) + currentCol].spectro[currentLambda+(image->nLambdas * currentStokeParameter)];
 					//fits_write_pix(outfptr, datatype, fpixel, 1, &pixel, &status);			
-					outputImage[(i*naxes[2]*naxes[1]*naxes[0]) + (j*naxes[1]*naxes[0]) + (k*naxes[0]) + h] = image->pixels[(currentRow*image->cols) + currentCol].spectro[currentLambda+(image->nLambdas * currentStokeParameter)];
+					outputImage[(i*naxes[2]*naxes[1]*naxes[0]) + (j*naxes[1]*naxes[0]) + (k*naxes[0]) + h] = image->pixels[(currentCol*image->rows) + currentRow].spectro[currentLambda+(image->nLambdas * currentStokeParameter)];
 					//outputImage[numiter++] = image->pixels[(currentCol*image->rows) + currentRow].spectro[currentLambda+(image->nLambdas * currentStokeParameter)];
 				}
 			}

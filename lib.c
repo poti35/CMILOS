@@ -10,9 +10,6 @@
 #include <gsl/gsl_blas.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <gmp.h>
-#include <mpfr.h>
-
 
 //#include <omp.h>
 //#include "mkl_cblas.h"

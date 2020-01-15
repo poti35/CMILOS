@@ -1,7 +1,6 @@
 #include "defines.h"
 #include <stdarg.h>
-#include <gmp.h>
-#include <mpfr.h>
+
 
 extern PRECISION **PUNTEROS_CALCULOS_COMPARTIDOS;
 extern int POSW_PUNTERO_CALCULOS_COMPARTIDOS;

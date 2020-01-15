@@ -505,7 +505,6 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 	free(ext4);
 	free(dtaux);*/
     //MACROTURBULENCIA
-    //Si es par le quito el �ltimo punto y luego se lo pongo 
                 
 	 int macApplied = 0;
     if(MC > 0.0001){

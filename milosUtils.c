@@ -614,10 +614,9 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 	PRECISION chisqr, ochisqr;
 	int clanda, ind;
 	Init_Model model;
-
+	//static PRECISION sigmaTemp[4] = {1.0, 1.0, 1.0, 1.0};
 	
 	nfree = CalculaNfree(nspectro);
-
 
 	if (nfree == 0)
 	{
@@ -690,6 +689,7 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 
 	FijaACeroDerivadasNoNecesarias(d_spectra,fixed,nlambda);
 	covarm(weight, sigma, spectro, nlambda, spectra, d_spectra, beta, alpha);
+	//covarm(weight, sigmaTemp, spectro, nlambda, spectra, d_spectra, beta, alpha);
 
 	for (i = 0; i < NTERMS; i++)
 		betad[i] = beta[i];
@@ -703,9 +703,10 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 	/**************************************************************************/
 
 	ochisqr = fchisqr(spectra, nspectro, spectro, weight, sigma, nfree);
+	//ochisqr = fchisqr(spectra, nspectro, spectro, weight, sigmaTemp, nfree);
 
-	/*printf("\n OBJETIVED CHISQR: %0.10f\n",ochisqr);
-	printf("\n FLAMBDA INICIAL: %lf\n",flambda);*/
+	//printf("\n OBJETIVED CHISQR: %0.10f\n",ochisqr);
+	//printf("\n FLAMBDA INICIAL: %lf\n",flambda);
 	chisqr_mem = (PRECISION)ochisqr;
 	iter_chisqr_same = 0;
 
@@ -749,7 +750,7 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 
 		//mil_sinrf(cuantic, &model, wlines, lambda, nlambda, spectra, AH,NULL,spectra_mac,0);
 		mil_sinrf(cuantic, &model, wlines, lambda, nlambda, spectra, AH,slight,spectra_mac,*INSTRUMENTAL_CONVOLUTION);
-		/*printf("\n valores de spectro sintetizado con MIL_SINRF sin aplicar PSF %d\n", iter);
+		/*printf("\n valores de spectro sintetizado con MIL_SINRF sin aplicar PSF %d\n", *iter);
 		for (int kk = 0; kk < nlambda; kk++)
 		{
 			printf("1\t%f\t%le\t%le\t%le\t%le\n", lambda[kk], spectra[kk], spectra[kk + nlambda], spectra[kk + nlambda * 2], spectra[kk + nlambda * 3]);
@@ -759,13 +760,15 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 		/*if(*INSTRUMENTAL_CONVOLUTION){			
 			spectral_synthesis_convolution(&nlambda);
 		}*/
-		/*printf("\n valores de spectro sintetizado con MIL_SINRF en la iteracion %d\n", iter);
+		/*printf("\n valores de spectro sintetizado con MIL_SINRF en la iteracion %d\n", *iter);
 		for (int kk = 0; kk < nlambda; kk++)
 		{
 			printf("1\t%f\t%le\t%le\t%le\t%le\n", lambda[kk], spectra[kk], spectra[kk + nlambda], spectra[kk + nlambda * 2], spectra[kk + nlambda * 3]);
 		}
 		*/
 		chisqr = fchisqr(spectra, nspectro, spectro, weight, sigma, nfree);
+		//chisqr = fchisqr(spectra, nspectro, spectro, weight, sigmaTemp, nfree);
+		
 		
 		/**************************************************************************/
 		if(chisqr == chisqr_mem){
@@ -778,7 +781,7 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 			chisqr_mem = chisqr;
 		}
 
-		//printf("\n CHISQR EN LA ITERACION %d,: %f",iter,chisqr);
+		//printf("\n CHISQR EN LA ITERACION %d,: %e",*iter,chisqr);
 		
 		/**************************************************************************/
 		if ((fabs((ochisqr-chisqr)*100/chisqr) < toplim) || (chisqr < 0.0001)) // condition to exit of the loop 
@@ -790,7 +793,7 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 
 			*initModel = model;
 
-			//printf("iteration=%d , chisqr = %f CONVERGE	- ilambda= %e \n",iter,chisqr,flambda);
+			//printf("iteration=%d , chisqr = %e CONVERGE	- ilambda= %e \n",*iter,chisqr,flambda);
 
 
 			//me_der(cuantic, initModel, wlines, lambda, nlambda, d_spectra, spectra_mac, AH, slight,0,0);
@@ -824,6 +827,8 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 
 			FijaACeroDerivadasNoNecesarias(d_spectra,fixed,nlambda);	
 			covarm(weight, sigma, spectro, nlambda, spectra, d_spectra, beta, alpha);
+			//covarm(weight, sigmaTemp, spectro, nlambda, spectra, d_spectra, beta, alpha);
+			
 
 			for (i = 0; i < NTERMS; i++)
 				betad[i] = beta[i];
@@ -838,7 +843,7 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 		{
 			flambda = flambda * 10; //10;
 
-			//printf("iteration=%d , chisqr = %f NOT CONVERGE	- lambda= %e \n",iter,ochisqr,flambda);
+			//printf("iteration=%d , chisqr = %e NOT CONVERGE	- lambda= %e \n",*iter,ochisqr,flambda);
 		}
 
 		if ((flambda > 1e+7) || (flambda < 1e-25)) 

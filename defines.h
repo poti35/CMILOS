@@ -156,9 +156,6 @@ int fvoigt(PRECISION damp,PRECISION *vv,int nvv,PRECISION *h, PRECISION *f);
 
 //PRECISION * vgauss(PRECISION fwhm,int nmuestras_G,PRECISION delta);
 
-
-
-
 /******************* DEFINITIONS FOR READ FITS FILE *********************/
 
 /* 
@@ -244,7 +241,6 @@ struct CONFIG_CONTROL{
 	char InitialGuessModel[4096];
 	char InitialGuessModel_2[4096];
 	PRECISION WeightForStokes[4];
-	int InvertMacroturbulence;
 	int InvertFillingFactor;
 	int InvertStrayLightFactor;
 	PRECISION mu;
@@ -252,36 +248,39 @@ struct CONFIG_CONTROL{
 	int ContinuumContrast;
 	PRECISION ToleranceForSVD;
 	PRECISION InitialDiagonalElement;
-	int useInterpolarSplinesOrLinear; // 0 splines , 1 linear 
 	int ConvolveWithPSF;
 	PRECISION FWHM;
-	PRECISION GasPressureAtSurface1;
-	PRECISION GasPressureAtSurface2;
-	PRECISION MagneticPressureTerm;
-	int ntl;
-	int nliobs;
-	int nx;
-	int ny;
-	int subx1;
-	int subx2;
-	int suby1;
-	int suby2;
-	char outputPrefix[4096];
 	PRECISION CentralWaveLenght;
 	//INIT_MODEL=[eta0,magnet,vlos,landadopp,aa,gamma,azi,B1,B2,macro,alfa]
 	int fix[11]; // eta0, B , vlos, dopp, aa, gm , az, S0, S1, mac, alpha
+	int fix2[11]; // eta0, B, vlos, dopp, aa, gm , az, S0, S1, mac, alpha
 	int saveChisqr;
 	PRECISION toplim; // Optional minimum relative difference between two succesive merit-function values
 	PRECISION sigma [4];
 	PRECISION noise;
 	int UseClassicalEstimates;
 	int UseRTEInversion;
-	int SaveSynthesisProfile;	
+	int SaveSynthesisAdjusted;	
 	int typeFileOutputModel; // 0 print to FITS , 1 print to TXT. 
 	char OutputModelFile[4096];
 	char OutputSynthesisFile[4096];
 	char MallaGrid[4096];
-	
+	char AbundancesFile[4096];
+	int useMallaGrid; // value 1 --> use malla grid, value 0 --> use fits fil
+	int automaticSelectOfNodes;
+	char controlFile [4096];
+	char typeInputStokes [50];
+	char typeInputStrayLight[50];
+	int nx;
+	int ny;
+	int subx1;
+	int subx2;
+	int suby1;
+	int suby2;	
+	char outputPrefix[4096];	
+	char MaskFile[4096];
+	int t1;
+	int t2;
 };
 
 typedef struct CONFIG_CONTROL ConfigControl;
@@ -330,7 +329,7 @@ typedef struct CONFIG_CONTROL ConfigControl;
 #define SAVE_CHISQR "SaveChisqr"
 #define USE_CLASSICAL_ESTIMATES "UseClassicalEstimates"
 #define USE_RTE_INVERSION "UseRTEInversion"
-#define SAVE_SYNTHESIS_PROFILE "SaveSynthesisProfile"
+#define SAVE_SYNTHESIS_PROFILE "SaveSynthesisAdjusted"
 #define OUTPUT_MODEL_FILE "OutputModelFile"
 #define OUTPUT_SYNTHESIS_FILE "OutputSynthesisFile"
 #define SIGMA_FILE "sigma"
@@ -366,6 +365,19 @@ struct NAME_FILE {
 };
 
 typedef struct NAME_FILE nameFile;
+
+
+
+#define PER_FILE ".per"
+#define GRID_FILE ".grid"
+#define FITS_FILE ".fits"
+#define TROL_FILE ".trol"
+#define MOD_FILE ".mod"
+#define OUTPUT_MOD_FIT_EXT "_output.fits"
+#define STOKES_FIT_EXT "_stokes.fits"
+#define OUTPUT_MOD_TXT_EXT "_output_mod.txt"
+#define STOKES_PER_EXT "_stokes.per"
+
 
 #endif /*DEFINES_H_*/
 
