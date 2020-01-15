@@ -49,9 +49,25 @@ sudo apt-get install libgsl*
 
 ### Instalation
 
-_After install the pre-conditions libraries, execute: make , to compile the programs milos and milosMPI_
 
+After install the pre-conditions libraries and download this repository you are ready to compile the code. This action will be do using the command make. there are the options that the command accepts:
 
+* Compile and create executable **milos** 
+```
+make milos
+```
+* Compile and create executable **milosMPI**
+```
+make milosMPI
+```
+* Compile and create both: **milos** and **milosMPI**
+```
+make 
+```
+* Clean objects files and executable files. 
+```
+make clean
+```
 
 ## Deployment
 
