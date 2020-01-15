@@ -8,7 +8,9 @@ Intructions to compile and execute  C-MILOS.
 Look **Deployment** to understand how to execute the program.
 
 
-### Pre-conditions 
+## Pre-conditions 
+
+### Libraries
 
 The following libraries and tools must be installed in your system: 
 
@@ -47,7 +49,37 @@ sudo apt-get update -y
 sudo apt-get install libgsl*
 ```
 
-### Instalation
+### Files format
+
+#### .per
+
+#### .fits 
+
+* Spectro 
+
+The **fits** files used for pass to the program the spectro image must contain four dimensions: *number_of_wavelengths*X*number_stokes*X*number_rows*X*number_cols* . The order or these parameters may vary, but to identify each one the header of **fits** file must contain the type of each dimension with this correspondence:
+
+  - Number of Wavelenghts: include CTYPE with the value **'WAVE-GRI'**
+  - Number of Stokes: include CTYPE with the value **'STOKES  '**
+  - Number of Rows: include CTYPE with the value **'HPLN-TAN'**
+  - Number of Cols: include CTYPE with the value **'HPLT-TAN'**
+
+An example can be this:
+
+```
+CTYPE1  = 'WAVE-GRI'
+CTYPE2  = 'STOKES  '
+CTYPE3  = 'HPLN-TAN' 
+CTYPE4  = 'HPLT-TAN'  
+```
+
+* Lambda
+
+#### .grid
+
+#### .mod 
+
+## Instalation
 
 
 After install the pre-conditions libraries and download this repository you are ready to compile the code. This action will be do using the command make. there are the options that the command accepts:
