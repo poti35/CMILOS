@@ -73,7 +73,7 @@ make clean
 
 ### milos
 
-The sequential program must be controlled with a configuration file of type **.trol** . Inside the run folder, you can find an example of this type of file [cmilos.trol](https://github.com/poti35/CMILOS/blob/master/run/cmilos.trol). We refer you to the pdf documentation to know in detail how each parameter works. 
+The sequential program must be controlled with a configuration file of type **.trol** . Inside the run folder, you can find an example of this type of file [cmilos.trol](run/cmilos.trol). We refer you to the pdf documentation to know in detail how each parameter works. 
 
 The program must be executed by passing the configuration file as a parameter:
 
@@ -83,7 +83,7 @@ The program must be executed by passing the configuration file as a parameter:
 
 ### milosMPI
 
-For the parallel program the execution is similar, except that in this case the file that we must pass as a parameter to the executable will be of type **.init** . As for the **.trol** file, we leave you an example inside the run folder [cmilos.init](https://github.com/poti35/CMILOS/blob/master/run/cmilos.init)
+For the parallel program the execution is similar, except that in this case the file that we must pass as a parameter to the executable will be of type **.init** . As for the **.trol** file, we leave you an example inside the run folder [cmilos.init](run/cmilos.init)
 
 The program must be executed by passing the configuration file as a parameter:
 
