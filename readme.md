@@ -84,3 +84,9 @@ The program must be executed by passing the configuration file as a parameter:
 ### milosMPI
 
 For the parallel program the execution is similar, except that in this case the file that we must pass as a parameter to the executable will be of type **.init** . As for the **.trol** file, we leave you an example inside the run folder [cmilos.init](https://github.com/poti35/CMILOS/blob/master/run/cmilos.init)
+
+The program must be executed by passing the configuration file as a parameter:
+
+```
+./milosMPI run/cmilos.init
+```
