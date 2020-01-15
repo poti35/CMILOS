@@ -75,9 +75,13 @@ CTYPE4  = 'HPLT-TAN'
 
 * Lambda
 
+If the observed spectra of all pixels use the same wavelength grid, the FITS file must contain a single, 2D array with dimension number of wavelength-points×2. The first column must contain the index with which the spectral line is identified according to the atomic parameter file.
+
 #### .grid
 
 #### .mod 
+
+
 
 ## Instalation
 
