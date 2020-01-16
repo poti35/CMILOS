@@ -784,7 +784,7 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 		//printf("\n CHISQR EN LA ITERACION %d,: %e",*iter,chisqr);
 		
 		/**************************************************************************/
-		if ((fabs((ochisqr-chisqr)*100/chisqr) < toplim) || (chisqr < 0.0001)) // condition to exit of the loop 
+		if ((fabs((ochisqr-chisqr)*100/chisqr) < toplim) || (chisqr < 0.00001)) // condition to exit of the loop 
 			clanda = 1;		
 		if (chisqr - ochisqr < 0.)
 		{

@@ -208,6 +208,16 @@ int main(int argc, char **argv)
 		printf("\n ERROR, the files in parallel version must be in FITS file only.\n");
 		exit(EXIT_FAILURE);
 	}
+
+	// CHECK IF ONLY RECEIVED ONE FILE AND THE EXTENSION IS .FITS 
+	if(configCrontrolFile.t1 == 0 && configCrontrolFile.t2 ==0){ // then process only one file
+		if(strcmp(file_ext(configCrontrolFile.ObservedProfiles),"fits")!=0){ 
+			printf("\n**********************************************************\n");
+			printf("\nERROR, without specify timeseries the value of control parameter 'Observed Profiles' must be a fits file\n");
+			printf("\n**********************************************************\n");
+			exit(EXIT_FAILURE);
+		}
+	}
 	
 	nameInputFilePSF = configCrontrolFile.PSFFile;
 	FWHM = configCrontrolFile.FWHM;
@@ -387,9 +397,9 @@ int main(int argc, char **argv)
         	strcpy(vInputFileSpectra[0].name,configCrontrolFile.ObservedProfiles);
 
         	vOutputNameModels = (nameFile *)malloc(numberOfFileSpectra*sizeof(nameFile));
-        	strcpy(vOutputNameModels[0].name,get_basefilename(configCrontrolFile.ObservedProfiles));	
-			strcat(vOutputNameModels[0].name,configCrontrolFile.outputPrefix);
-			strcat(vOutputNameModels[0].name,FITS_FILE);
+        	strcpy(vOutputNameModels[0].name,get_basefilename(configCrontrolFile.InitialGuessModel));	
+			//strcat(vOutputNameModels[0].name,"_mod");
+			strcat(vOutputNameModels[0].name,MOD_FITS);
 
 			vOutputNameSynthesisAdjusted = (nameFile *)malloc(numberOfFileSpectra*sizeof(nameFile));
 			strcpy(vOutputNameSynthesisAdjusted[0].name,get_basefilename(configCrontrolFile.ObservedProfiles));
@@ -416,12 +426,21 @@ int main(int argc, char **argv)
 				// FILE NAME FOR OUTPUT MODELS 
 				strcpy(vOutputNameModels[indexName].name, configCrontrolFile.ObservedProfiles);
 				strcat(vOutputNameModels[indexName].name, strIndex);
-				strcat(vOutputNameModels[indexName].name, configCrontrolFile.outputPrefix);
+				strcat(vOutputNameModels[indexName].name, "_mod");
+				if(configCrontrolFile.outputPrefix[0]!='\0'){
+					strcat(vOutputNameModels[indexName].name, "_");
+					strcat(vOutputNameModels[indexName].name, configCrontrolFile.outputPrefix);
+				}
 				strcat(vOutputNameModels[indexName].name,FITS_FILE);
 				// FILE NAME FOR ADJUSTED SYNTHESIS 
 				strcpy(vOutputNameSynthesisAdjusted[indexName].name, configCrontrolFile.ObservedProfiles);
 				strcat(vOutputNameSynthesisAdjusted[indexName].name, strIndex);
-				strcat(vOutputNameSynthesisAdjusted[indexName].name,STOKES_FIT_EXT);
+				strcat(vOutputNameSynthesisAdjusted[indexName].name, "_stokes");
+				if(configCrontrolFile.outputPrefix[0]!='\0'){
+					strcat(vOutputNameSynthesisAdjusted[indexName].name, "_");
+					strcat(vOutputNameSynthesisAdjusted[indexName].name, configCrontrolFile.outputPrefix);
+				}
+				strcat(vOutputNameSynthesisAdjusted[indexName].name,FITS_FILE);
 
 				indexName++;
 			}

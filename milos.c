@@ -141,7 +141,7 @@ int main(int argc, char **argv)
 
 	const char  * nameInputFileSpectra ;
 	const char  * nameInputFileLambda ;
-	char nameOutputFileModels [4096];
+	
 	char nameOutputFilePerfiles [4096];
 	char * baseNameOutputObserved;
 	const char	* nameInputFileLines;
@@ -165,8 +165,7 @@ int main(int argc, char **argv)
 	nameInputFileLines = configCrontrolFile.AtomicParametersFile;
 	
 	baseNameOutputObserved = get_basefilename(configCrontrolFile.ObservedProfiles);
-	strcat(nameOutputFileModels,baseNameOutputObserved);
-	strcat(nameOutputFileModels,MOD_FILE);
+	
 	
 	
 	nameInputFilePSF = configCrontrolFile.PSFFile;
@@ -337,6 +336,8 @@ int main(int argc, char **argv)
 	//  IF NUMBER OF CYCLES IS LES THAN 0 THEN --> WE USE CLASSICAL ESTIMATES 
 	//  IF NUMBER OF CYCLES IS 0 THEN -->  DO SYNTHESIS FROM THE INIT MODEL 
 	//  IF NUMBER OF CYCLES IS GREATER THAN 0 --> READ FITS FILE OR PER FILE AND PROCESS DO INVERSION WITH N CYCLES 
+
+
 	if(configCrontrolFile.NumberOfCycles<0){
 		// read fits or per 
       InitializePointerShareCalculation();
@@ -384,7 +385,12 @@ int main(int argc, char **argv)
 			//invert with classical estimates
 			estimacionesClasicas(wlines[1], vLambda, nlambda, spectroPER, &initModel);
 			// save model to file
-			FILE * fptr = fopen(nameOutputFileModels, "w");
+			char nameAuxOutputModel [4096];
+			//strcpy(nameAuxOutputModel,get_basefilename(configCrontrolFile.ObservedProfiles));
+			strcpy(nameAuxOutputModel,get_basefilename(configCrontrolFile.InitialGuessModel));
+			strcat(nameAuxOutputModel,"_model");
+			strcat(nameAuxOutputModel,MOD_FILE);
+			FILE * fptr = fopen(nameAuxOutputModel, "w");
 			if(fptr!=NULL){
 				fprintf(fptr,"\n MODEL_ETHA0: %lf",initModel.eta0);
 				fprintf(fptr,"\n MODEL_B: %lf",initModel.B);
@@ -400,11 +406,11 @@ int main(int argc, char **argv)
 				fprintf(fptr,"\n NUMBER ITERATIONS TO CONVERGE: %d",0);
 				fprintf(fptr,"\n Chisqrf %le",0.0);
 				fprintf(fptr,"\n\n");
+				fclose(fptr);
 			}
 			else{
-				printf("\n ¡¡¡¡¡ ERROR: OUTPUT MODEL FILE CAN NOT BE OPENED\n !!!!! ");
+				printf("\n ¡¡¡¡¡ ERROR: OUTPUT MODEL FILE CAN NOT BE OPENED: %s \n !!!!!",nameAuxOutputModel);
 			}			
-			fclose(fptr);
 			free(spectroPER);
 		}
 		else if(strcmp(file_ext(configCrontrolFile.ObservedProfiles),FITS_FILE)==0){ // invert image from fits file 
@@ -440,12 +446,17 @@ int main(int argc, char **argv)
 				if (isnan(initModel.az))
 					initModel.az = 1;
 				vModels[indexPixel] = initModel;
-				if(!writeFitsImageModels(nameOutputFileModels,fitsImage->rows,fitsImage->cols,vModels,vChisqrf,vNumIter,configCrontrolFile.saveChisqr)){
-						printf("\n ERROR WRITING FILE OF MODELS: %s",nameOutputFileModels);
-						//slog_error(0,"\n ERROR WRITING FILE OF MODELS: %s",nameOutputFileModels);
-				}
-			}
 
+			}
+			char nameAuxOutputModel [4096];
+			//strcpy(nameAuxOutputModel,get_basefilename(configCrontrolFile.ObservedProfiles));
+			strcpy(nameAuxOutputModel,get_basefilename(configCrontrolFile.InitialGuessModel));
+			strcat(nameAuxOutputModel,"_model");
+			strcat(nameAuxOutputModel,MOD_FILE);			
+			if(!writeFitsImageModels(nameAuxOutputModel,fitsImage->rows,fitsImage->cols,vModels,vChisqrf,vNumIter,configCrontrolFile.saveChisqr)){
+					printf("\n ERROR WRITING FILE OF MODELS: %s",nameAuxOutputModel);
+					//slog_error(0,"\n ERROR WRITING FILE OF MODELS: %s",nameOutputFileModels);
+			}
 			free(vModels);
 			free(vChisqrf);
 			free(vNumIter);
@@ -507,11 +518,11 @@ int main(int argc, char **argv)
 			int kk;
 			for (kk = 0; kk < nlambda; kk++)
 			{
-				fprintf(fptr,"%d\t%f\t%le\t%le\t%le\t%le\n", indexLine, vLambda[kk], spectra[kk], spectra[kk + nlambda], spectra[kk + nlambda * 2], spectra[kk + nlambda * 3]);
+				fprintf(fptr,"%d\t%f\t%le\t%le\t%le\t%le\n", indexLine, vLambda[kk]-configCrontrolFile.CentralWaveLenght, spectra[kk], spectra[kk + nlambda], spectra[kk + nlambda * 2], spectra[kk + nlambda * 3]);
 			}
 			fclose(fptr);
 			printf("\n*******************************************************************************************");
-			printf("\n******************INVERSION DONE: %s",nameAux);
+			printf("\n******************SYNTHESIS DONE: %s",nameAux);
 			printf("\n*******************************************************************************************\n");
 		}
 		else{
@@ -567,8 +578,13 @@ int main(int argc, char **argv)
 
 			// SAVE OUTPUT MODEL 
 			char nameAuxOutputModel [4096];
-			strcpy(nameAuxOutputModel,get_basefilename(configCrontrolFile.ObservedProfiles));
-			strcat(nameAuxOutputModel,OUTPUT_MOD_TXT_EXT);
+			/*strcpy(nameAuxOutputModel,get_basefilename(configCrontrolFile.ObservedProfiles));
+			strcat(nameAuxOutputModel,OUTPUT_MOD_TXT_EXT);*/
+			
+			strcpy(nameAuxOutputModel,get_basefilename(configCrontrolFile.InitialGuessModel));
+			strcat(nameAuxOutputModel,"_model");
+			strcat(nameAuxOutputModel,MOD_FILE);
+
 			FILE *fptr = fopen(nameAuxOutputModel, "w");
 			if(fptr!=NULL){
 				fprintf(fptr,"MODEL_ETHA0: %lf",initModel.eta0);
@@ -598,7 +614,8 @@ int main(int argc, char **argv)
 			// SAVE OUTPUT ADJUST SYNTHESIS PROFILES 
 			if(configCrontrolFile.SaveSynthesisAdjusted){
 				char nameAuxOutputStokes [4096];
-				strcpy(nameAuxOutputStokes,get_basefilename(configCrontrolFile.ObservedProfiles));
+				//strcpy(nameAuxOutputStokes,get_basefilename(configCrontrolFile.ObservedProfiles));
+				strcpy(nameAuxOutputStokes,get_basefilename(configCrontrolFile.InitialGuessModel));
 				strcat(nameAuxOutputStokes,STOKES_PER_EXT);
 				FILE *fptr = fopen(nameAuxOutputStokes, "w");
 				if(fptr!=NULL){
@@ -606,12 +623,12 @@ int main(int argc, char **argv)
 					int kk;
 					for (kk = 0; kk < nlambda; kk++)
 					{
-						fprintf(fptr,"%d\t%le\t%le\t%le\t%le\t%le\n", indexLine, vLambda[kk], spectra[kk], spectra[kk + nlambda], spectra[kk + nlambda * 2], spectra[kk + nlambda * 3]);
+						fprintf(fptr,"%d\t%le\t%le\t%le\t%le\t%le\n", indexLine, vLambda[kk]-configCrontrolFile.CentralWaveLenght, spectra[kk], spectra[kk + nlambda], spectra[kk + nlambda * 2], spectra[kk + nlambda * 3]);
 					}
 					//printf("\nVALORES DE LAS FUNCIONES RESPUESTA \n");
 					fclose(fptr);
 					printf("\n*******************************************************************************************");
-					printf("\n******************SPECTRO SYNTHESIS ADJUSTED SAVED IN FILE: %s",nameAuxOutputStokes);
+					printf("\n******************SPECTRUM SYNTHESIS ADJUSTED SAVED IN FILE: %s",nameAuxOutputStokes);
 					printf("\n*******************************************************************************************\n\n");					
 				}
 				else{
@@ -719,8 +736,11 @@ int main(int argc, char **argv)
 				//slog_info(0,"\n FINISH EXECUTION OF INVERSION: %f seconds to execute \n", timeReadImage);
 				
 				char nameAuxOutputModel [4096];
-				strcpy(nameAuxOutputModel,get_basefilename(configCrontrolFile.ObservedProfiles));
-				strcat(nameAuxOutputModel,OUTPUT_MOD_FIT_EXT);
+				//strcpy(nameAuxOutputModel,get_basefilename(configCrontrolFile.ObservedProfiles));
+				strcpy(nameAuxOutputModel,get_basefilename(configCrontrolFile.InitialGuessModel));
+				//strcat(nameAuxOutputModel,"_model");
+				//strcat(nameAuxOutputModel,MOD_FILE);
+				strcat(nameAuxOutputModel,MOD_FITS);
 				if(!writeFitsImageModels(nameAuxOutputModel,fitsImage->rows,fitsImage->cols,vModels,vChisqrf,vNumIter,configCrontrolFile.saveChisqr)){
 						printf("\n ERROR WRITING FILE OF MODELS: %s",nameAuxOutputModel);
 						//slog_error(0,"\n ERROR WRITING FILE OF MODELS: %s",nameOutputFileModels);
@@ -730,7 +750,8 @@ int main(int argc, char **argv)
 				if(configCrontrolFile.SaveSynthesisAdjusted){
 					// WRITE SINTHETIC PROFILES TO FITS FILE
 					char nameAuxOutputStokes [4096];
-					strcpy(nameAuxOutputStokes,get_basefilename(configCrontrolFile.ObservedProfiles));
+					//strcpy(nameAuxOutputStokes,get_basefilename(configCrontrolFile.ObservedProfiles));
+					strcpy(nameAuxOutputStokes,get_basefilename(configCrontrolFile.InitialGuessModel));
 					strcat(nameAuxOutputStokes,STOKES_FIT_EXT);
 					if(!writeFitsImageProfiles(nameAuxOutputStokes,nameInputFileSpectra,imageStokesAdjust)){
 						printf("\n ERROR WRITING FILE OF SINTHETIC PROFILES: %s",nameOutputFilePerfiles);
