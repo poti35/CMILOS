@@ -82,7 +82,17 @@ If the observed spectra of all pixels use the same wavelength grid, the FITS fil
 
 #### .grid
 
+This is the file where you can specify the number of line from your file with spectral lines to use and the range of wavelenghts to use. This range will be specify with an initial lambda, a step between each wavelenght and the final lambda of the range. 
 
+Look this example:
+
+```
+Line indices            :   Initial lambda     Step     Final lambda
+(in this order)                    (mA)          (mA)         (mA) 
+-----------------------------------------------------------------------
+1                       :        -350            35           665
+```
+In the file [malla.grid](run/malla.grid) you can find an extended example. 
 
 #### .mod 
 
