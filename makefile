@@ -2,7 +2,7 @@ CC=mpicc
 
 CFLAGS=
 CFLAGS+=-O3 
-#CFLAGS+=-g 
+CFLAGS+=-g 
 #CFLAGS+=-ffast-math
 CFLAGS+=-fno-omit-frame-pointer
 #CFLAGS+=-Wall -Wextra
