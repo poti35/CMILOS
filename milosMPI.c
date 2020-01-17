@@ -187,7 +187,7 @@ int main(int argc, char **argv)
 	Init_Model * resultsInitModelTotal;
 	PRECISION * chisqrfTotal, *vChisqrf, chisqrf;
 	int * vNumIter, * vNumIterTotal; // to store the number of iterations used to converge for each pixel
-	PRECISION  * vSpectraSplit, * vLambdaSplit, * vSpectraAdjustedSplit, * vSpectraAjustedTotal;
+	float  * vSpectraSplit, * vLambdaSplit, * vSpectraAdjustedSplit, * vSpectraAjustedTotal;
 
 	int sendcountsPixels [numProcs] ; // array describing how many elements to send to each process
 	int sendcountsSpectro [numProcs];
@@ -568,7 +568,7 @@ int main(int argc, char **argv)
 					//imageStokesAdjust->vLambdaImagen = calloc(imageStokesAdjust->numPixels*imageStokesAdjust->nLambdas, sizeof(PRECISION));
 					//imageStokesAdjust->spectroImagen = calloc(imageStokesAdjust->numPixels*imageStokesAdjust->nLambdas*imageStokesAdjust->numStokes, sizeof(PRECISION));
 					for( i=0;i<imageStokesAdjust->numPixels;i++){
-						imageStokesAdjust->pixels[i].spectro = calloc (nlambda*NPARMS,sizeof(PRECISION));
+						imageStokesAdjust->pixels[i].spectro = calloc (nlambda*NPARMS,sizeof(float));
 						//imageStokesAdjust->pixels[i].vLambda = calloc (nlambda, sizeof(PRECISION));
 						imageStokesAdjust->pixels[i].nLambda = nlambda;
 					}
@@ -770,7 +770,7 @@ int main(int argc, char **argv)
 				resultsInitModelTotal = calloc (numPixels , sizeof(Init_Model));
 				chisqrfTotal = calloc (numPixels , sizeof(PRECISION));
 				vNumIterTotal = calloc (numPixels, sizeof(int));
-				vSpectraAjustedTotal = calloc (numPixels*nlambda*NPARMS,sizeof(PRECISION));
+				vSpectraAjustedTotal = calloc (numPixels*nlambda*NPARMS,sizeof(float));
 			}
 			// allocate memory in all processes 
 			InitializePointerShareCalculation();
@@ -804,15 +804,15 @@ int main(int argc, char **argv)
 			local_start = MPI_Wtime();
 
 			// SCATTER VPIXELS 
-			vSpectraSplit = calloc(sendcountsSpectro[idProc],sizeof(PRECISION));
+			vSpectraSplit = calloc(sendcountsSpectro[idProc],sizeof(float));
 			//vLambdaSplit = calloc(sendcountsLambda[idProc],sizeof(PRECISION));
 			if(configCrontrolFile.SaveSynthesisAdjusted)
-				vSpectraAdjustedSplit = calloc(sendcountsSpectro[idProc],sizeof(PRECISION));
+				vSpectraAdjustedSplit = calloc(sendcountsSpectro[idProc],sizeof(float));
 			
 			local_start_scatter = MPI_Wtime();
 			
 			if( root == idProc){
-				MPI_Scatterv(fitsImage->spectroImagen, sendcountsSpectro, displsSpectro, MPI_DOUBLE, vSpectraSplit, sendcountsSpectro[idProc], MPI_DOUBLE, root, MPI_COMM_WORLD);
+				MPI_Scatterv(fitsImage->spectroImagen, sendcountsSpectro, displsSpectro, MPI_FLOAT, vSpectraSplit, sendcountsSpectro[idProc], MPI_FLOAT, root, MPI_COMM_WORLD);
 				//MPI_Scatterv(fitsImage->vLambdaImagen, sendcountsLambda, displsLambda, MPI_DOUBLE,vLambdaSplit, sendcountsLambda[idProc], MPI_DOUBLE, root, MPI_COMM_WORLD);
 			}
 			else{
@@ -875,7 +875,7 @@ int main(int argc, char **argv)
 			MPI_Gatherv(vNumIter, sendcountsPixels[idProc], MPI_INT, vNumIterTotal, sendcountsPixels, displsPixels, MPI_INT, root, MPI_COMM_WORLD);		
 			
 			if(configCrontrolFile.SaveSynthesisAdjusted)
-				MPI_Gatherv(vSpectraAdjustedSplit, sendcountsSpectro[idProc], MPI_DOUBLE, vSpectraAjustedTotal, sendcountsSpectro, displsSpectro, MPI_DOUBLE, root, MPI_COMM_WORLD);		
+				MPI_Gatherv(vSpectraAdjustedSplit, sendcountsSpectro[idProc], MPI_FLOAT, vSpectraAjustedTotal, sendcountsSpectro, displsSpectro, MPI_FLOAT, root, MPI_COMM_WORLD);		
 				
 			MPI_Wait(&mpiRequestSpectro, MPI_STATUS_IGNORE);
 			MPI_Wait(&mpiRequestLambda, MPI_STATUS_IGNORE);		

@@ -343,13 +343,13 @@ int main(int argc, char **argv)
       InitializePointerShareCalculation();
 		AllocateMemoryDerivedSynthesis(nlambda);
 		if(strcmp(file_ext(configCrontrolFile.ObservedProfiles),PER_FILE)==0){ // invert only per file
-			PRECISION * spectroPER = calloc(nlambda*NPARMS,sizeof(PRECISION));
+			float * spectroPER = calloc(nlambda*NPARMS,sizeof(float));
 			FILE * fReadSpectro;
 			char * line = NULL;
 			size_t len = 0;
 			ssize_t read;
 			fReadSpectro = fopen(configCrontrolFile.ObservedProfiles, "r");
-			double indexLine;
+			float indexLine;
 			int contLine=0;
 			if (fReadSpectro == NULL)
 			{
@@ -358,10 +358,10 @@ int main(int argc, char **argv)
 				fclose(fReadSpectro);
 				exit(EXIT_FAILURE);
 			}
-			PRECISION dummy;
+			float dummy;
 			while ((read = getline(&line, &len, fReadSpectro)) != -1 && contLine<nlambda) {
 				//sscanf(line,"%le %le %le %le %le %le",&indexLine,&vLambdaTest[contLine],&spectroTest[contLine], &spectroTest[contLine + numLambdaTest], &spectroTest[contLine + numLambdaTest * 2], &spectroTest[contLine + numLambdaTest * 3]);
-				sscanf(line,"%le %le %le %le %le %le",&indexLine,&dummy,&spectroPER[contLine], &spectroPER[contLine + nlambda], &spectroPER[contLine + nlambda * 2], &spectroPER[contLine + nlambda * 3]);
+				sscanf(line,"%e %e %e %e %e %e",&indexLine,&dummy,&spectroPER[contLine], &spectroPER[contLine + nlambda], &spectroPER[contLine + nlambda * 2], &spectroPER[contLine + nlambda * 3]);
 				//vLambda[contLine] = configCrontrolFile.CentralWaveLenght+(dummy/1000);
 				//sscanf(line,"%le %le %le %le %le",&vLambdaTest[contLine],&spectroTest[contLine], &spectroTest[contLine + numLambdaTest], &spectroTest[contLine + numLambdaTest * 2], &spectroTest[contLine + numLambdaTest * 3]);
 				contLine++;
@@ -531,13 +531,13 @@ int main(int argc, char **argv)
 	}
 	else{ // INVERT PIXEL FROM PER FILE OR IMAGE FROM FITS FILE 
 		if(strcmp(file_ext(configCrontrolFile.ObservedProfiles),PER_FILE)==0){ // invert only per file
-			PRECISION * spectroPER = calloc(nlambda*NPARMS,sizeof(PRECISION));
+			float * spectroPER = calloc(nlambda*NPARMS,sizeof(float));
 			FILE * fReadSpectro;
 			char * line = NULL;
 			size_t len = 0;
 			ssize_t read;
 			fReadSpectro = fopen(configCrontrolFile.ObservedProfiles, "r");
-			double numLine;
+			float numLine;
 			int contLine=0;
 			if (fReadSpectro == NULL)
 			{
@@ -546,10 +546,10 @@ int main(int argc, char **argv)
 				fclose(fReadSpectro);
 				exit(EXIT_FAILURE);
 			}
-			PRECISION dummy;
+			float dummy;
 			while ((read = getline(&line, &len, fReadSpectro)) != -1 && contLine<nlambda) {
 				//sscanf(line,"%le %le %le %le %le %le",&indexLine,&vLambdaTest[contLine],&spectroTest[contLine], &spectroTest[contLine + numLambdaTest], &spectroTest[contLine + numLambdaTest * 2], &spectroTest[contLine + numLambdaTest * 3]);
-				sscanf(line,"%le %le %le %le %le %le",&numLine,&dummy,&spectroPER[contLine], &spectroPER[contLine + nlambda], &spectroPER[contLine + nlambda * 2], &spectroPER[contLine + nlambda * 3]);
+				sscanf(line,"%e %e %e %e %e %e",&numLine,&dummy,&spectroPER[contLine], &spectroPER[contLine + nlambda], &spectroPER[contLine + nlambda * 2], &spectroPER[contLine + nlambda * 3]);
 				//vLambda[contLine] = configCrontrolFile.CentralWaveLenght+(dummy/1000);
 				//sscanf(line,"%le %le %le %le %le",&vLambdaTest[contLine],&spectroTest[contLine], &spectroTest[contLine + numLambdaTest], &spectroTest[contLine + numLambdaTest * 2], &spectroTest[contLine + numLambdaTest * 3]);
 				contLine++;
