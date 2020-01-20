@@ -1,4 +1,4 @@
-Name of .trol-file        (*):run/cmilos.trol       ! 
+Name of .trol-file        (*):run/cmilos.mtrol       ! 
 Type of input stokes      (*):fits            		! (fits,txt,sav)
 Type of input straylight  (*):fits            		! (fits,txt,sav)
 nx                        (*):894              		! (number of pixels in x-direction)
