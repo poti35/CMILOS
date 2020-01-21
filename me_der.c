@@ -43,7 +43,9 @@ PRECISION **uuGlobalInicial;
 PRECISION **HGlobalInicial;
 PRECISION **FGlobalInicial;
 extern int FGlobal,HGlobal,uuGlobal;
-extern PRECISION *G, *GMAC; // VECTOR WITH GAUSSIAN CREATED FOR CONVOLUTION 
+//extern PRECISION *G, *GMAC; // VECTOR WITH GAUSSIAN CREATED FOR CONVOLUTION 
+extern PRECISION *GMAC; // VECTOR WITH GAUSSIAN CREATED FOR CONVOLUTION 
+extern float *G;
 //extern VSLConvTaskPtr taskConv;
 
 extern fftw_complex * inSpectraFwMAC, *inSpectraBwMAC, *outSpectraFwMAC, *outSpectraBwMAC;

@@ -737,6 +737,11 @@ void loadInitialValues(ConfigControl * configControlFile){
 	configControlFile->saveChisqr = 1;
 	configControlFile->SaveSynthesisAdjusted=1;
 
+	configControlFile->subx1 = 0;
+	configControlFile->subx2 = 0;
+	configControlFile->suby1 = 0;
+	configControlFile->suby2 = 0;
+
 }
 
 int readParametersFileInput(char * fileParameters,  ConfigControl * trolConfig, int printLog){

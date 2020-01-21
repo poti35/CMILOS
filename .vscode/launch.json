@@ -4,17 +4,44 @@
    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
    "version": "0.2.0",
    "configurations": [
-      {
-         "type": "gnu-debugger",
-         "request": "launch",
-         "name": "GNU debugger",
-         "program": "${workspaceFolder}/build.nosync/firmware.elf",
-         "toolchain": "${config:arm-none-eabi.bin}",
-         "client": "arm-none-eabi-gdb",
-         "clientArgs": [],
-         "server": "JLinkGDBServer",
-         "serverArgs": [],
-         "serverPort": 2331
-      }
+   {
+      "name": "(gdb) Launch",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "enter program name, for example ${workspaceFolder}/a.out",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "setupCommands": [
+          {
+              "description": "Enable pretty-printing for gdb",
+              "text": "-enable-pretty-printing",
+              "ignoreFailures": true
+          }
+      ]
+   },
+   {
+      "name": "MILOS",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/milos",
+      "args": ["run/cmilos.mtrol"],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "setupCommands": [
+         {
+            "description": "Enable pretty-printing for gdb",
+            "text": "-enable-pretty-printing -gdb-set detach-on-fork off",
+            "ignoreFailures": true
+         }
+      ],
+      "miDebuggerPath": "/usr/bin/gdb"
+   }
    ]
 }

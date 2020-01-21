@@ -170,15 +170,15 @@ PRECISION * fgauss(PRECISION MC, PRECISION *eje, int neje, PRECISION landa, int 
 //;eje(amstrong) ;Wavelength axis
 //;macro ;Macroturbulence in km/s
 
-PRECISION * fgauss_WL(PRECISION FWHM, PRECISION step_between_lw, PRECISION lambda0, PRECISION lambdaCentral, int nLambda, int * sizeG)
+float * fgauss_WL(PRECISION FWHM, PRECISION step_between_lw, PRECISION lambda0, PRECISION lambdaCentral, int nLambda, int * sizeG)
 {
 	//int fgauss(PRECISION MC, PRECISION * eje,int neje,PRECISION landa,int deriv,PRECISION * mtb,int nmtb){
 
-	PRECISION *mtb;
-	PRECISION *term, *loai;
+	float *mtb;
+	float *term, *loai;
 	int i;
 	int nloai, nmtb;
-	PRECISION cte;
+	float cte;
 	
 
 	//int even = (nLambda%2);
@@ -197,7 +197,7 @@ PRECISION * fgauss_WL(PRECISION FWHM, PRECISION step_between_lw, PRECISION lambd
 	//ild = (landa * MC) / 2.99792458e5; //Sigma
 
 	///Conversion from FWHM to Gaussian sigma (1./(2*sqrt(2*alog2)))
-	PRECISION sigma=FWHM*0.42466090/1000.0; // in Angstroms
+	float sigma=FWHM*0.42466090/1000.0; // in Angstroms
 	//PRECISION sigma = FWHM * (2 * sqrt(2 * log(2)))/1000;
 
 	//printf("lambda0-> %f  ...sigma %lf\n",lambda0,sigma);
@@ -208,18 +208,18 @@ PRECISION * fgauss_WL(PRECISION FWHM, PRECISION step_between_lw, PRECISION lambd
 	}
 */
 	//int half = nLambda/2 +1;
-	term = (PRECISION *)calloc(*sizeG, sizeof(PRECISION));
+	term = (float *)calloc(*sizeG, sizeof(float));
 
 	for (i = 0; i < *sizeG; i++)
 	{
-		PRECISION lambdaX = lambda0 +i*step_between_lw;
-		PRECISION aux = ((lambdaX - lambdaCentral) / sigma);
+		float lambdaX = lambda0 +i*step_between_lw;
+		float aux = ((lambdaX - lambdaCentral) / sigma);
 		term[i] = ( aux * aux) / 2; //exponent
 		//printf("term (%d) %f  ...\n",i,term[i]);
 	}
 
 	nloai = 0;
-	loai = calloc(*sizeG, sizeof(PRECISION));
+	loai = calloc(*sizeG, sizeof(float));
 	for (i = 0; i < *sizeG; i++)
 	{
 		if (term[i] < 1e30)
@@ -232,7 +232,7 @@ PRECISION * fgauss_WL(PRECISION FWHM, PRECISION step_between_lw, PRECISION lambd
 	if (nloai > 0)
 	{
 		nmtb = nloai;
-		mtb = calloc(nmtb, sizeof(PRECISION));
+		mtb = calloc(nmtb, sizeof(float));
 		for (i = 0; i < *sizeG; i++)
 		{
 			if (loai[i])
@@ -246,7 +246,7 @@ PRECISION * fgauss_WL(PRECISION FWHM, PRECISION step_between_lw, PRECISION lambd
 	{
 
 		nmtb = *sizeG;
-		mtb = calloc(nmtb, sizeof(PRECISION));
+		mtb = calloc(nmtb, sizeof(float));
 		for (i = 0; i < *sizeG; i++)
 		{
 			mtb[i] = exp(-term[i]);

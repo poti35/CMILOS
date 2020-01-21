@@ -64,13 +64,16 @@ PRECISION **uuGlobalInicial;
 PRECISION **HGlobalInicial;
 PRECISION **FGlobalInicial;
 PRECISION *perfil_instrumental;
-PRECISION *G,*GMAC;
+//PRECISION *G,*GMAC;
+PRECISION *GMAC;
+float *G;
 PRECISION *interpolatedPSF;
 PRECISION AP[NTERMS*NTERMS*NPARMS],BT[NPARMS*NTERMS];
 PRECISION * opa;
 int FGlobal, HGlobal, uuGlobal;
 
 PRECISION *d_spectra, *spectra, *spectra_mac;
+//float *d_spectra, *spectra, *spectra_mac;
 
 
 // GLOBAL variables to use for FFT calculation 

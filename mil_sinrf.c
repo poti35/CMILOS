@@ -48,7 +48,9 @@ PRECISION **HGlobalInicial;
 PRECISION **FGlobalInicial;
 extern int FGlobal,HGlobal,uuGlobal;
 
-extern PRECISION *G, *GMAC; // VECTOR WITH GAUSSIAN CREATED FOR CONVOLUTION 
+//extern PRECISION *G, *GMAC; // VECTOR WITH GAUSSIAN CREATED FOR CONVOLUTION 
+extern PRECISION *GMAC; // VECTOR WITH GAUSSIAN CREATED FOR CONVOLUTION 
+extern float *G;
 
 extern fftw_complex * inSpectraFwMAC, *inSpectraBwMAC, *outSpectraFwMAC, *outSpectraBwMAC;
 extern fftw_complex * inFilterMAC, * inFilterMAC_DERIV, * outFilterMAC, * outFilterMAC_DERIV;
