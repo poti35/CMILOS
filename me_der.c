@@ -6,7 +6,7 @@
 #include "convolution.h"
 
 
-int funcionComponentFor(int n_pi,PRECISION iwlines,int numl,PRECISION *wex,PRECISION *nuxB,PRECISION *dfi,PRECISION *dshi,PRECISION LD,PRECISION A,int desp);
+int funcionComponentFor(int n_pi,PRECISION iwlines,int numl,PRECISION *wex,float *nuxB,PRECISION *dfi,PRECISION *dshi,PRECISION LD,PRECISION A,int desp);
 
 void Resetear_Valores_Intermedios(int nlambda);
 
@@ -27,18 +27,18 @@ void Resetear_Valores_Intermedios(int nlambda);
 */
 
 //extern PRECISION gp4_gp2_rhoq[NLAMBDA],gp5_gp2_rhou[NLAMBDA],gp6_gp2_rhov[NLAMBDA];
-extern PRECISION *dtaux, *etai_gp3, *ext1, *ext2, *ext3, *ext4;
-extern PRECISION *gp4_gp2_rhoq,*gp5_gp2_rhou,*gp6_gp2_rhov;
-extern PRECISION * gp1,*gp2,*dt,*dti,*gp3,*gp4,*gp5,*gp6,*etai_2;
-extern PRECISION *dgp1,*dgp2,*dgp3,*dgp4,*dgp5,*dgp6,*d_dt;
-extern PRECISION * d_ei,*d_eq,*d_eu,*d_ev,*d_rq,*d_ru,*d_rv;
+extern float *dtaux, *etai_gp3, *ext1, *ext2, *ext3, *ext4;
+extern float *gp4_gp2_rhoq,*gp5_gp2_rhou,*gp6_gp2_rhov;
+extern float * gp1,*gp2,*dt,*dti,*gp3,*gp4,*gp5,*gp6,*etai_2;
+extern float *dgp1,*dgp2,*dgp3,*dgp4,*dgp5,*dgp6,*d_dt;
+extern float * d_ei,*d_eq,*d_eu,*d_ev,*d_rq,*d_ru,*d_rv;
 extern PRECISION *dfi,*dshi;
 extern PRECISION CC,CC_2,sin_gm,azi_2,sinis,cosis,cosis_2,cosi,sina,cosa,sinda,cosda,sindi,cosdi,sinis_cosa,sinis_sina;
 extern PRECISION *fi_p,*fi_b,*fi_r,*shi_p,*shi_b,*shi_r;
-extern PRECISION *etain,*etaqn,*etaun,*etavn,*rhoqn,*rhoun,*rhovn;
-extern PRECISION *etai,*etaq,*etau,*etav,*rhoq,*rhou,*rhov;
-extern PRECISION *parcial1,*parcial2,*parcial3;
-extern PRECISION *nubB,*nupB,*nurB;
+extern float *etain,*etaqn,*etaun,*etavn,*rhoqn,*rhoun,*rhovn;
+extern float *etai,*etaq,*etau,*etav,*rhoq,*rhou,*rhov;
+extern float *parcial1,*parcial2,*parcial3;
+extern float *nubB,*nupB,*nurB;
 PRECISION **uuGlobalInicial;
 PRECISION **HGlobalInicial;
 PRECISION **FGlobalInicial;
@@ -122,12 +122,12 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 		//Line strength
 	    E0=E00*cuantic[il].FO; //y sino se definio Fo que debe de pasar 0 o 1 ...??
 
-		fi_p=fi_p+nlambda*il*sizeof(PRECISION);
-		fi_b=fi_b+nlambda*il*sizeof(PRECISION);
-		fi_r=fi_r+nlambda*il*sizeof(PRECISION);
-		shi_p=shi_p+nlambda*il*sizeof(PRECISION);
-		shi_b=shi_b+nlambda*il*sizeof(PRECISION);
-		shi_r=shi_r+nlambda*il*sizeof(PRECISION);
+		fi_p=fi_p+nlambda*il*sizeof(float);
+		fi_b=fi_b+nlambda*il*sizeof(float);
+		fi_r=fi_r+nlambda*il*sizeof(float);
+		shi_p=shi_p+nlambda*il*sizeof(float);
+		shi_b=shi_b+nlambda*il*sizeof(float);
+		shi_r=shi_r+nlambda*il*sizeof(float);
 
 		
 //			Leer_Puntero_Calculos_Compartidos(3,&nubB,&nupB,&nurB);
@@ -186,11 +186,11 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 			d_rv[i]=d_rv[i]+rhovn[i]/E0;
 		}
 
-		PRECISION cosi_2_E0;
+		float cosi_2_E0;
 		sinis_cosa=E0*sinis_cosa/2;
 		sinis_sina=E0*sinis_sina/2;
 		E0_2=E0/2.0;
-		PRECISION sindi_cosa,sindi_sina,cosdi_E0_2,cosis_2_E0_2,sinis_E0_2;
+		float sindi_cosa,sindi_sina,cosdi_E0_2,cosis_2_E0_2,sinis_E0_2;
 		sindi_cosa=sindi*cosa;
 		sindi_sina=sindi*sina;
 		cosdi_E0_2=(E0_2)*cosdi;
@@ -213,7 +213,7 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 		for(j=1;j<5;j++){
 			//derivadas de los perfiles de dispersion respecto de B,VL,LDOPP,A 
 			for(i=0;i<numl;i++){
-				PRECISION dfisum,aux;
+				float dfisum,aux;
 				dfisum=	dfi[i + (j-1)*numl+ (numl*4)]+dfi[i + (j-1)*numl + (numl*4*2)];
 				
 				d_ei[j*numl+i] = d_ei[j*numl+i] + (dfi[i+ (j-1)*numl] * sinis_E0_2 + dfisum * cosis_2_E0_2);
@@ -228,7 +228,7 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 		}
 		for(j=1;j<5;j++){
 			for(i=0;i<numl;i++){
-				PRECISION aux=dshi[(j-1)*numl+i]-(dshi[(j-1)*numl+i+(numl*4)]+dshi[(j-1)*numl+i+(numl*4*2)])/2.0;
+				float aux=dshi[(j-1)*numl+i]-(dshi[(j-1)*numl+i+(numl*4)]+dshi[(j-1)*numl+i+(numl*4*2)])/2.0;
 				d_rq[j*numl+i]=d_rq[j*numl+i]+(aux)*sinis_cosa;
 				d_ru[j*numl+i]=d_ru[j*numl+i]+(aux)*sinis_sina;
 			}
@@ -238,7 +238,7 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 		}
 		
 		//derivadas de los perfiles de dispersion respecto de GAMMA
-		PRECISION cosi_cosdi,sindi_E0_2;
+		float cosi_cosdi,sindi_E0_2;
 		cosi_cosdi=cosi*cosdi*E0_2;
 		sindi_E0_2=sindi*E0_2;
 		for(i=0;i<numl;i++)
@@ -260,7 +260,7 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 		
 
 		//derivadas de los perfiles de dispersion respecto de AZI
-		PRECISION sinis_cosda,sinis_sinda;
+		float sinis_cosda,sinis_sinda;
 		sinis_cosda=sinis*cosda;
 		sinis_sinda=sinis*sinda;		
 		for(i=0;i<numl;i++){				
@@ -326,7 +326,7 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 	}
 
    for(i=0;i<numl;i++){
-		PRECISION aux=2*etai[i];
+		float aux=2*etai[i];
 		ext1[i]=aux*etaq[i]+etav[i]*rhou[i]-etau[i]*rhov[i];
 		ext2[i]=aux*etau[i]+etaq[i]*rhov[i]-etav[i]*rhoq[i];
 		ext3[i]=aux*etav[i]+etau[i]*rhoq[i]-etaq[i]*rhou[i];
@@ -714,7 +714,7 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 /*
  * 
  */
-int funcionComponentFor(int n_pi,PRECISION iwlines,int numl,PRECISION *wex,PRECISION *nuxB,PRECISION *dfi,PRECISION *dshi,PRECISION LD,PRECISION A,int desp)
+int funcionComponentFor(int n_pi,PRECISION iwlines,int numl,PRECISION *wex,float *nuxB,PRECISION *dfi,PRECISION *dshi,PRECISION LD,PRECISION A,int desp)
 {
 	PRECISION *uu;
 	int i,j;
@@ -837,13 +837,13 @@ void Resetear_Valores_Intermedios(int nlambda){
 	
 
 	
-	memset(d_ei , 0, (nlambda*7)*sizeof(PRECISION));
-	memset(d_eq , 0, (nlambda*7)*sizeof(PRECISION));
-	memset(d_ev , 0, (nlambda*7)*sizeof(PRECISION));
-	memset(d_eu , 0, (nlambda*7)*sizeof(PRECISION));
-	memset(d_rq , 0, (nlambda*7)*sizeof(PRECISION));
-	memset(d_ru , 0, (nlambda*7)*sizeof(PRECISION));
-	memset(d_rv , 0, (nlambda*7)*sizeof(PRECISION));
+	memset(d_ei , 0, (nlambda*7)*sizeof(float));
+	memset(d_eq , 0, (nlambda*7)*sizeof(float));
+	memset(d_ev , 0, (nlambda*7)*sizeof(float));
+	memset(d_eu , 0, (nlambda*7)*sizeof(float));
+	memset(d_rq , 0, (nlambda*7)*sizeof(float));
+	memset(d_ru , 0, (nlambda*7)*sizeof(float));
+	memset(d_rv , 0, (nlambda*7)*sizeof(float));
 	memset(dfi , 0, (nlambda*4*3)*sizeof(PRECISION));
 	memset(dshi , 0, (nlambda*4*3)*sizeof(PRECISION));
 

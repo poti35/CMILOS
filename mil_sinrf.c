@@ -12,7 +12,7 @@
 int funcionComponent_sinrf(PRECISION *u,PRECISION ulos,PRECISION shift,int numl,PRECISION *fi_x,
 		PRECISION *shi_x,PRECISION A);
 
-int funcionComponentFor_sinrf(PRECISION *u,int n_pi,int numl,PRECISION *wex,PRECISION *nuxB,PRECISION *fi_x,
+int funcionComponentFor_sinrf(PRECISION *u,int n_pi,int numl,PRECISION *wex,float *nuxB,PRECISION *fi_x,
 												PRECISION *shi_x,PRECISION A,PRECISION MF);
 
 
@@ -33,16 +33,16 @@ int funcionComponentFor_sinrf(PRECISION *u,int n_pi,int numl,PRECISION *wex,PREC
 */
 
 
-extern PRECISION * gp1,*gp2,*dt,*dti,*gp3,*gp4,*gp5,*gp6,*etai_2;
+extern float * gp1,*gp2,*dt,*dti,*gp3,*gp4,*gp5,*gp6,*etai_2;
 
-extern PRECISION *gp4_gp2_rhoq,*gp5_gp2_rhou,*gp6_gp2_rhov;
+extern float *gp4_gp2_rhoq,*gp5_gp2_rhou,*gp6_gp2_rhov;
 
 extern PRECISION CC,CC_2,sin_gm,azi_2,sinis,cosis,cosis_2,cosi,sina,cosa,sinda,cosda,sindi,cosdi,sinis_cosa,sinis_sina;
 extern PRECISION *fi_p,*fi_b,*fi_r,*shi_p,*shi_b,*shi_r;
-extern PRECISION *etain,*etaqn,*etaun,*etavn,*rhoqn,*rhoun,*rhovn;
-extern PRECISION *etai,*etaq,*etau,*etav,*rhoq,*rhou,*rhov;
-extern PRECISION *parcial1,*parcial2,*parcial3;
-extern PRECISION *nubB,*nupB,*nurB;
+extern float *etain,*etaqn,*etaun,*etavn,*rhoqn,*rhoun,*rhovn;
+extern float *etai,*etaq,*etau,*etav,*rhoq,*rhou,*rhov;
+extern float *parcial1,*parcial2,*parcial3;
+extern float *nubB,*nupB,*nurB;
 PRECISION **uuGlobalInicial;
 PRECISION **HGlobalInicial;
 PRECISION **FGlobalInicial;
@@ -142,13 +142,13 @@ int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISIO
     for(il=0;il<lineas;il++) {
 		//reserva de memoria para vectores auxiliares
 
-		etain=etain+nlambda*il*sizeof(PRECISION);
-		etaqn=etaqn+nlambda*il*sizeof(PRECISION);
-		etaun=etaun+nlambda*il*sizeof(PRECISION);
-		etavn=etavn+nlambda*il*sizeof(PRECISION);
-		rhoqn=rhoqn+nlambda*il*sizeof(PRECISION);
-		rhoun=rhoun+nlambda*il*sizeof(PRECISION);
-		rhovn=rhovn+nlambda*il*sizeof(PRECISION);
+		etain=etain+nlambda*il*sizeof(float);
+		etaqn=etaqn+nlambda*il*sizeof(float);
+		etaun=etaun+nlambda*il*sizeof(float);
+		etavn=etavn+nlambda*il*sizeof(float);
+		rhoqn=rhoqn+nlambda*il*sizeof(float);
+		rhoun=rhoun+nlambda*il*sizeof(float);
+		rhovn=rhovn+nlambda*il*sizeof(float);
 
 		//Line strength
 	    E0=E00*cuantic[il].FO; //y sino se definio Fo que debe de pasar 0 o 1 ...??
@@ -184,9 +184,9 @@ int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISIO
 
 		// ******* GENERAL MULTIPLET CASE ********
 		
-		nubB=nubB+nlambda*il*sizeof(PRECISION);
-		nurB=nurB+nlambda*il*sizeof(PRECISION);
-		nupB=nupB+nlambda*il*sizeof(PRECISION);
+		nubB=nubB+nlambda*il*sizeof(float);
+		nurB=nurB+nlambda*il*sizeof(float);
+		nupB=nupB+nlambda*il*sizeof(float);
 
 
 		parcial=(((wlines[il+1]*wlines[il+1]))/LD)*(CTE4_6_13);
@@ -224,7 +224,7 @@ int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISIO
 		//*****
 
 		//dispersion profiles				
-		PRECISION E0_2;
+		float E0_2;
 		E0_2=E0/2.0;
 
 		for(i=0;i<numl;i++){
@@ -233,7 +233,7 @@ int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISIO
 			parcial3[i]=(E0_2)*(shi_p[i]-(shi_b[i]+shi_r[i])/2);
 		}	
 
-		PRECISION cosi_E0_2;
+		float cosi_E0_2;
 		cosi_E0_2=E0_2*cosi;
 		for(i=0;i<numl;i++){
 			etain[i]=((E0_2)*(fi_p[i]*sinis+(parcial1[i])*cosis_2));
@@ -268,7 +268,7 @@ int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISIO
     } 
 
     for(i=0;i<numl;i++){
-		PRECISION auxq,auxu,auxv;
+		float auxq,auxu,auxv;
 		auxq=rhoq[i]*rhoq[i];
 		auxu=rhou[i]*rhou[i];
 		auxv=rhov[i]*rhov[i];
@@ -294,7 +294,7 @@ int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISIO
     	gp6[i]=(etai_2[i])*etav[i]+etai[i]*(etau[i]*rhoq[i]-etaq[i]*rhou[i]);
     }       
    
-	PRECISION dtiaux[nlambda];
+	float dtiaux[nlambda];
 
    for(i=0;i<numl;i++){
 		gp4_gp2_rhoq[i] = gp4[i]+rhoq[i]*gp2[i];
@@ -431,7 +431,7 @@ int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISIO
 }
 
 
-int funcionComponentFor_sinrf(PRECISION *u,int n_pi,int numl,PRECISION *wex,PRECISION *nuxB,PRECISION *fi_x,
+int funcionComponentFor_sinrf(PRECISION *u,int n_pi,int numl,PRECISION *wex,float *nuxB,PRECISION *fi_x,
 												PRECISION *shi_x,PRECISION A,PRECISION MF)
 {
 	PRECISION *uu,*F,*H;

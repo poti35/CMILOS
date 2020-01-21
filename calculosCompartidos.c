@@ -7,19 +7,19 @@ extern int POSW_PUNTERO_CALCULOS_COMPARTIDOS;
 extern int POSR_PUNTERO_CALCULOS_COMPARTIDOS;
 
 
-extern PRECISION *dtaux, *etai_gp3, *ext1, *ext2, *ext3, *ext4;
-extern PRECISION *gp4_gp2_rhoq, *gp5_gp2_rhou, *gp6_gp2_rhov;
-extern PRECISION *gp1, *gp2, *dt, *dti, *gp3, *gp4, *gp5, *gp6, *etai_2;
-extern PRECISION *dgp1, *dgp2, *dgp3, *dgp4, *dgp5, *dgp6, *d_dt;
-extern PRECISION *d_ei, *d_eq, *d_eu, *d_ev, *d_rq, *d_ru, *d_rv;
+extern float *dtaux, *etai_gp3, *ext1, *ext2, *ext3, *ext4;
+extern float *gp4_gp2_rhoq, *gp5_gp2_rhou, *gp6_gp2_rhov;
+extern float *gp1, *gp2, *dt, *dti, *gp3, *gp4, *gp5, *gp6, *etai_2;
+extern float *dgp1, *dgp2, *dgp3, *dgp4, *dgp5, *dgp6, *d_dt;
+extern float *d_ei, *d_eq, *d_eu, *d_ev, *d_rq, *d_ru, *d_rv;
 extern PRECISION *dfi, *dshi;
 extern PRECISION *fi_p, *fi_b, *fi_r, *shi_p, *shi_b, *shi_r;
 //extern PRECISION *spectra, *d_spectra,*spectra_mac;
 extern float *spectra, *d_spectra,*spectra_mac;
-extern PRECISION *etain, *etaqn, *etaun, *etavn, *rhoqn, *rhoun, *rhovn;
-extern PRECISION *etai, *etaq, *etau, *etav, *rhoq, *rhou, *rhov;
-extern PRECISION *parcial1, *parcial2, *parcial3;
-extern PRECISION *nubB, *nupB, *nurB;
+extern float *etain, *etaqn, *etaun, *etavn, *rhoqn, *rhoun, *rhovn;
+extern float *etai, *etaq, *etau, *etav, *rhoq, *rhou, *rhov;
+extern float *parcial1, *parcial2, *parcial3;
+extern float *nubB, *nupB, *nurB;
 PRECISION **uuGlobalInicial;
 PRECISION **HGlobalInicial;
 PRECISION **FGlobalInicial;
@@ -116,12 +116,12 @@ void AllocateMemoryDerivedSynthesis(int numl)
 {
 
 	/************* ME DER *************************************/
-	dtaux = calloc(numl,sizeof(PRECISION));
-	etai_gp3 = calloc(numl,sizeof(PRECISION));
-	ext1 = calloc(numl,sizeof(PRECISION));
-	ext2 = calloc(numl,sizeof(PRECISION));
-	ext3 = calloc(numl,sizeof(PRECISION));
-	ext4 = calloc(numl,sizeof(PRECISION));
+	dtaux = calloc(numl,sizeof(float));
+	etai_gp3 = calloc(numl,sizeof(float));
+	ext1 = calloc(numl,sizeof(float));
+	ext2 = calloc(numl,sizeof(float));
+	ext3 = calloc(numl,sizeof(float));
+	ext4 = calloc(numl,sizeof(float));
 	/**********************************************************/
 
 	//***** VARIABLES FOR FVOIGT ****************************//
@@ -144,36 +144,36 @@ void AllocateMemoryDerivedSynthesis(int numl)
 	
 	opa = calloc(numl,sizeof(float));
 
-	gp4_gp2_rhoq = calloc(numl, sizeof(PRECISION));
-	gp5_gp2_rhou = calloc(numl, sizeof(PRECISION));
-	gp6_gp2_rhov = calloc(numl, sizeof(PRECISION));
+	gp4_gp2_rhoq = calloc(numl, sizeof(float));
+	gp5_gp2_rhou = calloc(numl, sizeof(float));
+	gp6_gp2_rhov = calloc(numl, sizeof(float));
 
-	gp1 = calloc(numl, sizeof(PRECISION));
-	gp2 = calloc(numl, sizeof(PRECISION));
-	gp3 = calloc(numl, sizeof(PRECISION));
-	gp4 = calloc(numl, sizeof(PRECISION));
-	gp5 = calloc(numl, sizeof(PRECISION));
-	gp6 = calloc(numl, sizeof(PRECISION));
-	dt = calloc(numl, sizeof(PRECISION));
-	dti = calloc(numl, sizeof(PRECISION));
+	gp1 = calloc(numl, sizeof(float));
+	gp2 = calloc(numl, sizeof(float));
+	gp3 = calloc(numl, sizeof(float));
+	gp4 = calloc(numl, sizeof(float));
+	gp5 = calloc(numl, sizeof(float));
+	gp6 = calloc(numl, sizeof(float));
+	dt = calloc(numl, sizeof(float));
+	dti = calloc(numl, sizeof(float));
 
-	etai_2 = calloc(numl, sizeof(PRECISION));
+	etai_2 = calloc(numl, sizeof(float));
 
-	dgp1 = calloc(numl, sizeof(PRECISION));
-	dgp2 = calloc(numl, sizeof(PRECISION));
-	dgp3 = calloc(numl, sizeof(PRECISION));
-	dgp4 = calloc(numl, sizeof(PRECISION));
-	dgp5 = calloc(numl, sizeof(PRECISION));
-	dgp6 = calloc(numl, sizeof(PRECISION));
-	d_dt = calloc(numl, sizeof(PRECISION));
+	dgp1 = calloc(numl, sizeof(float));
+	dgp2 = calloc(numl, sizeof(float));
+	dgp3 = calloc(numl, sizeof(float));
+	dgp4 = calloc(numl, sizeof(float));
+	dgp5 = calloc(numl, sizeof(float));
+	dgp6 = calloc(numl, sizeof(float));
+	d_dt = calloc(numl, sizeof(float));
 
-	d_ei = calloc(numl * 7, sizeof(PRECISION));
-	d_eq = calloc(numl * 7, sizeof(PRECISION));
-	d_eu = calloc(numl * 7, sizeof(PRECISION));
-	d_ev = calloc(numl * 7, sizeof(PRECISION));
-	d_rq = calloc(numl * 7, sizeof(PRECISION));
-	d_ru = calloc(numl * 7, sizeof(PRECISION));
-	d_rv = calloc(numl * 7, sizeof(PRECISION));
+	d_ei = calloc(numl * 7, sizeof(float));
+	d_eq = calloc(numl * 7, sizeof(float));
+	d_eu = calloc(numl * 7, sizeof(float));
+	d_ev = calloc(numl * 7, sizeof(float));
+	d_rq = calloc(numl * 7, sizeof(float));
+	d_ru = calloc(numl * 7, sizeof(float));
+	d_rv = calloc(numl * 7, sizeof(float));
 	dfi = calloc(numl * 4 * 3, sizeof(PRECISION));  //DNULO
 	dshi = calloc(numl * 4 * 3, sizeof(PRECISION)); //DNULO
 
@@ -184,29 +184,29 @@ void AllocateMemoryDerivedSynthesis(int numl)
 	shi_b = calloc(numl * 2, sizeof(PRECISION));
 	shi_r = calloc(numl * 2, sizeof(PRECISION));
 
-	etain = calloc(numl * 2, sizeof(PRECISION));
-	etaqn = calloc(numl * 2, sizeof(PRECISION));
-	etaun = calloc(numl * 2, sizeof(PRECISION));
-	etavn = calloc(numl * 2, sizeof(PRECISION));
-	rhoqn = calloc(numl * 2, sizeof(PRECISION));
-	rhoun = calloc(numl * 2, sizeof(PRECISION));
-	rhovn = calloc(numl * 2, sizeof(PRECISION));
+	etain = calloc(numl * 2, sizeof(float));
+	etaqn = calloc(numl * 2, sizeof(float));
+	etaun = calloc(numl * 2, sizeof(float));
+	etavn = calloc(numl * 2, sizeof(float));
+	rhoqn = calloc(numl * 2, sizeof(float));
+	rhoun = calloc(numl * 2, sizeof(float));
+	rhovn = calloc(numl * 2, sizeof(float));
 
-	etai = calloc(numl, sizeof(PRECISION));
-	etaq = calloc(numl, sizeof(PRECISION));
-	etau = calloc(numl, sizeof(PRECISION));
-	etav = calloc(numl, sizeof(PRECISION));
-	rhoq = calloc(numl, sizeof(PRECISION));
-	rhou = calloc(numl, sizeof(PRECISION));
-	rhov = calloc(numl, sizeof(PRECISION));
+	etai = calloc(numl, sizeof(float));
+	etaq = calloc(numl, sizeof(float));
+	etau = calloc(numl, sizeof(float));
+	etav = calloc(numl, sizeof(float));
+	rhoq = calloc(numl, sizeof(float));
+	rhou = calloc(numl, sizeof(float));
+	rhov = calloc(numl, sizeof(float));
 
-	parcial1 = calloc(numl, sizeof(PRECISION));
-	parcial2 = calloc(numl, sizeof(PRECISION));
-	parcial3 = calloc(numl, sizeof(PRECISION));
+	parcial1 = calloc(numl, sizeof(float));
+	parcial2 = calloc(numl, sizeof(float));
+	parcial3 = calloc(numl, sizeof(float));
 
-	nubB = calloc(cuantic[0].N_SIG, sizeof(PRECISION));
-	nurB = calloc(cuantic[0].N_SIG, sizeof(PRECISION));
-	nupB = calloc(cuantic[0].N_PI, sizeof(PRECISION));
+	nubB = calloc(cuantic[0].N_SIG, sizeof(float));
+	nurB = calloc(cuantic[0].N_SIG, sizeof(float));
+	nupB = calloc(cuantic[0].N_PI, sizeof(float));
 
 	uuGlobalInicial = calloc((int)(cuantic[0].N_PI + cuantic[0].N_SIG * 2), sizeof(PRECISION *));
 	uuGlobal = 0;

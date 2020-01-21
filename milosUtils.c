@@ -28,20 +28,20 @@ extern PRECISION **PUNTEROS_CALCULOS_COMPARTIDOS;
 extern int POSW_PUNTERO_CALCULOS_COMPARTIDOS;
 extern int POSR_PUNTERO_CALCULOS_COMPARTIDOS;
 
-extern PRECISION *gp4_gp2_rhoq, *gp5_gp2_rhou, *gp6_gp2_rhov;
+extern float *gp4_gp2_rhoq, *gp5_gp2_rhou, *gp6_gp2_rhov;
 
-extern PRECISION *gp1, *gp2, *dt, *dti, *gp3, *gp4, *gp5, *gp6, *etai_2;
-extern PRECISION *dgp1, *dgp2, *dgp3, *dgp4, *dgp5, *dgp6, *d_dt;
-extern PRECISION *d_ei, *d_eq, *d_eu, *d_ev, *d_rq, *d_ru, *d_rv;
+extern float *gp1, *gp2, *dt, *dti, *gp3, *gp4, *gp5, *gp6, *etai_2;
+extern float *dgp1, *dgp2, *dgp3, *dgp4, *dgp5, *dgp6, *d_dt;
+extern float *d_ei, *d_eq, *d_eu, *d_ev, *d_rq, *d_ru, *d_rv;
 extern PRECISION *dfi, *dshi;
 extern PRECISION *fi_p, *fi_b, *fi_r, *shi_p, *shi_b, *shi_r;
 //extern PRECISION *spectra, *d_spectra, *spectra_mac;
 
 extern float *spectra, *d_spectra, *spectra_mac;
-extern PRECISION *etain, *etaqn, *etaun, *etavn, *rhoqn, *rhoun, *rhovn;
-extern PRECISION *etai, *etaq, *etau, *etav, *rhoq, *rhou, *rhov;
-extern PRECISION *parcial1, *parcial2, *parcial3;
-extern PRECISION *nubB, *nupB, *nurB;
+extern float *etain, *etaqn, *etaun, *etavn, *rhoqn, *rhoun, *rhovn;
+extern float *etai, *etaq, *etau, *etav, *rhoq, *rhou, *rhov;
+extern float *parcial1, *parcial2, *parcial3;
+extern float *nubB, *nupB, *nurB;
 extern PRECISION *G,*GMAC; // VECTOR WITH GAUSSIAN CREATED FOR CONVOLUTION 
 extern fftw_complex * inSpectraFwPSF, *inSpectraBwPSF, *outSpectraFwPSF, *outSpectraBwPSF;
 extern fftw_plan planForwardPSF, planBackwardPSF;
