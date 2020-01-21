@@ -6,7 +6,7 @@
 #include "convolution.h"
 
 
-int funcionComponentFor(int n_pi,PRECISION iwlines,int numl,PRECISION *wex,float *nuxB,PRECISION *dfi,PRECISION *dshi,PRECISION LD,PRECISION A,int desp);
+int funcionComponentFor(int n_pi,PRECISION iwlines,int numl,PRECISION *wex,float *nuxB,float *dfi,float *dshi,PRECISION LD,PRECISION A,int desp);
 
 void Resetear_Valores_Intermedios(int nlambda);
 
@@ -32,7 +32,7 @@ extern float *gp4_gp2_rhoq,*gp5_gp2_rhou,*gp6_gp2_rhov;
 extern float * gp1,*gp2,*dt,*dti,*gp3,*gp4,*gp5,*gp6,*etai_2;
 extern float *dgp1,*dgp2,*dgp3,*dgp4,*dgp5,*dgp6,*d_dt;
 extern float * d_ei,*d_eq,*d_eu,*d_ev,*d_rq,*d_ru,*d_rv;
-extern PRECISION *dfi,*dshi;
+extern float *dfi,*dshi;
 extern PRECISION CC,CC_2,sin_gm,azi_2,sinis,cosis,cosis_2,cosi,sina,cosa,sinda,cosda,sindi,cosdi,sinis_cosa,sinis_sina;
 extern PRECISION *fi_p,*fi_b,*fi_r,*shi_p,*shi_b,*shi_r;
 extern float *etain,*etaqn,*etaun,*etavn,*rhoqn,*rhoun,*rhovn;
@@ -714,11 +714,11 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 /*
  * 
  */
-int funcionComponentFor(int n_pi,PRECISION iwlines,int numl,PRECISION *wex,float *nuxB,PRECISION *dfi,PRECISION *dshi,PRECISION LD,PRECISION A,int desp)
+int funcionComponentFor(int n_pi,PRECISION iwlines,int numl,PRECISION *wex,float *nuxB,float *dfi,float *dshi,PRECISION LD,PRECISION A,int desp)
 {
 	PRECISION *uu;
 	int i,j;
-	PRECISION dH_u[numl],dF_u[numl],auxCte[numl];
+	float dH_u[numl],dF_u[numl],auxCte[numl];
 	
 	PRECISION *H,*F;
 	
@@ -844,8 +844,8 @@ void Resetear_Valores_Intermedios(int nlambda){
 	memset(d_rq , 0, (nlambda*7)*sizeof(float));
 	memset(d_ru , 0, (nlambda*7)*sizeof(float));
 	memset(d_rv , 0, (nlambda*7)*sizeof(float));
-	memset(dfi , 0, (nlambda*4*3)*sizeof(PRECISION));
-	memset(dshi , 0, (nlambda*4*3)*sizeof(PRECISION));
+	memset(dfi , 0, (nlambda*4*3)*sizeof(float));
+	memset(dshi , 0, (nlambda*4*3)*sizeof(float));
 
 	/*
 	int i=0;

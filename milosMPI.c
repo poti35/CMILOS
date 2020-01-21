@@ -53,7 +53,7 @@ float *gp1, *gp2, *dt, *dti, *gp3, *gp4, *gp5, *gp6, *etai_2;
 float *gp4_gp2_rhoq, *gp5_gp2_rhou, *gp6_gp2_rhov;
 float *dgp1, *dgp2, *dgp3, *dgp4, *dgp5, *dgp6, *d_dt;
 float *d_ei, *d_eq, *d_eu, *d_ev, *d_rq, *d_ru, *d_rv;
-PRECISION *dfi, *dshi;
+float *dfi, *dshi;
 PRECISION CC, CC_2, sin_gm, azi_2, sinis, cosis, cosis_2, cosi, sina, cosa, sinda, cosda, sindi, cosdi, sinis_cosa, sinis_sina;
 PRECISION *fi_p, *fi_b, *fi_r, *shi_p, *shi_b, *shi_r;
 float *etain, *etaqn, *etaun, *etavn, *rhoqn, *rhoun, *rhovn;

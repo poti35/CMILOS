@@ -12,7 +12,7 @@ extern float *gp4_gp2_rhoq, *gp5_gp2_rhou, *gp6_gp2_rhov;
 extern float *gp1, *gp2, *dt, *dti, *gp3, *gp4, *gp5, *gp6, *etai_2;
 extern float *dgp1, *dgp2, *dgp3, *dgp4, *dgp5, *dgp6, *d_dt;
 extern float *d_ei, *d_eq, *d_eu, *d_ev, *d_rq, *d_ru, *d_rv;
-extern PRECISION *dfi, *dshi;
+extern float *dfi, *dshi;
 extern PRECISION *fi_p, *fi_b, *fi_r, *shi_p, *shi_b, *shi_r;
 //extern PRECISION *spectra, *d_spectra,*spectra_mac;
 extern float *spectra, *d_spectra,*spectra_mac;
@@ -174,8 +174,8 @@ void AllocateMemoryDerivedSynthesis(int numl)
 	d_rq = calloc(numl * 7, sizeof(float));
 	d_ru = calloc(numl * 7, sizeof(float));
 	d_rv = calloc(numl * 7, sizeof(float));
-	dfi = calloc(numl * 4 * 3, sizeof(PRECISION));  //DNULO
-	dshi = calloc(numl * 4 * 3, sizeof(PRECISION)); //DNULO
+	dfi = calloc(numl * 4 * 3, sizeof(float));  //DNULO
+	dshi = calloc(numl * 4 * 3, sizeof(float)); //DNULO
 
 	fi_p = calloc(numl * 2, sizeof(PRECISION));
 	fi_b = calloc(numl * 2, sizeof(PRECISION));
