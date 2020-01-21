@@ -85,15 +85,15 @@ float * G;
 PRECISION *interpolatedPSF;
 
 
-PRECISION AP[NTERMS*NTERMS*NPARMS],BT[NPARMS*NTERMS];
+float AP[NTERMS*NTERMS*NPARMS],BT[NPARMS*NTERMS];
 
 
 
-PRECISION * opa;
+float * opa;
 int FGlobal, HGlobal, uuGlobal;
 
-PRECISION *d_spectra, *spectra, *spectra_mac;
-//float *d_spectra, *spectra, *spectra_mac;
+//PRECISION *d_spectra, *spectra, *spectra_mac;
+float *d_spectra, *spectra, *spectra_mac;
 
 
 
@@ -511,7 +511,7 @@ int main(int argc, char **argv)
 
 		// synthesis
       mil_sinrf(cuantic, &initModel, wlines, vLambda, nlambda, spectra, AH, slight,spectra_mac, configCrontrolFile.ConvolveWithPSF);
-      me_der(cuantic, &initModel, wlines, vLambda, nlambda, d_spectra, spectra_mac, spectra, AH, slight, 0, configCrontrolFile.ConvolveWithPSF);	
+      //me_der(cuantic, &initModel, wlines, vLambda, nlambda, d_spectra, spectra_mac, spectra, AH, slight, 0, configCrontrolFile.ConvolveWithPSF);	
 
 		// in this case basenamefile is from initmodel
 		char nameAux [4096];

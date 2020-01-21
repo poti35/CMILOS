@@ -24,7 +24,7 @@ int check(Init_Model *Model);
 /**
  * 
  */
-void FijaACeroDerivadasNoNecesarias(PRECISION *d_spectra, int *fixed, int nlambda);
+void FijaACeroDerivadasNoNecesarias(float *d_spectra, int *fixed, int nlambda);
 
 /**
  * 
@@ -61,7 +61,7 @@ void estimacionesClasicas(PRECISION lambda_0, PRECISION *lambda, int nlambda, fl
 /**
  * 
  * */
-void AplicaSlight(PRECISION * d_spectra, int numl, PRECISION ALFA, PRECISION * slight);
+void AplicaSlight(float * d_spectra, int numl, PRECISION ALFA, PRECISION * slight);
 
 /*
  *
@@ -72,7 +72,7 @@ void AplicaSlight(PRECISION * d_spectra, int numl, PRECISION ALFA, PRECISION * s
  * spectra : IQUV por filas, longitud ny=nlambda
  */
 int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda, float *spectro, int nspectro,
-				Init_Model *initModel, PRECISION *spectra, PRECISION *chisqrf,
+				Init_Model *initModel, float *spectra, PRECISION *chisqrf,
 				PRECISION * slight, PRECISION toplim, int miter, PRECISION *weight, int *fix,
 				PRECISION *sigma, PRECISION ilambda, int * INSTRUMENTAL_CONVOLUTION, int * iter);
 

@@ -59,7 +59,7 @@ extern fftw_plan planForwardPSF_MAC, planForwardPSF_MAC_DERIV,planBackwardPSF_MA
 extern fftw_complex * inSpectraFwPSF, *inSpectraBwPSF, *outSpectraFwPSF, *outSpectraBwPSF;
 extern fftw_plan planForwardPSF, planBackwardPSF;
 
-int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *lambda,int nlambda,PRECISION *d_spectra,PRECISION *spectra, PRECISION * spectra_slight, PRECISION ah,PRECISION * slight,int calcSpectra, int filter)
+int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *lambda,int nlambda,float *d_spectra,float *spectra, float * spectra_slight, PRECISION ah,PRECISION * slight,int calcSpectra, int filter)
 {
 
 	int nterms,numl;

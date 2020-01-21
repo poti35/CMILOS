@@ -35,7 +35,9 @@ extern PRECISION *dgp1, *dgp2, *dgp3, *dgp4, *dgp5, *dgp6, *d_dt;
 extern PRECISION *d_ei, *d_eq, *d_eu, *d_ev, *d_rq, *d_ru, *d_rv;
 extern PRECISION *dfi, *dshi;
 extern PRECISION *fi_p, *fi_b, *fi_r, *shi_p, *shi_b, *shi_r;
-extern PRECISION *spectra, *d_spectra, *spectra_mac;
+//extern PRECISION *spectra, *d_spectra, *spectra_mac;
+
+extern float *spectra, *d_spectra, *spectra_mac;
 extern PRECISION *etain, *etaqn, *etaun, *etavn, *rhoqn, *rhoun, *rhovn;
 extern PRECISION *etai, *etaq, *etau, *etav, *rhoq, *rhou, *rhov;
 extern PRECISION *parcial1, *parcial2, *parcial3;
@@ -122,7 +124,7 @@ void response_functions_convolution(int * nlambda)
 
 }
 
-void AplicaSlight(PRECISION * d_spectra, int numl, PRECISION ALFA, PRECISION * slight){
+void AplicaSlight(float * d_spectra, int numl, PRECISION ALFA, PRECISION * slight){
 	int par, il, i;
 	// Response Functions 
 	for(par=0;par<NPARMS;par++){
@@ -284,7 +286,7 @@ int check(Init_Model *model)
 }
 
 
-void FijaACeroDerivadasNoNecesarias(PRECISION *d_spectra, int *fixed, int nlambda)
+void FijaACeroDerivadasNoNecesarias(float *d_spectra, int *fixed, int nlambda)
 {
 
 	int In, j, i;
@@ -598,7 +600,7 @@ void estimacionesClasicas(PRECISION lambda_0, PRECISION *lambda, int nlambda, fl
  */
 
 int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda, float *spectro, int nspectro,
-				Init_Model *initModel, PRECISION *spectra, PRECISION *chisqrf,
+				Init_Model *initModel, float *spectra, PRECISION *chisqrf,
 				PRECISION * slight, PRECISION toplim, int miter, PRECISION *weight, int *fix,
 				PRECISION *sigma, PRECISION ilambda, int * INSTRUMENTAL_CONVOLUTION, int * iter)
 {

@@ -137,11 +137,10 @@ void FreeMemoryDerivedSynthesis();
 
 Cuantic * create_cuantic(PRECISION * dat, int log);
 
-int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *lambda,int nlambda,
-			PRECISION *d_spectraOut,PRECISION *spectra, PRECISION * spectra_slight,PRECISION ah,PRECISION * slight,int calcSpectra,int filter);
+int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *lambda,int nlambda, float *d_spectra,float *spectra, float * spectra_slight,PRECISION ah,PRECISION * slight,int calcSpectra,int filter);
 
-int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *lambda,int nlambda,PRECISION *spectra,
-			PRECISION ah,PRECISION * slight,PRECISION * spectra_mc, int filter);
+int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *lambda,int nlambda,float *spectra,
+			PRECISION ah,PRECISION * slight,float * spectra_mc, int filter);
 			
 
 PRECISION * fgauss(PRECISION MC, PRECISION * eje,int neje,PRECISION landa,int deriv);

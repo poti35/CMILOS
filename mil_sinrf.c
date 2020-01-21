@@ -63,8 +63,8 @@ extern fftw_plan planForwardPSF_MAC, planForwardPSF_MAC_DERIV,planBackwardPSF_MA
 extern fftw_complex * inSpectraFwPSF, *inSpectraBwPSF, *outSpectraFwPSF, *outSpectraBwPSF;
 extern fftw_plan planForwardPSF, planBackwardPSF;
 
-int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *lambda,int nlambda,PRECISION *spectra,
-			PRECISION ah,PRECISION * slight, PRECISION * spectra_mc, int filter)
+int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *lambda,int nlambda,float *spectra,
+			PRECISION ah,PRECISION * slight, float * spectra_mc, int filter)
 {
 
 	int offset,numl;
