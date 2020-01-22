@@ -13,23 +13,23 @@ extern float *gp1, *gp2, *dt, *dti, *gp3, *gp4, *gp5, *gp6, *etai_2;
 extern float *dgp1, *dgp2, *dgp3, *dgp4, *dgp5, *dgp6, *d_dt;
 extern float *d_ei, *d_eq, *d_eu, *d_ev, *d_rq, *d_ru, *d_rv;
 extern float *dfi, *dshi;
-extern PRECISION *fi_p, *fi_b, *fi_r, *shi_p, *shi_b, *shi_r;
+extern float *fi_p, *fi_b, *fi_r, *shi_p, *shi_b, *shi_r;
 //extern PRECISION *spectra, *d_spectra,*spectra_mac;
 extern float *spectra, *d_spectra,*spectra_mac;
 extern float *etain, *etaqn, *etaun, *etavn, *rhoqn, *rhoun, *rhovn;
 extern float *etai, *etaq, *etau, *etav, *rhoq, *rhou, *rhov;
 extern float *parcial1, *parcial2, *parcial3;
 extern float *nubB, *nupB, *nurB;
-PRECISION **uuGlobalInicial;
-PRECISION **HGlobalInicial;
-PRECISION **FGlobalInicial;
+float **uuGlobalInicial;
+float **HGlobalInicial;
+float **FGlobalInicial;
 extern int FGlobal, HGlobal, uuGlobal;
 extern PRECISION *GMAC;
 extern Cuantic *cuantic;
 
 extern float * opa;
 
-extern _Complex PRECISION *z,* zden, * zdiv;
+extern float _Complex  *z,* zden, * zdiv;
 
 void InitializePointerShareCalculation()
 {
@@ -125,9 +125,12 @@ void AllocateMemoryDerivedSynthesis(int numl)
 	/**********************************************************/
 
 	//***** VARIABLES FOR FVOIGT ****************************//
-	z = malloc (numl * sizeof(_Complex PRECISION));
+	/*z = malloc (numl * sizeof(_Complex PRECISION));
 	zden = malloc (numl * sizeof(_Complex PRECISION));
-	zdiv = malloc (numl * sizeof(_Complex PRECISION));
+	zdiv = malloc (numl * sizeof(_Complex PRECISION));*/
+	z = malloc (numl * sizeof(float _Complex));
+	zden = malloc (numl * sizeof(float _Complex));
+	zdiv = malloc (numl * sizeof(float _Complex));	
 	/********************************************************/
 
 
@@ -177,12 +180,12 @@ void AllocateMemoryDerivedSynthesis(int numl)
 	dfi = calloc(numl * 4 * 3, sizeof(float));  //DNULO
 	dshi = calloc(numl * 4 * 3, sizeof(float)); //DNULO
 
-	fi_p = calloc(numl * 2, sizeof(PRECISION));
-	fi_b = calloc(numl * 2, sizeof(PRECISION));
-	fi_r = calloc(numl * 2, sizeof(PRECISION));
-	shi_p = calloc(numl * 2, sizeof(PRECISION));
-	shi_b = calloc(numl * 2, sizeof(PRECISION));
-	shi_r = calloc(numl * 2, sizeof(PRECISION));
+	fi_p = calloc(numl * 2, sizeof(float));
+	fi_b = calloc(numl * 2, sizeof(float));
+	fi_r = calloc(numl * 2, sizeof(float));
+	shi_p = calloc(numl * 2, sizeof(float));
+	shi_b = calloc(numl * 2, sizeof(float));
+	shi_r = calloc(numl * 2, sizeof(float));
 
 	etain = calloc(numl * 2, sizeof(float));
 	etaqn = calloc(numl * 2, sizeof(float));
@@ -208,25 +211,25 @@ void AllocateMemoryDerivedSynthesis(int numl)
 	nurB = calloc(cuantic[0].N_SIG, sizeof(float));
 	nupB = calloc(cuantic[0].N_PI, sizeof(float));
 
-	uuGlobalInicial = calloc((int)(cuantic[0].N_PI + cuantic[0].N_SIG * 2), sizeof(PRECISION *));
+	uuGlobalInicial = calloc((int)(cuantic[0].N_PI + cuantic[0].N_SIG * 2), sizeof(float *));
 	uuGlobal = 0;
 	int i = 0;
 	for (i = 0; i < (int)(cuantic[0].N_PI + cuantic[0].N_SIG * 2); i++)
 	{
-		uuGlobalInicial[i] = calloc(numl, sizeof(PRECISION));
+		uuGlobalInicial[i] = calloc(numl, sizeof(float));
 	}
 
-	HGlobalInicial = calloc((int)(cuantic[0].N_PI + cuantic[0].N_SIG * 2), sizeof(PRECISION *));
+	HGlobalInicial = calloc((int)(cuantic[0].N_PI + cuantic[0].N_SIG * 2), sizeof(float *));
 	HGlobal = 0;
 	for (i = 0; i < (int)(cuantic[0].N_PI + cuantic[0].N_SIG * 2); i++)
 	{
-		HGlobalInicial[i] = calloc(numl, sizeof(PRECISION));
+		HGlobalInicial[i] = calloc(numl, sizeof(float));
 	}
 
-	FGlobalInicial = calloc((int)(cuantic[0].N_PI + cuantic[0].N_SIG * 2), sizeof(PRECISION *));
+	FGlobalInicial = calloc((int)(cuantic[0].N_PI + cuantic[0].N_SIG * 2), sizeof(float *));
 	for (i = 0; i < (int)(cuantic[0].N_PI + cuantic[0].N_SIG * 2); i++)
 	{
-		FGlobalInicial[i] = calloc(numl, sizeof(PRECISION));
+		FGlobalInicial[i] = calloc(numl, sizeof(float));
 	}
 	FGlobal = 0;
 }

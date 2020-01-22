@@ -1,6 +1,7 @@
 {
    "files.associations": {
       "math.h": "c",
-      "complex.h": "c"
+      "complex.h": "c",
+      "fftw3.h": "c"
    }
 }

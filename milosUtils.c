@@ -34,7 +34,7 @@ extern float *gp1, *gp2, *dt, *dti, *gp3, *gp4, *gp5, *gp6, *etai_2;
 extern float *dgp1, *dgp2, *dgp3, *dgp4, *dgp5, *dgp6, *d_dt;
 extern float *d_ei, *d_eq, *d_eu, *d_ev, *d_rq, *d_ru, *d_rv;
 extern float *dfi, *dshi;
-extern PRECISION *fi_p, *fi_b, *fi_r, *shi_p, *shi_b, *shi_r;
+extern float *fi_p, *fi_b, *fi_r, *shi_p, *shi_b, *shi_r;
 //extern PRECISION *spectra, *d_spectra, *spectra_mac;
 
 extern float *spectra, *d_spectra, *spectra_mac;

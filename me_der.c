@@ -34,14 +34,14 @@ extern float *dgp1,*dgp2,*dgp3,*dgp4,*dgp5,*dgp6,*d_dt;
 extern float * d_ei,*d_eq,*d_eu,*d_ev,*d_rq,*d_ru,*d_rv;
 extern float *dfi,*dshi;
 extern PRECISION CC,CC_2,sin_gm,azi_2,sinis,cosis,cosis_2,cosi,sina,cosa,sinda,cosda,sindi,cosdi,sinis_cosa,sinis_sina;
-extern PRECISION *fi_p,*fi_b,*fi_r,*shi_p,*shi_b,*shi_r;
+extern float *fi_p,*fi_b,*fi_r,*shi_p,*shi_b,*shi_r;
 extern float *etain,*etaqn,*etaun,*etavn,*rhoqn,*rhoun,*rhovn;
 extern float *etai,*etaq,*etau,*etav,*rhoq,*rhou,*rhov;
 extern float *parcial1,*parcial2,*parcial3;
 extern float *nubB,*nupB,*nurB;
-PRECISION **uuGlobalInicial;
-PRECISION **HGlobalInicial;
-PRECISION **FGlobalInicial;
+float **uuGlobalInicial;
+float **HGlobalInicial;
+float **FGlobalInicial;
 extern int FGlobal,HGlobal,uuGlobal;
 //extern PRECISION *G, *GMAC; // VECTOR WITH GAUSSIAN CREATED FOR CONVOLUTION 
 extern PRECISION *GMAC; // VECTOR WITH GAUSSIAN CREATED FOR CONVOLUTION 
@@ -147,8 +147,8 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 		free(nupB);*/
 		
 
-		//dispersion profiles				
-		PRECISION E0_2;
+		
+
 //		Leer_Puntero_Calculos_Compartidos(3,&parcial1,&parcial2,&parcial3);
 
 //		Leer_Puntero_Calculos_Compartidos(7,&etain,&etaqn,&etaun,&etavn,&rhoqn,&rhoun,&rhovn);
@@ -186,6 +186,8 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 			d_rv[i]=d_rv[i]+rhovn[i]/E0;
 		}
 
+		//dispersion profiles
+		float E0_2;
 		float cosi_2_E0;
 		sinis_cosa=E0*sinis_cosa/2;
 		sinis_sina=E0*sinis_sina/2;
@@ -716,11 +718,11 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
  */
 int funcionComponentFor(int n_pi,PRECISION iwlines,int numl,PRECISION *wex,float *nuxB,float *dfi,float *dshi,PRECISION LD,PRECISION A,int desp)
 {
-	PRECISION *uu;
+	float *uu;
 	int i,j;
 	float dH_u[numl],dF_u[numl],auxCte[numl];
 	
-	PRECISION *H,*F;
+	float *H,*F;
 	
 	/*PRECISION *dH_u,*dF_u,*auxCte;
 	dH_u = malloc(numl * sizeof(PRECISION));

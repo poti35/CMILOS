@@ -151,7 +151,8 @@ float * fgauss_WL(PRECISION FWHM, PRECISION step_between_lw, PRECISION lambda0, 
 int Guarda(char * nombre,PRECISION *v,int nv);
 int GuardaC(char * nombre,PRECISION _Complex *v,int nv,int a);
 
-int fvoigt(PRECISION damp,PRECISION *vv,int nvv,PRECISION *h, PRECISION *f);
+//int fvoigt(PRECISION damp,PRECISION *vv,int nvv,PRECISION *h, PRECISION *f);
+int fvoigt(PRECISION damp,float *vv,int nvv,float *h, float *f);
 
 //PRECISION * vgauss(PRECISION fwhm,int nmuestras_G,PRECISION delta);
 

@@ -55,19 +55,19 @@ float *dgp1, *dgp2, *dgp3, *dgp4, *dgp5, *dgp6, *d_dt;
 float *d_ei, *d_eq, *d_eu, *d_ev, *d_rq, *d_ru, *d_rv;
 float *dfi, *dshi;
 PRECISION CC, CC_2, sin_gm, azi_2, sinis, cosis, cosis_2, cosi, sina, cosa, sinda, cosda, sindi, cosdi, sinis_cosa, sinis_sina;
-PRECISION *fi_p, *fi_b, *fi_r, *shi_p, *shi_b, *shi_r;
+float *fi_p, *fi_b, *fi_r, *shi_p, *shi_b, *shi_r;
 float *etain, *etaqn, *etaun, *etavn, *rhoqn, *rhoun, *rhovn;
 float *etai, *etaq, *etau, *etav, *rhoq, *rhou, *rhov;
 float *parcial1, *parcial2, *parcial3;
 float *nubB, *nupB, *nurB;
-PRECISION **uuGlobalInicial;
-PRECISION **HGlobalInicial;
-PRECISION **FGlobalInicial;
-PRECISION *perfil_instrumental;
+float **uuGlobalInicial;
+float **HGlobalInicial;
+float **FGlobalInicial;
+
 //PRECISION *G,*GMAC;
 PRECISION *GMAC;
 float *G;
-PRECISION *interpolatedPSF;
+
 float AP[NTERMS*NTERMS*NPARMS],BT[NPARMS*NTERMS];
 float * opa;
 int FGlobal, HGlobal, uuGlobal;
@@ -96,7 +96,7 @@ PRECISION FWHM = 0;
 
 ConfigControl configCrontrolFile;
 
-_Complex PRECISION *z,* zden, * zdiv;
+float _Complex  *z,* zden, * zdiv;
 
 int main(int argc, char **argv)
 {
