@@ -401,7 +401,7 @@ int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISIO
 		
 	//int nlambda = NLAMBDA;
 	//convolucionamos los perfiles IQUV (spectra)			
-		odd=(numl%2);
+		/*odd=(numl%2);
 		
 		int startShift = numl/2;
 		if(odd) startShift+=1;
@@ -424,9 +424,9 @@ int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISIO
 				spectra[ishift+i*(numl)]=creal(outSpectraBwPSF[j])*(numl);
 			}
 		}
-
+		*/
 		
-		/*
+		
 		//convolucion de I
 		REAL Ic = spectra[nlambda - 1];
 
@@ -434,6 +434,7 @@ int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISIO
 			spectra[i] = Ic - spectra[i];
 
 		direct_convolution(spectra, nlambda, G, nlambda, 1); //no convolucionamos el ultimo valor Ic
+		//convolve(spectra, nlambda, G, nlambda);
 
 		for (i = 0; i < nlambda; i++)
 			spectra[i] = Ic - spectra[i];
@@ -441,7 +442,8 @@ int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISIO
 		//convolucion QUV
 		for (i = 1; i < NPARMS; i++)
 			direct_convolution(spectra + nlambda * i, nlambda, G, nlambda, 1); //no convolucionamos el ultimo valor
-		*/
+			//convolve(spectra + nlambda * i, nlambda, G, nlambda);
+		
 		//spectral_synthesis_convolution(&nlambda);
 	}
 

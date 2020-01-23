@@ -82,6 +82,9 @@ void convolve(REAL * Signal, size_t SignalLen, REAL * Kernel, size_t KernelLen)
       dirConvPar[n] += Signal[k] * Kernel[n - k];
     }
   }
+  for(n=0; n<SignalLen;n++){
+	  Signal[n]=dirConvPar[n];
+  }
 }
 
 /*void direct_convolution(REAL *x, int nx, REAL *h, int nh, PRECISION delta)
