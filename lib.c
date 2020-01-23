@@ -16,8 +16,8 @@
 
 
 
-extern float AP[NTERMS*NTERMS*NPARMS],BT[NPARMS*NTERMS];
-extern float * opa;
+extern REAL AP[NTERMS*NTERMS*NPARMS],BT[NPARMS*NTERMS];
+extern REAL * opa;
 
 
 /*
@@ -30,14 +30,14 @@ return
 
 */
 
-int covarm(PRECISION *w,PRECISION *sig,float *spectro,int nspectro,float *spectra,float  *d_spectra,PRECISION *beta,PRECISION *alpha){	
+int covarm(REAL *w,REAL *sig,float *spectro,int nspectro,REAL *spectra,REAL  *d_spectra,PRECISION *beta,PRECISION *alpha){	
 	
 	int j,i,bt_nf,bt_nc,aux_nf,aux_nc;
 	//static PRECISION AP[NTERMS*NTERMS*NPARMS],BT[NPARMS*NTERMS];
 	//PRECISION opa[nspectro];
 	
-	float *BTaux,*APaux;
-	float auxWeight;
+	REAL *BTaux,*APaux;
+	REAL auxWeight;
 	//PRECISION *opa;
 	//opa = calloc(nspectro,sizeof(PRECISION));
 	//printf("\nVALORES DEL SIGMA SQUARE\n");
@@ -74,10 +74,10 @@ int covarm(PRECISION *w,PRECISION *sig,float *spectro,int nspectro,float *spectr
 
 
 
-PRECISION fchisqr(float * spectra,int nspectro,float *spectro,PRECISION *w,PRECISION *sig,PRECISION nfree){
+REAL fchisqr(REAL * spectra,int nspectro,float *spectro,REAL *w,REAL *sig,REAL nfree){
 	
-	PRECISION TOT,dif;	
-	PRECISION opa;
+	REAL TOT,dif;	
+	REAL opa;
 	int i,j;
 
 	TOT=0;
@@ -110,10 +110,10 @@ PRECISION fchisqr(float * spectra,int nspectro,float *spectro,PRECISION *w,PRECI
 	El tamaño de columnas de b, nbc, debe de ser igual al de filas de a, naf.
 
 */
-int multmatrixIDLValue(float *a,int naf,int nac,float *b,int nbf,int nbc,float *result,int *fil,int *col,float value){
+int multmatrixIDLValue(REAL *a,int naf,int nac,REAL *b,int nbf,int nbc,REAL *result,int *fil,int *col,REAL value){
     
    int i,j,k;
-   float sum;
+   REAL sum;
 	
 	if(naf==nbc){
 		(*fil)=nbf;
@@ -163,7 +163,7 @@ PRECISION *totalParcial(PRECISION * A, int f,int c,int dire){
 	return result;
 }
 
-void totalParcialf(float * A, int f,int c,PRECISION * result){
+void totalParcialf(REAL * A, int f,int c,PRECISION * result){
 
 	int i,j;
 //	PRECISION 	sum;
@@ -199,7 +199,7 @@ PRECISION *totalParcialMatrix(PRECISION * A, int f,int c,int p){
 	return result;
 }
 
-void totalParcialMatrixf(float * A, int f,int c,int p,PRECISION *result){
+void totalParcialMatrixf(REAL * A, int f,int c,int p,PRECISION *result){
 
 	int i,j,k;
 //	PRECISION 	sum;
@@ -303,7 +303,7 @@ int multmatrixCblas(PRECISION *a,int naf,int nac, PRECISION *b,int nbf,int nbc,P
 
 
 
-int multmatrix_transpose(float *a,int naf,int nac, float *b,int nbf,int nbc,float *result,int *fil,int *col,float value){
+int multmatrix_transpose(REAL *a,int naf,int nac, REAL *b,int nbf,int nbc,REAL *result,int *fil,int *col,REAL value){
     
     int i,j,k;
     PRECISION sum;

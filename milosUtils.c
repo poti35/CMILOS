@@ -28,20 +28,20 @@ extern PRECISION **PUNTEROS_CALCULOS_COMPARTIDOS;
 extern int POSW_PUNTERO_CALCULOS_COMPARTIDOS;
 extern int POSR_PUNTERO_CALCULOS_COMPARTIDOS;
 
-extern float *gp4_gp2_rhoq, *gp5_gp2_rhou, *gp6_gp2_rhov;
+extern REAL *gp4_gp2_rhoq, *gp5_gp2_rhou, *gp6_gp2_rhov;
 
-extern float *gp1, *gp2, *dt, *dti, *gp3, *gp4, *gp5, *gp6, *etai_2;
-extern float *dgp1, *dgp2, *dgp3, *dgp4, *dgp5, *dgp6, *d_dt;
-extern float *d_ei, *d_eq, *d_eu, *d_ev, *d_rq, *d_ru, *d_rv;
-extern float *dfi, *dshi;
-extern float *fi_p, *fi_b, *fi_r, *shi_p, *shi_b, *shi_r;
+extern REAL *gp1, *gp2, *dt, *dti, *gp3, *gp4, *gp5, *gp6, *etai_2;
+extern REAL *dgp1, *dgp2, *dgp3, *dgp4, *dgp5, *dgp6, *d_dt;
+extern REAL *d_ei, *d_eq, *d_eu, *d_ev, *d_rq, *d_ru, *d_rv;
+extern REAL *dfi, *dshi;
+extern REAL *fi_p, *fi_b, *fi_r, *shi_p, *shi_b, *shi_r;
 //extern PRECISION *spectra, *d_spectra, *spectra_mac;
 
-extern float *spectra, *d_spectra, *spectra_mac;
-extern float *etain, *etaqn, *etaun, *etavn, *rhoqn, *rhoun, *rhovn;
-extern float *etai, *etaq, *etau, *etav, *rhoq, *rhou, *rhov;
-extern float *parcial1, *parcial2, *parcial3;
-extern float *nubB, *nupB, *nurB;
+extern REAL *spectra, *d_spectra, *spectra_mac;
+extern REAL *etain, *etaqn, *etaun, *etavn, *rhoqn, *rhoun, *rhovn;
+extern REAL *etai, *etaq, *etau, *etav, *rhoq, *rhou, *rhov;
+extern REAL *parcial1, *parcial2, *parcial3;
+extern REAL *nubB, *nupB, *nurB;
 extern PRECISION *G,*GMAC; // VECTOR WITH GAUSSIAN CREATED FOR CONVOLUTION 
 extern fftw_complex * inSpectraFwPSF, *inSpectraBwPSF, *outSpectraFwPSF, *outSpectraBwPSF;
 extern fftw_plan planForwardPSF, planBackwardPSF;
@@ -124,7 +124,7 @@ void response_functions_convolution(int * nlambda)
 
 }
 
-void AplicaSlight(float * d_spectra, int numl, PRECISION ALFA, PRECISION * slight){
+void AplicaSlight(REAL * d_spectra, int numl, PRECISION ALFA, PRECISION * slight){
 	int par, il, i;
 	// Response Functions 
 	for(par=0;par<NPARMS;par++){
@@ -286,7 +286,7 @@ int check(Init_Model *model)
 }
 
 
-void FijaACeroDerivadasNoNecesarias(float *d_spectra, int *fixed, int nlambda)
+void FijaACeroDerivadasNoNecesarias(REAL *d_spectra, int *fixed, int nlambda)
 {
 
 	int In, j, i;
@@ -600,9 +600,9 @@ void estimacionesClasicas(PRECISION lambda_0, PRECISION *lambda, int nlambda, fl
  */
 
 int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda, float *spectro, int nspectro,
-				Init_Model *initModel, float *spectra, PRECISION *chisqrf,
-				PRECISION * slight, PRECISION toplim, int miter, PRECISION *weight, int *fix,
-				PRECISION *sigma, PRECISION ilambda, int * INSTRUMENTAL_CONVOLUTION, int * iter)
+				Init_Model *initModel, REAL *spectra, PRECISION *chisqrf,
+				PRECISION * slight, PRECISION toplim, int miter, REAL *weight, int *fix,
+				REAL *sigma, REAL ilambda, int * INSTRUMENTAL_CONVOLUTION, int * iter)
 {
 
 	
@@ -611,9 +611,9 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 	static PRECISION delta[NTERMS];
 	
 	int iter_chisqr_same;
-	PRECISION flambda;
+	REAL flambda;
 	static PRECISION beta[NTERMS], alpha[NTERMS * NTERMS];
-	PRECISION chisqr, ochisqr;
+	REAL chisqr, ochisqr;
 	int clanda, ind;
 	Init_Model model;
 	//static PRECISION sigmaTemp[4] = {1.0, 1.0, 1.0, 1.0};
@@ -709,7 +709,7 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 
 	//printf("\n OBJETIVED CHISQR: %0.10f\n",ochisqr);
 	//printf("\n FLAMBDA INICIAL: %lf\n",flambda);
-	chisqr_mem = (PRECISION)ochisqr;
+	chisqr_mem = (REAL)ochisqr;
 	iter_chisqr_same = 0;
 
 	model = *initModel;
@@ -773,7 +773,7 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 		
 		
 		/**************************************************************************/
-		if(chisqr == chisqr_mem){
+		/*if(chisqr == chisqr_mem){
 			iter_chisqr_same++;
 			if(iter_chisqr_same>=3) // exit after 4 iterations with chisqr equal
 				clanda = 1;
@@ -781,12 +781,12 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 		else
 		{
 			chisqr_mem = chisqr;
-		}
+		}*/
 
 		//printf("\n CHISQR EN LA ITERACION %d,: %e",*iter,chisqr);
 		
 		/**************************************************************************/
-		if ((fabs((ochisqr-chisqr)*100/chisqr) < toplim) || (chisqr < 0.00001)) // condition to exit of the loop 
+		if ((fabs((ochisqr-chisqr)*100/chisqr) < toplim) || (chisqr < 0.0001)) // condition to exit of the loop 
 			clanda = 1;		
 		if (chisqr - ochisqr < 0.)
 		{

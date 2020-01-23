@@ -1,19 +1,19 @@
 
 
 #include "defines.h"
-extern float _Complex  *z,* zden, * zdiv;
+extern REAL _Complex  *z,* zden, * zdiv;
 //pro fvoigt,damp,vv,h,f
 //int fvoigt(PRECISION damp, PRECISION *vv, int nvv, PRECISION *h, PRECISION *f)
-int fvoigt(PRECISION damp, float *vv, int nvv, float *h, float *f)
+int fvoigt(PRECISION damp, REAL *vv, int nvv, REAL *h, REAL *f)
 {
 
 	int i, j;
 	//	PRECISION *f,*h;
-	static float a[] = {122.607931777104326, 214.382388694706425, 181.928533092181549,
+	static REAL a[] = {122.607931777104326, 214.382388694706425, 181.928533092181549,
 									93.155580458138441, 30.180142196210589, 5.912626209773153,
 									0.564189583562615};
 
-	static float b[] = {122.60793177387535, 352.730625110963558, 457.334478783897737,
+	static REAL b[] = {122.60793177387535, 352.730625110963558, 457.334478783897737,
 									348.703917719495792, 170.354001821091472, 53.992906912940207,
 									10.479857114260399, 1.};
 
@@ -65,7 +65,7 @@ int fvoigt(PRECISION damp, float *vv, int nvv, float *h, float *f)
 
 	for (i = 0; i < nvv; i++)
 	{
-		f[i] = vv[i] >= 0 ? (float)cimagf(z[i]) * 0.5 : (float)cimagf(z[i]) * -0.5;
+		f[i] = vv[i] >= 0 ? (REAL)cimagf(z[i]) * 0.5 : (REAL)cimagf(z[i]) * -0.5;
 	}
 
 	return 1;

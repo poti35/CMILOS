@@ -7,29 +7,29 @@ extern int POSW_PUNTERO_CALCULOS_COMPARTIDOS;
 extern int POSR_PUNTERO_CALCULOS_COMPARTIDOS;
 
 
-extern float *dtaux, *etai_gp3, *ext1, *ext2, *ext3, *ext4;
-extern float *gp4_gp2_rhoq, *gp5_gp2_rhou, *gp6_gp2_rhov;
-extern float *gp1, *gp2, *dt, *dti, *gp3, *gp4, *gp5, *gp6, *etai_2;
-extern float *dgp1, *dgp2, *dgp3, *dgp4, *dgp5, *dgp6, *d_dt;
-extern float *d_ei, *d_eq, *d_eu, *d_ev, *d_rq, *d_ru, *d_rv;
-extern float *dfi, *dshi;
-extern float *fi_p, *fi_b, *fi_r, *shi_p, *shi_b, *shi_r;
+extern REAL *dtaux, *etai_gp3, *ext1, *ext2, *ext3, *ext4;
+extern REAL *gp4_gp2_rhoq, *gp5_gp2_rhou, *gp6_gp2_rhov;
+extern REAL *gp1, *gp2, *dt, *dti, *gp3, *gp4, *gp5, *gp6, *etai_2;
+extern REAL *dgp1, *dgp2, *dgp3, *dgp4, *dgp5, *dgp6, *d_dt;
+extern REAL *d_ei, *d_eq, *d_eu, *d_ev, *d_rq, *d_ru, *d_rv;
+extern REAL *dfi, *dshi;
+extern REAL *fi_p, *fi_b, *fi_r, *shi_p, *shi_b, *shi_r;
 //extern PRECISION *spectra, *d_spectra,*spectra_mac;
-extern float *spectra, *d_spectra,*spectra_mac;
-extern float *etain, *etaqn, *etaun, *etavn, *rhoqn, *rhoun, *rhovn;
-extern float *etai, *etaq, *etau, *etav, *rhoq, *rhou, *rhov;
-extern float *parcial1, *parcial2, *parcial3;
-extern float *nubB, *nupB, *nurB;
-float **uuGlobalInicial;
-float **HGlobalInicial;
-float **FGlobalInicial;
+extern REAL *spectra, *d_spectra,*spectra_mac;
+extern REAL *etain, *etaqn, *etaun, *etavn, *rhoqn, *rhoun, *rhovn;
+extern REAL *etai, *etaq, *etau, *etav, *rhoq, *rhou, *rhov;
+extern REAL *parcial1, *parcial2, *parcial3;
+extern REAL *nubB, *nupB, *nurB;
+REAL **uuGlobalInicial;
+REAL **HGlobalInicial;
+REAL **FGlobalInicial;
 extern int FGlobal, HGlobal, uuGlobal;
 extern PRECISION *GMAC;
 extern Cuantic *cuantic;
 
-extern float * opa;
+extern REAL * opa;
 
-extern float _Complex  *z,* zden, * zdiv;
+extern REAL _Complex  *z,* zden, * zdiv;
 
 void InitializePointerShareCalculation()
 {
@@ -116,120 +116,117 @@ void AllocateMemoryDerivedSynthesis(int numl)
 {
 
 	/************* ME DER *************************************/
-	dtaux = calloc(numl,sizeof(float));
-	etai_gp3 = calloc(numl,sizeof(float));
-	ext1 = calloc(numl,sizeof(float));
-	ext2 = calloc(numl,sizeof(float));
-	ext3 = calloc(numl,sizeof(float));
-	ext4 = calloc(numl,sizeof(float));
+	dtaux = calloc(numl,sizeof(REAL));
+	etai_gp3 = calloc(numl,sizeof(REAL));
+	ext1 = calloc(numl,sizeof(REAL));
+	ext2 = calloc(numl,sizeof(REAL));
+	ext3 = calloc(numl,sizeof(REAL));
+	ext4 = calloc(numl,sizeof(REAL));
 	/**********************************************************/
 
 	//***** VARIABLES FOR FVOIGT ****************************//
-	/*z = malloc (numl * sizeof(_Complex PRECISION));
-	zden = malloc (numl * sizeof(_Complex PRECISION));
-	zdiv = malloc (numl * sizeof(_Complex PRECISION));*/
-	z = malloc (numl * sizeof(float _Complex));
-	zden = malloc (numl * sizeof(float _Complex));
-	zdiv = malloc (numl * sizeof(float _Complex));	
+	z = malloc (numl * sizeof(REAL _Complex));
+	zden = malloc (numl * sizeof(REAL _Complex));
+	zdiv = malloc (numl * sizeof(REAL _Complex));	
 	/********************************************************/
 
 
 	GMAC = calloc(numl, sizeof(PRECISION));
 
-	spectra = calloc(numl * NPARMS, sizeof(float));
-	spectra_mac = calloc(numl * NPARMS, sizeof(float));
-	d_spectra = calloc(numl * NTERMS * NPARMS, sizeof(float));
+	spectra = calloc(numl * NPARMS, sizeof(REAL));
+	spectra_mac = calloc(numl * NPARMS, sizeof(REAL));
+	d_spectra = calloc(numl * NTERMS * NPARMS, sizeof(REAL));
 
 	/*spectra = calloc(numl * NPARMS, sizeof(PRECISION));
 	spectra_mac = calloc(numl * NPARMS, sizeof(PRECISION));
 	d_spectra = calloc(numl * NTERMS * NPARMS, sizeof(PRECISION));*/
 	
 	
-	opa = calloc(numl,sizeof(float));
+	opa = calloc(numl,sizeof(REAL));
 
-	gp4_gp2_rhoq = calloc(numl, sizeof(float));
-	gp5_gp2_rhou = calloc(numl, sizeof(float));
-	gp6_gp2_rhov = calloc(numl, sizeof(float));
+	gp4_gp2_rhoq = calloc(numl, sizeof(REAL));
+	gp5_gp2_rhou = calloc(numl, sizeof(REAL));
+	gp6_gp2_rhov = calloc(numl, sizeof(REAL));
 
-	gp1 = calloc(numl, sizeof(float));
-	gp2 = calloc(numl, sizeof(float));
-	gp3 = calloc(numl, sizeof(float));
-	gp4 = calloc(numl, sizeof(float));
-	gp5 = calloc(numl, sizeof(float));
-	gp6 = calloc(numl, sizeof(float));
-	dt = calloc(numl, sizeof(float));
-	dti = calloc(numl, sizeof(float));
+	gp1 = calloc(numl, sizeof(REAL));
+	gp2 = calloc(numl, sizeof(REAL));
+	gp3 = calloc(numl, sizeof(REAL));
+	gp4 = calloc(numl, sizeof(REAL));
+	gp5 = calloc(numl, sizeof(REAL));
+	gp6 = calloc(numl, sizeof(REAL));
+	dt = calloc(numl, sizeof(REAL));
+	dti = calloc(numl, sizeof(REAL));
 
-	etai_2 = calloc(numl, sizeof(float));
+	etai_2 = calloc(numl, sizeof(REAL));
 
-	dgp1 = calloc(numl, sizeof(float));
-	dgp2 = calloc(numl, sizeof(float));
-	dgp3 = calloc(numl, sizeof(float));
-	dgp4 = calloc(numl, sizeof(float));
-	dgp5 = calloc(numl, sizeof(float));
-	dgp6 = calloc(numl, sizeof(float));
-	d_dt = calloc(numl, sizeof(float));
+	dgp1 = calloc(numl, sizeof(REAL));
+	dgp2 = calloc(numl, sizeof(REAL));
+	dgp3 = calloc(numl, sizeof(REAL));
+	dgp4 = calloc(numl, sizeof(REAL));
+	dgp5 = calloc(numl, sizeof(REAL));
+	dgp6 = calloc(numl, sizeof(REAL));
+	d_dt = calloc(numl, sizeof(REAL));
 
-	d_ei = calloc(numl * 7, sizeof(float));
-	d_eq = calloc(numl * 7, sizeof(float));
-	d_eu = calloc(numl * 7, sizeof(float));
-	d_ev = calloc(numl * 7, sizeof(float));
-	d_rq = calloc(numl * 7, sizeof(float));
-	d_ru = calloc(numl * 7, sizeof(float));
-	d_rv = calloc(numl * 7, sizeof(float));
-	dfi = calloc(numl * 4 * 3, sizeof(float));  //DNULO
-	dshi = calloc(numl * 4 * 3, sizeof(float)); //DNULO
+	d_ei = calloc(numl * 7, sizeof(REAL));
+	d_eq = calloc(numl * 7, sizeof(REAL));
+	d_eu = calloc(numl * 7, sizeof(REAL));
+	d_ev = calloc(numl * 7, sizeof(REAL));
+	d_rq = calloc(numl * 7, sizeof(REAL));
+	d_ru = calloc(numl * 7, sizeof(REAL));
+	d_rv = calloc(numl * 7, sizeof(REAL));
+	dfi = calloc(numl * 4 * 3, sizeof(REAL));  //DNULO
+	dshi = calloc(numl * 4 * 3, sizeof(REAL)); //DNULO
 
-	fi_p = calloc(numl * 2, sizeof(float));
-	fi_b = calloc(numl * 2, sizeof(float));
-	fi_r = calloc(numl * 2, sizeof(float));
-	shi_p = calloc(numl * 2, sizeof(float));
-	shi_b = calloc(numl * 2, sizeof(float));
-	shi_r = calloc(numl * 2, sizeof(float));
+	fi_p = calloc(numl * 2, sizeof(REAL));
+	fi_b = calloc(numl * 2, sizeof(REAL));
+	fi_r = calloc(numl * 2, sizeof(REAL));
+	shi_p = calloc(numl * 2, sizeof(REAL));
+	shi_b = calloc(numl * 2, sizeof(REAL));
+	shi_r = calloc(numl * 2, sizeof(REAL));
 
-	etain = calloc(numl * 2, sizeof(float));
-	etaqn = calloc(numl * 2, sizeof(float));
-	etaun = calloc(numl * 2, sizeof(float));
-	etavn = calloc(numl * 2, sizeof(float));
-	rhoqn = calloc(numl * 2, sizeof(float));
-	rhoun = calloc(numl * 2, sizeof(float));
-	rhovn = calloc(numl * 2, sizeof(float));
+	etain = calloc(numl * 2, sizeof(REAL));
+	etaqn = calloc(numl * 2, sizeof(REAL));
+	etaun = calloc(numl * 2, sizeof(REAL));
+	etavn = calloc(numl * 2, sizeof(REAL));
+	rhoqn = calloc(numl * 2, sizeof(REAL));
+	rhoun = calloc(numl * 2, sizeof(REAL));
+	rhovn = calloc(numl * 2, sizeof(REAL));
 
-	etai = calloc(numl, sizeof(float));
-	etaq = calloc(numl, sizeof(float));
-	etau = calloc(numl, sizeof(float));
-	etav = calloc(numl, sizeof(float));
-	rhoq = calloc(numl, sizeof(float));
-	rhou = calloc(numl, sizeof(float));
-	rhov = calloc(numl, sizeof(float));
+	etai = calloc(numl, sizeof(REAL));
+	etaq = calloc(numl, sizeof(REAL));
+	etau = calloc(numl, sizeof(REAL));
+	etav = calloc(numl, sizeof(REAL));
+	rhoq = calloc(numl, sizeof(REAL));
+	rhou = calloc(numl, sizeof(REAL));
+	rhov = calloc(numl, sizeof(REAL));
 
-	parcial1 = calloc(numl, sizeof(float));
-	parcial2 = calloc(numl, sizeof(float));
-	parcial3 = calloc(numl, sizeof(float));
+	parcial1 = calloc(numl, sizeof(REAL));
+	parcial2 = calloc(numl, sizeof(REAL));
+	parcial3 = calloc(numl, sizeof(REAL));
 
-	nubB = calloc(cuantic[0].N_SIG, sizeof(float));
-	nurB = calloc(cuantic[0].N_SIG, sizeof(float));
-	nupB = calloc(cuantic[0].N_PI, sizeof(float));
+	nubB = calloc(cuantic[0].N_SIG, sizeof(REAL));
+	nurB = calloc(cuantic[0].N_SIG, sizeof(REAL));
+	nupB = calloc(cuantic[0].N_PI, sizeof(REAL));
 
-	uuGlobalInicial = calloc((int)(cuantic[0].N_PI + cuantic[0].N_SIG * 2), sizeof(float *));
+	uuGlobalInicial = calloc((int)(cuantic[0].N_PI + cuantic[0].N_SIG * 2), sizeof(REAL *));
 	uuGlobal = 0;
 	int i = 0;
 	for (i = 0; i < (int)(cuantic[0].N_PI + cuantic[0].N_SIG * 2); i++)
 	{
-		uuGlobalInicial[i] = calloc(numl, sizeof(float));
+		uuGlobalInicial[i] = calloc(numl, sizeof(REAL));
 	}
 
-	HGlobalInicial = calloc((int)(cuantic[0].N_PI + cuantic[0].N_SIG * 2), sizeof(float *));
+	HGlobalInicial = calloc((int)(cuantic[0].N_PI + cuantic[0].N_SIG * 2), sizeof(REAL *));
 	HGlobal = 0;
 	for (i = 0; i < (int)(cuantic[0].N_PI + cuantic[0].N_SIG * 2); i++)
 	{
-		HGlobalInicial[i] = calloc(numl, sizeof(float));
+		HGlobalInicial[i] = calloc(numl, sizeof(REAL));
 	}
 
-	FGlobalInicial = calloc((int)(cuantic[0].N_PI + cuantic[0].N_SIG * 2), sizeof(float *));
+	FGlobalInicial = calloc((int)(cuantic[0].N_PI + cuantic[0].N_SIG * 2), sizeof(REAL *));
 	for (i = 0; i < (int)(cuantic[0].N_PI + cuantic[0].N_SIG * 2); i++)
 	{
-		FGlobalInicial[i] = calloc(numl, sizeof(float));
+		FGlobalInicial[i] = calloc(numl, sizeof(REAL));
 	}
 	FGlobal = 0;
 }

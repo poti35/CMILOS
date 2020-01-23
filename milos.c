@@ -62,38 +62,38 @@ PRECISION **PUNTEROS_CALCULOS_COMPARTIDOS;
 int POSW_PUNTERO_CALCULOS_COMPARTIDOS;
 int POSR_PUNTERO_CALCULOS_COMPARTIDOS;
 
-float *dtaux, *etai_gp3, *ext1, *ext2, *ext3, *ext4;
-float *gp1, *gp2, *dt, *dti, *gp3, *gp4, *gp5, *gp6, *etai_2;
+REAL *dtaux, *etai_gp3, *ext1, *ext2, *ext3, *ext4;
+REAL *gp1, *gp2, *dt, *dti, *gp3, *gp4, *gp5, *gp6, *etai_2;
 //PRECISION gp4_gp2_rhoq[NLAMBDA],gp5_gp2_rhou[NLAMBDA],gp6_gp2_rhov[NLAMBDA];
-float *gp4_gp2_rhoq, *gp5_gp2_rhou, *gp6_gp2_rhov;
-float *dgp1, *dgp2, *dgp3, *dgp4, *dgp5, *dgp6, *d_dt;
-float *d_ei, *d_eq, *d_eu, *d_ev, *d_rq, *d_ru, *d_rv;
-float *dfi, *dshi;
+REAL *gp4_gp2_rhoq, *gp5_gp2_rhou, *gp6_gp2_rhov;
+REAL *dgp1, *dgp2, *dgp3, *dgp4, *dgp5, *dgp6, *d_dt;
+REAL *d_ei, *d_eq, *d_eu, *d_ev, *d_rq, *d_ru, *d_rv;
+REAL *dfi, *dshi;
 PRECISION CC, CC_2, sin_gm, azi_2, sinis, cosis, cosis_2, cosi, sina, cosa, sinda, cosda, sindi, cosdi, sinis_cosa, sinis_sina;
-float *fi_p, *fi_b, *fi_r, *shi_p, *shi_b, *shi_r;
-float *etain, *etaqn, *etaun, *etavn, *rhoqn, *rhoun, *rhovn;
-float *etai, *etaq, *etau, *etav, *rhoq, *rhou, *rhov;
-float *parcial1, *parcial2, *parcial3;
-float *nubB, *nupB, *nurB;
-float **uuGlobalInicial;
-float **HGlobalInicial;
-float **FGlobalInicial;
+REAL *fi_p, *fi_b, *fi_r, *shi_p, *shi_b, *shi_r;
+REAL *etain, *etaqn, *etaun, *etavn, *rhoqn, *rhoun, *rhovn;
+REAL *etai, *etaq, *etau, *etav, *rhoq, *rhou, *rhov;
+REAL *parcial1, *parcial2, *parcial3;
+REAL *nubB, *nupB, *nurB;
+REAL **uuGlobalInicial;
+REAL **HGlobalInicial;
+REAL **FGlobalInicial;
 
 //PRECISION *G, *GMAC;
 PRECISION *GMAC;
-float * G;
+REAL * G;
 
 
 
-float AP[NTERMS*NTERMS*NPARMS],BT[NPARMS*NTERMS];
+REAL AP[NTERMS*NTERMS*NPARMS],BT[NPARMS*NTERMS];
 
 
 
-float * opa;
+REAL * opa;
 int FGlobal, HGlobal, uuGlobal;
 
 //PRECISION *d_spectra, *spectra, *spectra_mac;
-float *d_spectra, *spectra, *spectra_mac;
+REAL *d_spectra, *spectra, *spectra_mac;
 
 
 
@@ -119,7 +119,7 @@ PRECISION FWHM = 0;
 ConfigControl configCrontrolFile;
 
 // fvoigt memory consuption
-float _Complex  *z,* zden, * zdiv;
+REAL _Complex  *z,* zden, * zdiv;
 
 int main(int argc, char **argv)
 {
@@ -352,7 +352,7 @@ int main(int argc, char **argv)
 			size_t len = 0;
 			ssize_t read;
 			fReadSpectro = fopen(configCrontrolFile.ObservedProfiles, "r");
-			float indexLine;
+			
 			int contLine=0;
 			if (fReadSpectro == NULL)
 			{
@@ -361,12 +361,14 @@ int main(int argc, char **argv)
 				fclose(fReadSpectro);
 				exit(EXIT_FAILURE);
 			}
-			float dummy;
+			float aux1, aux2,aux3,aux4,aux5,aux6;
 			while ((read = getline(&line, &len, fReadSpectro)) != -1 && contLine<nlambda) {
-				//sscanf(line,"%le %le %le %le %le %le",&indexLine,&vLambdaTest[contLine],&spectroTest[contLine], &spectroTest[contLine + numLambdaTest], &spectroTest[contLine + numLambdaTest * 2], &spectroTest[contLine + numLambdaTest * 3]);
-				sscanf(line,"%e %e %e %e %e %e",&indexLine,&dummy,&spectroPER[contLine], &spectroPER[contLine + nlambda], &spectroPER[contLine + nlambda * 2], &spectroPER[contLine + nlambda * 3]);
-				//vLambda[contLine] = configCrontrolFile.CentralWaveLenght+(dummy/1000);
-				//sscanf(line,"%le %le %le %le %le",&vLambdaTest[contLine],&spectroTest[contLine], &spectroTest[contLine + numLambdaTest], &spectroTest[contLine + numLambdaTest * 2], &spectroTest[contLine + numLambdaTest * 3]);
+				//sscanf(line,"%e %e %e %e %e %e",&indexLine,&dummy,&spectroPER[contLine], &spectroPER[contLine + nlambda], &spectroPER[contLine + nlambda * 2], &spectroPER[contLine + nlambda * 3]);
+				sscanf(line,"%e %e %e %e %e %e",&aux1,&aux2,&aux3,&aux4,&aux5,&aux6);
+				spectroPER[contLine] = aux3;
+				spectroPER[contLine + nlambda] = aux4;
+				spectroPER[contLine + nlambda * 2] = aux5;
+				spectroPER[contLine + nlambda * 3] = aux6;
 				contLine++;
 			}
 			fclose(fReadSpectro);
@@ -541,7 +543,7 @@ int main(int argc, char **argv)
 			size_t len = 0;
 			ssize_t read;
 			fReadSpectro = fopen(configCrontrolFile.ObservedProfiles, "r");
-			float numLine;
+			
 			int contLine=0;
 			if (fReadSpectro == NULL)
 			{
@@ -550,12 +552,14 @@ int main(int argc, char **argv)
 				fclose(fReadSpectro);
 				exit(EXIT_FAILURE);
 			}
-			float dummy;
+			
+			float aux1, aux2, aux3, aux4, aux5, aux6;
 			while ((read = getline(&line, &len, fReadSpectro)) != -1 && contLine<nlambda) {
-				//sscanf(line,"%le %le %le %le %le %le",&indexLine,&vLambdaTest[contLine],&spectroTest[contLine], &spectroTest[contLine + numLambdaTest], &spectroTest[contLine + numLambdaTest * 2], &spectroTest[contLine + numLambdaTest * 3]);
-				sscanf(line,"%e %e %e %e %e %e",&numLine,&dummy,&spectroPER[contLine], &spectroPER[contLine + nlambda], &spectroPER[contLine + nlambda * 2], &spectroPER[contLine + nlambda * 3]);
-				//vLambda[contLine] = configCrontrolFile.CentralWaveLenght+(dummy/1000);
-				//sscanf(line,"%le %le %le %le %le",&vLambdaTest[contLine],&spectroTest[contLine], &spectroTest[contLine + numLambdaTest], &spectroTest[contLine + numLambdaTest * 2], &spectroTest[contLine + numLambdaTest * 3]);
+				sscanf(line,"%e %e %e %e %e %e",&aux1,&aux2,&aux3,&aux4,&aux5,&aux6);
+				spectroPER[contLine] = aux3;
+				spectroPER[contLine + nlambda] = aux4;
+				spectroPER[contLine + nlambda * 2] = aux5;
+				spectroPER[contLine + nlambda * 3] = aux6;
 				contLine++;
 			}
 			fclose(fReadSpectro);

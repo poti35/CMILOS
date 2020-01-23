@@ -48,32 +48,32 @@ PRECISION **PUNTEROS_CALCULOS_COMPARTIDOS;
 int POSW_PUNTERO_CALCULOS_COMPARTIDOS;
 int POSR_PUNTERO_CALCULOS_COMPARTIDOS;
 
-float *dtaux, *etai_gp3, *ext1, *ext2, *ext3, *ext4;
-float *gp1, *gp2, *dt, *dti, *gp3, *gp4, *gp5, *gp6, *etai_2;
-float *gp4_gp2_rhoq, *gp5_gp2_rhou, *gp6_gp2_rhov;
-float *dgp1, *dgp2, *dgp3, *dgp4, *dgp5, *dgp6, *d_dt;
-float *d_ei, *d_eq, *d_eu, *d_ev, *d_rq, *d_ru, *d_rv;
-float *dfi, *dshi;
+REAL *dtaux, *etai_gp3, *ext1, *ext2, *ext3, *ext4;
+REAL *gp1, *gp2, *dt, *dti, *gp3, *gp4, *gp5, *gp6, *etai_2;
+REAL *gp4_gp2_rhoq, *gp5_gp2_rhou, *gp6_gp2_rhov;
+REAL *dgp1, *dgp2, *dgp3, *dgp4, *dgp5, *dgp6, *d_dt;
+REAL *d_ei, *d_eq, *d_eu, *d_ev, *d_rq, *d_ru, *d_rv;
+REAL *dfi, *dshi;
 PRECISION CC, CC_2, sin_gm, azi_2, sinis, cosis, cosis_2, cosi, sina, cosa, sinda, cosda, sindi, cosdi, sinis_cosa, sinis_sina;
-float *fi_p, *fi_b, *fi_r, *shi_p, *shi_b, *shi_r;
-float *etain, *etaqn, *etaun, *etavn, *rhoqn, *rhoun, *rhovn;
-float *etai, *etaq, *etau, *etav, *rhoq, *rhou, *rhov;
-float *parcial1, *parcial2, *parcial3;
-float *nubB, *nupB, *nurB;
-float **uuGlobalInicial;
-float **HGlobalInicial;
-float **FGlobalInicial;
+REAL *fi_p, *fi_b, *fi_r, *shi_p, *shi_b, *shi_r;
+REAL *etain, *etaqn, *etaun, *etavn, *rhoqn, *rhoun, *rhovn;
+REAL *etai, *etaq, *etau, *etav, *rhoq, *rhou, *rhov;
+REAL *parcial1, *parcial2, *parcial3;
+REAL *nubB, *nupB, *nurB;
+REAL **uuGlobalInicial;
+REAL **HGlobalInicial;
+REAL **FGlobalInicial;
 
 //PRECISION *G,*GMAC;
 PRECISION *GMAC;
-float *G;
+REAL *G;
 
-float AP[NTERMS*NTERMS*NPARMS],BT[NPARMS*NTERMS];
-float * opa;
+REAL AP[NTERMS*NTERMS*NPARMS],BT[NPARMS*NTERMS];
+REAL * opa;
 int FGlobal, HGlobal, uuGlobal;
 
 //PRECISION *d_spectra, *spectra, *spectra_mac;
-float *d_spectra, *spectra, *spectra_mac;
+REAL *d_spectra, *spectra, *spectra_mac;
 
 
 // GLOBAL variables to use for FFT calculation 
@@ -96,7 +96,7 @@ PRECISION FWHM = 0;
 
 ConfigControl configCrontrolFile;
 
-float _Complex  *z,* zden, * zdiv;
+REAL _Complex  *z,* zden, * zdiv;
 
 int main(int argc, char **argv)
 {
@@ -190,7 +190,7 @@ int main(int argc, char **argv)
 	Init_Model * resultsInitModelTotal;
 	PRECISION * chisqrfTotal, *vChisqrf, chisqrf;
 	int * vNumIter, * vNumIterTotal; // to store the number of iterations used to converge for each pixel
-	float  * vSpectraSplit, * vLambdaSplit, * vSpectraAdjustedSplit, * vSpectraAjustedTotal;
+	float  * vSpectraSplit, * vSpectraAdjustedSplit, * vSpectraAjustedTotal;
 
 	int sendcountsPixels [numProcs] ; // array describing how many elements to send to each process
 	int sendcountsSpectro [numProcs];
@@ -519,7 +519,7 @@ int main(int argc, char **argv)
 
 	MPI_Barrier(MPI_COMM_WORLD);
 
-	if(numberOfFileSpectra>numProcs){ // Scatter name of files 
+	if(numberOfFileSpectra>=numProcs){ // Scatter name of files 
 		Init_Model *vModels;
 
 		vInputFileSpectraLocal = (nameFile *) malloc(sendcountsNameInputFiles[idProc]*sizeof(nameFile));
@@ -673,10 +673,6 @@ int main(int argc, char **argv)
 				//slog_error(0,"\n\n ***************************** FITS FILE WITH THE SPECTRO IMAGE CAN NOT BE READ IT ******************************\n");
 			}
 
-			
-
-
-
 			freeFitsImage(fitsImage);
 			FreeMemoryDerivedSynthesis();
 		}
@@ -828,8 +824,6 @@ int main(int argc, char **argv)
 					else 
 						slightPixel = slight+nlambda*indexPixel;
 				}
-				/*lm_mils(cuantic, wlines, vLambdaSplit+(indexPixel*(nlambda)), nlambda, vSpectraSplit+(indexPixel*(nlambda*NPARMS)), nlambda, &initModel, spectra, &vChisqrf[indexPixel], slightPixel, configCrontrolFile.toplim, configCrontrolFile.NumberOfCycles,
-					configCrontrolFile.WeightForStokes, configCrontrolFile.fix, configCrontrolFile.sigma, configCrontrolFile.InitialDiagonalElement,&configCrontrolFile.ConvolveWithPSF,&vNumIter[indexPixel]);																		*/
 				lm_mils(cuantic, wlines, vGlobalLambda, nlambda, vSpectraSplit+(indexPixel*(nlambda*NPARMS)), nlambda, &initModel, spectra, &vChisqrf[indexPixel], slightPixel, configCrontrolFile.toplim, configCrontrolFile.NumberOfCycles,
 					configCrontrolFile.WeightForStokes, configCrontrolFile.fix, configCrontrolFile.sigma, configCrontrolFile.InitialDiagonalElement,&configCrontrolFile.ConvolveWithPSF,&vNumIter[indexPixel]);																							
 				
@@ -845,15 +839,17 @@ int main(int argc, char **argv)
 			}
 			local_finish_execution = MPI_Wtime();
 			local_start_gather = MPI_Wtime();
-			MPI_Igatherv(resultsInitModel, sendcountsPixels[idProc], mpiInitModel, resultsInitModelTotal, sendcountsPixels, displsPixels, mpiInitModel, root, MPI_COMM_WORLD,&mpiRequestSpectro);
-			MPI_Igatherv(vChisqrf, sendcountsPixels[idProc], MPI_DOUBLE, chisqrfTotal, sendcountsPixels, displsPixels, MPI_DOUBLE, root, MPI_COMM_WORLD,&mpiRequestLambda);		
+			//MPI_Igatherv(resultsInitModel, sendcountsPixels[idProc], mpiInitModel, resultsInitModelTotal, sendcountsPixels, displsPixels, mpiInitModel, root, MPI_COMM_WORLD,&mpiRequestSpectro);
+			//MPI_Igatherv(vChisqrf, sendcountsPixels[idProc], MPI_DOUBLE, chisqrfTotal, sendcountsPixels, displsPixels, MPI_DOUBLE, root, MPI_COMM_WORLD,&mpiRequestLambda);		
+			MPI_Gatherv(resultsInitModel, sendcountsPixels[idProc], mpiInitModel, resultsInitModelTotal, sendcountsPixels, displsPixels, mpiInitModel, root, MPI_COMM_WORLD);
+			MPI_Gatherv(vChisqrf, sendcountsPixels[idProc], MPI_DOUBLE, chisqrfTotal, sendcountsPixels, displsPixels, MPI_DOUBLE, root, MPI_COMM_WORLD);		
 			MPI_Gatherv(vNumIter, sendcountsPixels[idProc], MPI_INT, vNumIterTotal, sendcountsPixels, displsPixels, MPI_INT, root, MPI_COMM_WORLD);		
 			
 			if(configCrontrolFile.SaveSynthesisAdjusted)
 				MPI_Gatherv(vSpectraAdjustedSplit, sendcountsSpectro[idProc], MPI_FLOAT, vSpectraAjustedTotal, sendcountsSpectro, displsSpectro, MPI_FLOAT, root, MPI_COMM_WORLD);		
 				
-			MPI_Wait(&mpiRequestSpectro, MPI_STATUS_IGNORE);
-			MPI_Wait(&mpiRequestLambda, MPI_STATUS_IGNORE);		
+			//MPI_Wait(&mpiRequestSpectro, MPI_STATUS_IGNORE);
+			//MPI_Wait(&mpiRequestLambda, MPI_STATUS_IGNORE);		
 			
 			local_finish_gather = MPI_Wtime();
 			local_finish = MPI_Wtime();
@@ -887,7 +883,11 @@ int main(int argc, char **argv)
 				printf("\n TIME TO WRITE FITS IMAGE:  %f seconds to execute \n", timeWriteImage); 
 				// PROCESS FILE OF SYNTETIC PROFILES
 				if(configCrontrolFile.SaveSynthesisAdjusted){
-
+					fitsImage->pixels = calloc(fitsImage->numPixels, sizeof(vpixels));
+					for( i=0;i<fitsImage->numPixels;i++){
+						fitsImage->pixels[i].spectro = calloc ((fitsImage->numStokes*fitsImage->nLambdas),sizeof(float));
+						//image->pixels[i].vLambda = calloc (image->nLambdas, sizeof(float));
+					}		
 					for(indexPixel=0;indexPixel<numPixels;indexPixel++)
 					{	
 						int kk;
@@ -900,6 +900,16 @@ int main(int argc, char **argv)
 					if(!writeFitsImageProfiles(vOutputNameSynthesisAdjustedParallel[indexInputFits].name,vInputFileSpectraParalell[indexInputFits].name,fitsImage)){
 						printf("\n ERROR WRITING FILE OF SINTHETIC PROFILES: %s",vOutputNameSynthesisAdjustedParallel[indexInputFits].name);
 					}
+										
+
+					
+					for( i=0;i<fitsImage->numPixels;i++){
+						free(fitsImage->pixels[i].spectro);
+						fitsImage->pixels[i].spectro = NULL;
+						//image->pixels[i].vLambda = calloc (image->nLambdas, sizeof(float));
+					}							
+					free(fitsImage->pixels);
+					fitsImage->pixels = NULL;
 				}
 
 				free(resultsInitModelTotal);		
@@ -916,7 +926,6 @@ int main(int argc, char **argv)
 				if(configCrontrolFile.SaveSynthesisAdjusted)
 					free(vSpectraAdjustedSplit);
 				free(vSpectraSplit);
-				//free(vLambdaSplit);
 				free(resultsInitModel);				
 				free(vChisqrf);
 				free(vNumIter);
