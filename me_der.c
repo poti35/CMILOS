@@ -94,29 +94,6 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 	
 	Resetear_Valores_Intermedios(nlambda);
 
-	
-/*	for(j=0;j<numl;j++){
-		etai[j]=1.0;
-	}*/
-
-	//a radianes	
-/*	CC=PI/180.0;
-	AZI=AZI*CC;
-	GM=GM*CC;
-	sinis=sin(GM)*sin(GM);
-	cosis=cos(GM)*cos(GM);
-	cosi=cos(GM);
-	sina=sin(2*AZI);
-	cosa=cos(2*AZI);
-
-	sinda=cos(2*AZI)*2*CC;
-	cosda=-sin(2*AZI)*2*CC;
-	sindi=cos(GM)*sin(GM)*2*CC;
-	cosdi=-sin(GM)*CC;
-*/
-
-	//reserva de memoria para vectores auxiliares
-//    u=calloc(nlambda,sizeof(double));
     
     for(il=0;il<lineas;il++) {
 		//Line strength
@@ -129,11 +106,6 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 		shi_b=shi_b+nlambda*il*sizeof(REAL);
 		shi_r=shi_r+nlambda*il*sizeof(REAL);
 
-		
-//			Leer_Puntero_Calculos_Compartidos(3,&nubB,&nupB,&nurB);
-
-			
-
 		//central component					    					
 		funcionComponentFor(cuantic[il].N_PI,wlines[il+1],numl,cuantic[il].WEP,nupB,dfi,dshi,LD,A,0);
 
@@ -142,27 +114,6 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 
 		//red component
 		funcionComponentFor(cuantic[il].N_SIG,wlines[il+1],numl,cuantic[il].WER,nurB,dfi,dshi,LD,A,2);
-/*			free(nubB);
-		free(nurB);
-		free(nupB);*/
-		
-
-		
-
-//		Leer_Puntero_Calculos_Compartidos(3,&parcial1,&parcial2,&parcial3);
-
-//		Leer_Puntero_Calculos_Compartidos(7,&etain,&etaqn,&etaun,&etavn,&rhoqn,&rhoun,&rhovn);
-
-		//derivadas respecto de eta0 
-		/*for(i=0;i<numl;i++){
-			d_ei[i]=d_ei[i]+etain[i]/E0;
-			d_eq[i]=d_eq[i]+etaqn[i]/E0;
-			d_eu[i]=d_eu[i]+etaun[i]/E0;
-			d_ev[i]=d_ev[i]+etavn[i]/E0;
-			d_rq[i]=d_rq[i]+rhoqn[i]/E0;
-			d_ru[i]=d_ru[i]+rhoun[i]/E0;
-			d_rv[i]=d_rv[i]+rhovn[i]/E0;
-		}*/
 
 		for(i=0;i<numl;i++){
 			d_ei[i]=d_ei[i]+etain[i]/E0;

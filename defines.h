@@ -13,10 +13,26 @@
 #ifdef USE_DOUBLE_PRECISION
 
 #define REAL double
+#define SQRT(x)	sqrt(x)
+#define SIN(x)	sin(x)
+#define COS(x)	cos(x)
+#define TAN(x)	tan(x)
+#define ATAN(x)	atan(x)
+#define ATAN2(x,y) atan2(x,y)
+#define FABS(x)	fabs(x)
+
 
 #else
 
 #define REAL float
+#define SQRT(x) sqrtf(x)
+#define SIN(x) sinf(x)
+#define COS(x) cosf(x)
+#define TAN(x) tanf(x)
+#define ATAN(x) atanf(x)
+#define ATAN2(x,y) atan2f(x,y)
+#define FABS(x) fabsf(x)
+
 
 #endif /* USE_DOUBLE_PRECISION */
 

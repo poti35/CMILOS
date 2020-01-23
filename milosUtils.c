@@ -388,7 +388,7 @@ int mil_svd(PRECISION *h, PRECISION *beta, PRECISION *delta)
 
 	for (i = 0; i < NTERMS; i++)
 	{
-      aux2[i]= aux2[i]*((fabs(waux[i]) > epsilon) ? (1/waux[i]): 0.0);
+      aux2[i]= aux2[i]*((FABS(waux[i]) > epsilon) ? (1/waux[i]): 0.0);
 	}
 
 	multmatrix(vaux, NTERMS, NTERMS, aux2, NTERMS, 1, delta, &aux_nf, &aux_nc);
@@ -476,7 +476,7 @@ void estimacionesClasicas(PRECISION lambda_0, PRECISION *lambda, int nlambda, fl
 	}
 
 	//Para evitar nan
-	if (fabs(y) > 1e-15)
+	if (FABS(y) > 1e-15)
 		LM_lambda_plus = x / y;
 	else
 		LM_lambda_plus = 0;
@@ -490,7 +490,7 @@ void estimacionesClasicas(PRECISION lambda_0, PRECISION *lambda, int nlambda, fl
 		y = y + aux;
 	}
 
-	if (fabs(y) > 1e-15)
+	if (FABS(y) > 1e-15)
 		LM_lambda_minus = x / y;
 	else
 		LM_lambda_minus = 0;
@@ -520,19 +520,19 @@ void estimacionesClasicas(PRECISION lambda_0, PRECISION *lambda, int nlambda, fl
 	y = 0;
 	for (i = 0; i < nlambda - 1; i++)
 	{
-		L = fabs(sqrtf(spectroQ[i] * spectroQ[i] + spectroU[i] * spectroU[i]));
-		m = fabs((4 * (lambda_aux[i] - lambda_0) * L)); // / (3*C*Blos) ); //2*3*C*Blos mod abril 2016 (en test!)
+		L = FABS(SQRT(spectroQ[i] * spectroQ[i] + spectroU[i] * spectroU[i]));
+		m = FABS((4 * (lambda_aux[i] - lambda_0) * L)); // / (3*C*Blos) ); //2*3*C*Blos mod abril 2016 (en test!)
 
-		x = x + fabs(spectroV[i]) * m;
-		y = y + fabs(spectroV[i]) * fabs(spectroV[i]);
+		x = x + FABS(spectroV[i]) * m;
+		y = y + FABS(spectroV[i]) * FABS(spectroV[i]);
 
 	}
 
-	y = y * fabs((3 * C * Blos));
+	y = y * FABS((3 * C * Blos));
 
-	tan_gamma = fabs(sqrtf(x / y));
+	tan_gamma = FABS(SQRT(x / y));
 
-	gamma_rad = atan(tan_gamma); //gamma en radianes
+	gamma_rad = ATAN(tan_gamma); //gamma en radianes
 
 	gamma = gamma_rad * (180 / PI); //gamma en grados
 
@@ -555,7 +555,7 @@ void estimacionesClasicas(PRECISION lambda_0, PRECISION *lambda, int nlambda, fl
 
 	tan2phi = spectroU[muestra] / spectroQ[muestra];
 
-	phi = (atan(tan2phi) * 180 / PI) / 2; //atan con paso a grados
+	phi = (ATAN(tan2phi) * 180 / PI) / 2; //atan con paso a grados
 
 	if (spectroU[muestra] > 0 && spectroQ[muestra] > 0)
 		phi = phi;
@@ -568,7 +568,7 @@ void estimacionesClasicas(PRECISION lambda_0, PRECISION *lambda, int nlambda, fl
 
 	PRECISION B_aux;
 
-	B_aux = fabs(Blos / cos(gamma_rad)) * 2; // 2 factor de corrección
+	B_aux = FABS(Blos / COS(gamma_rad)) * 2; // 2 factor de corrección
 
 	//Vlos = Vlos * 1.5;
 	if (Vlos < (-20))
@@ -786,7 +786,7 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 		//printf("\n CHISQR EN LA ITERACION %d,: %e",*iter,chisqr);
 		
 		/**************************************************************************/
-		if ((fabs((ochisqr-chisqr)*100/chisqr) < toplim) || (chisqr < 0.0001)) // condition to exit of the loop 
+		if ((FABS((ochisqr-chisqr)*100/chisqr) < toplim) || (chisqr < 0.0001)) // condition to exit of the loop 
 			clanda = 1;		
 		if (chisqr - ochisqr < 0.)
 		{

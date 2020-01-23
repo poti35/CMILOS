@@ -119,13 +119,13 @@ int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISIO
 	AZI=AZI*CC;
 	GM=GM*CC;
 
-	sin_gm=sin(GM);
+	sin_gm=SIN(GM);
 	cosi=cos(GM);
 	sinis=sin_gm*sin_gm;
 	cosis=cosi*cosi;
 	cosis_2=(1+cosis)/2;
 	azi_2=2*AZI;
-	sina=sin(azi_2);
+	sina=SIN(azi_2);
 	cosa=cos(azi_2);
 	
 
