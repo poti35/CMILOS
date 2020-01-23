@@ -60,10 +60,11 @@ void direct_convolution(REAL *x, int nx, REAL *h, int nh, PRECISION delta)
 		{
 			x[k] += h[j] * dirConvPar[j + k];
 		}
-		x[k] *= delta;
+		//x[k] *= delta;
 	}
 
 }
+
 
 /*void direct_convolution(REAL *x, int nx, REAL *h, int nh, PRECISION delta)
 {

@@ -232,18 +232,18 @@ int main(int argc, char **argv)
 	// MACROTURBULENCE PLANS
 	inFilterMAC = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
 	outFilterMAC = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
-	planFilterMAC = fftw_plan_dft_1d(numln, inFilterMAC, outFilterMAC, FFT_FORWARD, FFTW_EXHAUSTIVE);
+	planFilterMAC = fftw_plan_dft_1d(numln, inFilterMAC, outFilterMAC, FFT_FORWARD, FFTW_MEASURE );
 	inFilterMAC_DERIV = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
 	outFilterMAC_DERIV = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
-	planFilterMAC_DERIV = fftw_plan_dft_1d(numln, inFilterMAC_DERIV, outFilterMAC_DERIV, FFT_FORWARD, FFTW_EXHAUSTIVE);
+	planFilterMAC_DERIV = fftw_plan_dft_1d(numln, inFilterMAC_DERIV, outFilterMAC_DERIV, FFT_FORWARD, FFTW_MEASURE );
 
 
 	inSpectraFwMAC = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
 	outSpectraFwMAC = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
-	planForwardMAC = fftw_plan_dft_1d(numln, inSpectraFwMAC, outSpectraFwMAC, FFT_FORWARD, FFTW_EXHAUSTIVE);
+	planForwardMAC = fftw_plan_dft_1d(numln, inSpectraFwMAC, outSpectraFwMAC, FFT_FORWARD, FFTW_MEASURE );
 	inSpectraBwMAC = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
 	outSpectraBwMAC = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);		
-	planBackwardMAC = fftw_plan_dft_1d(numln, inSpectraBwMAC, outSpectraBwMAC, FFT_BACKWARD, FFTW_EXHAUSTIVE);
+	planBackwardMAC = fftw_plan_dft_1d(numln, inSpectraBwMAC, outSpectraBwMAC, FFT_BACKWARD, FFTW_MEASURE );
 
 	// ********************************************* IF PSF HAS BEEN SELECTEC IN TROL READ PSF FILE OR CREATE GAUSSIAN FILTER ***********//
 	if(configCrontrolFile.ConvolveWithPSF){
@@ -292,10 +292,10 @@ int main(int argc, char **argv)
 		//PSF FILTER PLANS 
 		inSpectraFwPSF = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
 		outSpectraFwPSF = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
-		planForwardPSF = fftw_plan_dft_1d(numln, inSpectraFwPSF, outSpectraFwPSF, FFT_FORWARD, FFTW_EXHAUSTIVE);
+		planForwardPSF = fftw_plan_dft_1d(numln, inSpectraFwPSF, outSpectraFwPSF, FFT_FORWARD, FFTW_MEASURE );
 		inSpectraBwPSF = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
 		outSpectraBwPSF = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);		
-		planBackwardPSF = fftw_plan_dft_1d(numln, inSpectraBwPSF, outSpectraBwPSF, FFT_BACKWARD, FFTW_EXHAUSTIVE);
+		planBackwardPSF = fftw_plan_dft_1d(numln, inSpectraBwPSF, outSpectraBwPSF, FFT_BACKWARD, FFTW_MEASURE );
 
 		fftw_complex * in = (fftw_complex *)fftw_malloc(sizeof(fftw_complex) * numln);
 		int i;
@@ -304,7 +304,7 @@ int main(int argc, char **argv)
 			in[i] = G[i] + 0 * _Complex_I;
 		}
 		fftw_G_PSF = (fftw_complex *)fftw_malloc(sizeof(fftw_complex) * numln);
-		fftw_plan p = fftw_plan_dft_1d(numln, in, fftw_G_PSF, FFT_FORWARD, FFTW_ESTIMATE);
+		fftw_plan p = fftw_plan_dft_1d(numln, in, fftw_G_PSF, FFT_FORWARD, FFTW_MEASURE );
 		fftw_execute(p);
 		for (i = 0; i < numln; i++)
 		{
@@ -315,18 +315,18 @@ int main(int argc, char **argv)
 		
 		inPSF_MAC = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
 		fftw_G_MAC_PSF = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
-		planForwardPSF_MAC = fftw_plan_dft_1d(numln, inPSF_MAC, fftw_G_MAC_PSF, FFT_FORWARD, FFTW_EXHAUSTIVE);
+		planForwardPSF_MAC = fftw_plan_dft_1d(numln, inPSF_MAC, fftw_G_MAC_PSF, FFT_FORWARD, FFTW_MEASURE );
 		inMulMacPSF = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
 		outConvFilters = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
-		planBackwardPSF_MAC = fftw_plan_dft_1d(numln, inMulMacPSF, outConvFilters, FFT_BACKWARD, FFTW_EXHAUSTIVE);
+		planBackwardPSF_MAC = fftw_plan_dft_1d(numln, inMulMacPSF, outConvFilters, FFT_BACKWARD, FFTW_MEASURE );
 
 
 		inPSF_MAC_DERIV = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
 		fftw_G_MAC_DERIV_PSF = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
-		planForwardPSF_MAC_DERIV = fftw_plan_dft_1d(numln, inPSF_MAC_DERIV, fftw_G_MAC_DERIV_PSF, FFT_FORWARD, FFTW_EXHAUSTIVE);
+		planForwardPSF_MAC_DERIV = fftw_plan_dft_1d(numln, inPSF_MAC_DERIV, fftw_G_MAC_DERIV_PSF, FFT_FORWARD, FFTW_MEASURE );
 		inMulMacPSFDeriv = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
 		outConvFiltersDeriv = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
-		planBackwardPSF_MAC_DERIV = fftw_plan_dft_1d(numln, inMulMacPSFDeriv, outConvFiltersDeriv, FFT_BACKWARD, FFTW_EXHAUSTIVE);			
+		planBackwardPSF_MAC_DERIV = fftw_plan_dft_1d(numln, inMulMacPSFDeriv, outConvFiltersDeriv, FFT_BACKWARD, FFTW_MEASURE );			
 
 	}		
 

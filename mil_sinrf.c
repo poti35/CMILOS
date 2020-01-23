@@ -425,10 +425,10 @@ int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISIO
 			}
 		}
 
-
-
+		
+		/*
 		//convolucion de I
-		/*REAL Ic = spectra[nlambda - 1];
+		REAL Ic = spectra[nlambda - 1];
 
 		for (i = 0; i < nlambda; i++)
 			spectra[i] = Ic - spectra[i];
