@@ -3,7 +3,7 @@ CC=mpicc
 CFLAGS=
 CFLAGS+=-O3 
 CFLAGS+=-g 
-CFLAGS+=-D USE_DOUBLE_PRECISION=double
+#CFLAGS+=-D USE_DOUBLE_PRECISION=double
 #CFLAGS+=-ffast-math
 CFLAGS+=-fno-omit-frame-pointer
 #CFLAGS+=-Wall -Wextra

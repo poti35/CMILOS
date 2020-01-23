@@ -4,22 +4,9 @@
  * 
  */
 
-int covarm(REAL *w,REAL *sig,float *spectro,int nspectro,REAL *spectra,REAL  *d_spectra,PRECISION *beta,PRECISION *alpha);
+int covarm(REAL *w,REAL *sig,float *spectro,int nspectro,REAL *spectra,REAL  *d_spectra,REAL *beta,REAL *alpha);
 
 
-
-/**
- * 
- */
-PRECISION *totalParcial(PRECISION * A, int f,int c,int dire);
-/**
- * 
- */
-PRECISION *totalParcialMatrix(PRECISION * A, int f,int c,int p);
-/**
- * 
- */
-PRECISION total(PRECISION * A, int f,int c);
 /**
  * 
  */
@@ -42,11 +29,11 @@ int multmatrixIDLValue(REAL *a,int naf,int nac,REAL *b,int nbf,int nbc,REAL *res
 /**
  * 
  */
-void totalParcialMatrixf(REAL * A, int f,int c,int p,PRECISION *result);
+void totalParcialMatrixf(REAL * A, int f,int c,int p,REAL *result);
 /**
  * 
  */
-void totalParcialf(REAL * A, int f,int c,PRECISION * result);
+void totalParcialf(REAL * A, int f,int c,REAL * result);
 /**
  * 
  */

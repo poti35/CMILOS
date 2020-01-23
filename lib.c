@@ -30,16 +30,13 @@ return
 
 */
 
-int covarm(REAL *w,REAL *sig,float *spectro,int nspectro,REAL *spectra,REAL  *d_spectra,PRECISION *beta,PRECISION *alpha){	
+int covarm(REAL *w,REAL *sig,float *spectro,int nspectro,REAL *spectra,REAL  *d_spectra,REAL *beta,REAL *alpha){	
 	
 	int j,i,bt_nf,bt_nc,aux_nf,aux_nc;
-	//static PRECISION AP[NTERMS*NTERMS*NPARMS],BT[NPARMS*NTERMS];
-	//PRECISION opa[nspectro];
+
 	
 	REAL *BTaux,*APaux;
 	REAL auxWeight;
-	//PRECISION *opa;
-	//opa = calloc(nspectro,sizeof(PRECISION));
 	//printf("\nVALORES DEL SIGMA SQUARE\n");
 
 	for(j=0;j<NPARMS;j++){
@@ -118,10 +115,6 @@ int multmatrixIDLValue(REAL *a,int naf,int nac,REAL *b,int nbf,int nbc,REAL *res
 	if(naf==nbc){
 		(*fil)=nbf;
 		(*col)=nac;
-		
-//		free(*result);
-//		result=calloc((nbf)*(nac),sizeof(PRECISION));
-//		printf("a ver ..\n");
 
 		for ( i = 0; i < nbf; i++){
 		    for ( j = 0; j < nac; j++){
@@ -142,33 +135,9 @@ int multmatrixIDLValue(REAL *a,int naf,int nac,REAL *b,int nbf,int nbc,REAL *res
 }
 
 
-/*
-	dire:
-		1: suma por filas, return PRECISION * de tam f
-		2: suma por columnas, return PRECISION * de tam c
-*/
-
-PRECISION *totalParcial(PRECISION * A, int f,int c,int dire){
+void totalParcialf(REAL * A, int f,int c,REAL * result){
 
 	int i,j;
-//	PRECISION 	sum;
-	PRECISION *result;	
-	result=calloc(dire==1?f:c,sizeof(PRECISION));
-
-	for(i=0;i<f;i++)
-		for(j=0;j<c;j++){
-			result[(dire==1)?i:j]+=A[i*c+j];
-		}
-
-	return result;
-}
-
-void totalParcialf(REAL * A, int f,int c,PRECISION * result){
-
-	int i,j;
-//	PRECISION 	sum;
-
-//	result=calloc(dire==1?f:c,sizeof(PRECISION));
 	
 	for(i=0;i<c;i++){
 		result[i]=0;
@@ -179,32 +148,9 @@ void totalParcialf(REAL * A, int f,int c,PRECISION * result){
 }
 
 
-/*
-return matriz de tam f*c
-*/
-
-PRECISION *totalParcialMatrix(PRECISION * A, int f,int c,int p){
+void totalParcialMatrixf(REAL * A, int f,int c,int p,REAL *result){
 
 	int i,j,k;
-//	PRECISION 	sum;
-	PRECISION *result;	
-	result=calloc(f*c,sizeof(PRECISION));
-
-	for(i=0;i<f;i++)
-		for(j=0;j<c;j++){
-			for(k=0;k<p;k++)
-				result[i*c+j]+=A[i*c+j+f*c*k];
-		}
-
-	return result;
-}
-
-void totalParcialMatrixf(REAL * A, int f,int c,int p,PRECISION *result){
-
-	int i,j,k;
-//	PRECISION 	sum;
-//	PRECISION *result;	
-//	result=calloc(f*c,sizeof(PRECISION));
 
 	for(i=0;i<f;i++)
 		for(j=0;j<c;j++){
@@ -215,21 +161,6 @@ void totalParcialMatrixf(REAL * A, int f,int c,int p,PRECISION *result){
 
 //	return result;
 }
-
-
-PRECISION total(PRECISION * A, int f,int c){
-
-	int i,j;
-	PRECISION 	sum;
-	sum=0;
-	for(i=0;i<f;i++)
-		for(j=0;j<c;j++)
-			sum+=A[i*c+j];
-
-	return sum;
-}
-
-
 
 /*
 	Multiplica la matriz a (tamaño naf,nac)

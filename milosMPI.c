@@ -66,7 +66,7 @@ REAL **FGlobalInicial;
 
 //PRECISION *G,*GMAC;
 PRECISION *GMAC;
-REAL *G;
+REAL *G, *dirConvPar;
 
 REAL AP[NTERMS*NTERMS*NPARMS],BT[NPARMS*NTERMS];
 REAL * opa;
@@ -572,7 +572,6 @@ int main(int argc, char **argv)
 					imageStokesAdjust->pixels = calloc(imageStokesAdjust->numPixels, sizeof(vpixels));
 					for( i=0;i<imageStokesAdjust->numPixels;i++){
 						imageStokesAdjust->pixels[i].spectro = calloc (nlambda*NPARMS,sizeof(float));
-						imageStokesAdjust->pixels[i].nLambda = nlambda;
 					}
 				}
 
@@ -620,8 +619,6 @@ int main(int argc, char **argv)
 						else 
 							slightPixel = slight+nlambda*indexPixel;
 					}
-					/*lm_mils(cuantic, wlines, fitsImage->pixels[indexPixel].vLambda, fitsImage->pixels[indexPixel].nLambda, fitsImage->pixels[indexPixel].spectro, fitsImage->pixels[indexPixel].nLambda, &initModel, spectra, &vChisqrf[indexPixel], slightPixel, configCrontrolFile.toplim, configCrontrolFile.NumberOfCycles,
-							configCrontrolFile.WeightForStokes, configCrontrolFile.fix, configCrontrolFile.sigma, configCrontrolFile.InitialDiagonalElement,&configCrontrolFile.ConvolveWithPSF,&vNumIter[indexPixel]);						*/
 					lm_mils(cuantic, wlines, vGlobalLambda, nlambda, fitsImage->pixels[indexPixel].spectro, nlambda, &initModel, spectra, &vChisqrf[indexPixel], slightPixel, configCrontrolFile.toplim, configCrontrolFile.NumberOfCycles,
 							configCrontrolFile.WeightForStokes, configCrontrolFile.fix, configCrontrolFile.sigma, configCrontrolFile.InitialDiagonalElement,&configCrontrolFile.ConvolveWithPSF,&vNumIter[indexPixel]);						
 
@@ -641,10 +638,15 @@ int main(int argc, char **argv)
 				
 				timeReadImage = ((PRECISION)t)/CLOCKS_PER_SEC; // in seconds 
 				
+				printf("\n************************************************************************************************************************\n");
+				printf(" \n IDPROC: %d --> IMAGE INVERSION FOR IMAGE %s ¡¡¡DONE!!!. TIME: %f *********************\n", idProc, vInputFileSpectraLocal[indexInputFits].name,timeReadImage);
+				printf("\n************************************************************************************************************************\n");
+
+				clock_t t_write = clock();
 				if(!writeFitsImageModels(vOutputNameModelsLocal[indexInputFits].name,fitsImage->rows,fitsImage->cols,vModels,vChisqrf,vNumIter,configCrontrolFile.saveChisqr)){
 					printf("\n ERROR WRITING FILE OF MODELS: %s",vOutputNameModelsLocal[indexInputFits].name);
 				}
-
+				
 				// PROCESS FILE OF SYNTETIC PROFILES
 
 				if(configCrontrolFile.SaveSynthesisAdjusted){
@@ -653,6 +655,12 @@ int main(int argc, char **argv)
 						printf("\n ERROR WRITING FILE OF SINTHETIC PROFILES: %s",vOutputNameSynthesisAdjustedLocal[indexInputFits].name);
 					}
 				}
+				t_write = clock() - t_write;
+				timeReadImage = ((PRECISION)t_write)/CLOCKS_PER_SEC; // in seconds 
+				
+				printf("\n************************************************************************************************************************\n");
+				printf(" \n IDPROC: %d --> TIME TO WRITE OUTPUT FILES %s . TIME: %f *********************\n", idProc, vInputFileSpectraLocal[indexInputFits].name,timeReadImage);
+				printf("\n************************************************************************************************************************\n");				
 				if(imageStokesAdjust!=NULL){
 					for( i=0;i<imageStokesAdjust->numPixels;i++){
 						free(imageStokesAdjust->pixels[i].spectro);
@@ -664,9 +672,7 @@ int main(int argc, char **argv)
 				free(vChisqrf);
 				free(vNumIter);
 
-				printf("\n************************************************************************************************************************\n");
-				printf(" \n IDPROC: %d --> IMAGE INVERSION FOR IMAGE %s ¡¡¡DONE!!!. TIME: %f *********************\n", idProc, vInputFileSpectraLocal[indexInputFits].name,timeReadImage);
-				printf("\n************************************************************************************************************************\n");
+
 			}
 			else{
 				printf("\n\n IDPROC: %d --> FITS FILE: %s WITH THE SPECTRO IMAGE CAN NOT BE READ IT ******************************\n",idProc, vInputFileSpectraLocal[indexInputFits].name);

@@ -120,13 +120,13 @@ int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISIO
 	GM=GM*CC;
 
 	sin_gm=SIN(GM);
-	cosi=cos(GM);
+	cosi=COS(GM);
 	sinis=sin_gm*sin_gm;
 	cosis=cosi*cosi;
 	cosis_2=(1+cosis)/2;
 	azi_2=2*AZI;
 	sina=SIN(azi_2);
-	cosa=cos(azi_2);
+	cosa=COS(azi_2);
 	
 
 	sinda=cosa*CC_2;
@@ -424,6 +424,24 @@ int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISIO
 				spectra[ishift+i*(numl)]=creal(outSpectraBwPSF[j])*(numl);
 			}
 		}
+
+
+
+		//convolucion de I
+		/*REAL Ic = spectra[nlambda - 1];
+
+		for (i = 0; i < nlambda; i++)
+			spectra[i] = Ic - spectra[i];
+
+		direct_convolution(spectra, nlambda, G, nlambda, 1); //no convolucionamos el ultimo valor Ic
+
+		for (i = 0; i < nlambda; i++)
+			spectra[i] = Ic - spectra[i];
+
+		//convolucion QUV
+		for (i = 1; i < NPARMS; i++)
+			direct_convolution(spectra + nlambda * i, nlambda, G, nlambda, 1); //no convolucionamos el ultimo valor
+		*/
 		//spectral_synthesis_convolution(&nlambda);
 	}
 

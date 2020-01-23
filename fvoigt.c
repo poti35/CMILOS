@@ -3,12 +3,11 @@
 #include "defines.h"
 extern REAL _Complex  *z,* zden, * zdiv;
 //pro fvoigt,damp,vv,h,f
-//int fvoigt(PRECISION damp, PRECISION *vv, int nvv, PRECISION *h, PRECISION *f)
 int fvoigt(PRECISION damp, REAL *vv, int nvv, REAL *h, REAL *f)
 {
 
 	int i, j;
-	//	PRECISION *f,*h;
+
 	static REAL a[] = {122.607931777104326, 214.382388694706425, 181.928533092181549,
 									93.155580458138441, 30.180142196210589, 5.912626209773153,
 									0.564189583562615};
@@ -21,7 +20,7 @@ int fvoigt(PRECISION damp, REAL *vv, int nvv, REAL *h, REAL *f)
 
 	for (i = 0; i < nvv; i++)
 	{
-		z[i] = damp - fabs(vv[i]) * _Complex_I;
+		z[i] = damp - FABS(vv[i]) * _Complex_I;
 	}
 
 	//
@@ -60,12 +59,12 @@ int fvoigt(PRECISION damp, REAL *vv, int nvv, REAL *h, REAL *f)
 
 	for (i = 0; i < nvv; i++)
 	{
-		h[i] = crealf(z[i]);
+		h[i] = CREAL(z[i]);
 	}
 
 	for (i = 0; i < nvv; i++)
 	{
-		f[i] = vv[i] >= 0 ? (REAL)cimagf(z[i]) * 0.5 : (REAL)cimagf(z[i]) * -0.5;
+		f[i] = vv[i] >= 0 ? (REAL)CIMAG(z[i]) * 0.5 : (REAL)CIMAG(z[i]) * -0.5;
 	}
 
 	return 1;

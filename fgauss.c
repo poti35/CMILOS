@@ -19,7 +19,6 @@ PRECISION * fgauss(PRECISION MC, PRECISION *eje, int neje, PRECISION landa, int 
 	PRECISION centro;
 	PRECISION ild;
 	PRECISION term[neje];
-	//PRECISION *term, *loai;
 	int i;
 	PRECISION cte;
 

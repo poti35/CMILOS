@@ -28,7 +28,7 @@ extern PRECISION *GMAC;
 extern Cuantic *cuantic;
 
 extern REAL * opa;
-
+extern REAL *dirConvPar;
 extern REAL _Complex  *z,* zden, * zdiv;
 
 void InitializePointerShareCalculation()
@@ -132,6 +132,7 @@ void AllocateMemoryDerivedSynthesis(int numl)
 
 
 	GMAC = calloc(numl, sizeof(PRECISION));
+	dirConvPar = calloc((numl+numl)+1,sizeof(REAL));
 
 	spectra = calloc(numl * NPARMS, sizeof(REAL));
 	spectra_mac = calloc(numl * NPARMS, sizeof(REAL));
@@ -276,6 +277,8 @@ void FreeMemoryDerivedSynthesis()
 	free(dshi);
 
 	free(GMAC);
+	free(dirConvPar);
+
 	free(opa);
 	free(spectra);
 	free(spectra_mac);

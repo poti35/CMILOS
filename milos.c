@@ -81,8 +81,7 @@ REAL **FGlobalInicial;
 
 //PRECISION *G, *GMAC;
 PRECISION *GMAC;
-REAL * G;
-
+REAL * G, *dirConvPar;
 
 
 REAL AP[NTERMS*NTERMS*NPARMS],BT[NPARMS*NTERMS];
@@ -154,8 +153,6 @@ int main(int argc, char **argv)
     FitsImage * fitsImage;
 	PRECISION  dat[7];
 
-	/*int fftw_init_threads(void);
-	fftw_plan_with_nthreads(6);*/
 	/********************* Read data input from file ******************************/
 
 	/* Read data input from file */
@@ -675,12 +672,8 @@ int main(int argc, char **argv)
 					imageStokesAdjust->pos_stokes_parameters = fitsImage->pos_stokes_parameters;
 					imageStokesAdjust->numPixels = fitsImage->numPixels;
 					imageStokesAdjust->pixels = calloc(imageStokesAdjust->numPixels, sizeof(vpixels));
-					//imageStokesAdjust->vLambdaImagen = calloc(imageStokesAdjust->numPixels*imageStokesAdjust->nLambdas, sizeof(PRECISION));
-					//imageStokesAdjust->spectroImagen = calloc(imageStokesAdjust->numPixels*imageStokesAdjust->nLambdas*imageStokesAdjust->numStokes, sizeof(PRECISION));
 					for( i=0;i<imageStokesAdjust->numPixels;i++){
 						imageStokesAdjust->pixels[i].spectro = calloc ((imageStokesAdjust->numStokes*imageStokesAdjust->nLambdas),sizeof(float));
-						//imageStokesAdjust->pixels[i].vLambda = calloc (imageStokesAdjust->nLambdas, sizeof(PRECISION));
-						//imageStokesAdjust->pixels[i].nLambda = imageStokesAdjust->nLambdas;
 					}
 				}				
 				// check if read stray light

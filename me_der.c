@@ -655,6 +655,15 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 			}
 		}
 
+		/*for (j = 0; j < NPARMS; j++)
+		{
+			for (i = 0; i < NTERMS; i++)
+			{
+				if (i != 7)																															 //no convolucionamos S0
+					direct_convolution(d_spectra + nlambda * i + nlambda * NTERMS * j, nlambda, G, nlambda, 1); //no convolucionamos el ultimo valor
+			}
+		}*/
+
 		//response_functions_convolution(&nlambda);
 	}
 	ResetPointerShareCalculation();

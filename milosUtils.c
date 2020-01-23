@@ -314,7 +314,6 @@ int mil_svd(PRECISION *h, PRECISION *beta, PRECISION *delta)
 	
 	PRECISION *v, *w;
 	int i, j;
-	//	static PRECISION aux2[NTERMS*NTERMS];
 	static PRECISION aux2[NTERMS];
 	int aux_nf, aux_nc;
 	
@@ -330,39 +329,6 @@ int mil_svd(PRECISION *h, PRECISION *beta, PRECISION *delta)
 		h1[j] = h[j];
 	}
 
-	
-	//********************* USING SVD 
-	//svdcmp(h1, NTERMS, NTERMS, w, v);
-
-	//******************** USING DIVIDE AND CONQUER
-	// TRY USE LAPACKE_dsyevd to calculate eigenvalues and eigenvectors 
-	/*MKL_INT n = NTERMS, lda = NTERMS, info;
-		// Solve eigenproblem 
-	info = LAPACKE_dsyevd( LAPACK_ROW_MAJOR, 'V', 'U', n, h1, lda, w );
-		// Check for convergence 
-	if( info > 0 ) {
-		printf( "The algorithm failed to compute eigenvalues.\n" );
-		exit( 1 );
-	}
-	*/
-
-	//******************** USING Relatively Robust Representations 
-	/*int LDA, LDZ , N;
-	LDA = LDZ = N = NTERMS;
-	MKL_INT n = N, il, iu, m, lda = LDA, ldz = LDZ, info;
-	PRECISION abstol, vl, vu;
-	MKL_INT isuppz [2*N];
-	PRECISION w3[N], z[LDZ*N];
-	abstol = -1.0;
-	printf("\n tamaños n %d, m %d , lda %d, ldz %d, abstol %lf \n",n,m,lda,ldz,abstol );
-	printf("\n ****\n");
-	LAPACKE_dsyevr( LAPACK_ROW_MAJOR, 'V', 'A', 'U', n, h1, lda, vl, vu, il, iu, abstol, &m, w3, z, ldz, isuppz );
-	//info = LAPACKE_dsyev( LAPACK_ROW_MAJOR, 'V', 'U', n, h1, lda, w );
-	printf("\n realizado\n");
-	printf("\n**************");*/
-
-
-	//********************* USING GSL ************************/
 	gsl_matrix_view gsl_h1 = gsl_matrix_view_array (h1, NTERMS, NTERMS);
 	gsl_eigen_symmv_workspace * workspace = gsl_eigen_symmv_alloc (NTERMS);
 	gsl_eigen_symmv(&gsl_h1.matrix, eval, evec, workspace);
@@ -370,30 +336,14 @@ int mil_svd(PRECISION *h, PRECISION *beta, PRECISION *delta)
 	w = gsl_vector_ptr(eval,0);
 	v = gsl_matrix_ptr(evec,0,0);
 
-
-	static PRECISION vaux[NTERMS * NTERMS], waux[NTERMS];
-
-	for (j = 0; j < NTERMS * NTERMS; j++)
-	{
-		vaux[j] = v[j]; 
-	}
-
-	for (j = 0; j < NTERMS; j++)
-	{
-		waux[j] = w[j]; 
-	}
-
-	//multmatrixCblas(beta, 1, NTERMS, vaux, NTERMS, NTERMS, aux2, &aux_nf, &aux_nc);
-	multmatrix(beta, 1, NTERMS, vaux, NTERMS, NTERMS, aux2, &aux_nf, &aux_nc);
+	multmatrix(beta, 1, NTERMS, v, NTERMS, NTERMS, aux2, &aux_nf, &aux_nc);
 
 	for (i = 0; i < NTERMS; i++)
 	{
-      aux2[i]= aux2[i]*((FABS(waux[i]) > epsilon) ? (1/waux[i]): 0.0);
+		aux2[i]= aux2[i]*((fabs(w[i]) > epsilon) ? (1/w[i]): 0.0);
 	}
 
-	multmatrix(vaux, NTERMS, NTERMS, aux2, NTERMS, 1, delta, &aux_nf, &aux_nc);
-	//multmatrixCblas(vaux, NTERMS, NTERMS, aux2, NTERMS, 1, delta, &aux_nf, &aux_nc);
-
+	multmatrix(v, NTERMS, NTERMS, aux2, NTERMS, 1, delta, &aux_nf, &aux_nc);
 	
 	gsl_vector_free(eval);
 	gsl_matrix_free(evec);
@@ -612,7 +562,7 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 	
 	int iter_chisqr_same;
 	REAL flambda;
-	static PRECISION beta[NTERMS], alpha[NTERMS * NTERMS];
+	static REAL beta[NTERMS], alpha[NTERMS * NTERMS];
 	REAL chisqr, ochisqr;
 	int clanda, ind;
 	Init_Model model;
@@ -629,7 +579,8 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 
 	if (fix == NULL)
 	{
-		fixed = calloc(NTERMS, sizeof(PRECISION));
+		static int fixed_static[NTERMS];
+		fixed  = fixed_static;
 		for (i = 0; i < NTERMS; i++)
 		{
 			fixed[i] = 1;
@@ -651,64 +602,18 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 	mil_sinrf(cuantic, initModel, wlines, lambda, nlambda, spectra, AH,slight,spectra_mac, *INSTRUMENTAL_CONVOLUTION);
 	me_der(cuantic, initModel, wlines, lambda, nlambda, d_spectra, spectra_mac, spectra,AH, slight, 0,*INSTRUMENTAL_CONVOLUTION);
 
-	/*mil_sinrf(cuantic, initModel, wlines, lambda, nlambda, spectra, AH,NULL,spectra_mac, 0);
-	me_der(cuantic, initModel, wlines, lambda, nlambda, d_spectra, spectra_mac, AH, slight,0,0);	
-	if(*INSTRUMENTAL_CONVOLUTION){
-		spectral_synthesis_convolution(&nlambda);
-		response_functions_convolution(&nlambda);
-	}*/
-
-
-	/*if(slight!=NULL){
-		AplicaSlight(d_spectra,nlambda,initModel->alfa,slight);
-	}*/
-	//convolucionamos los perfiles IQUV (spectra) y convolucionamos las funciones respuesta ( d_spectra )
-	
-
-	/*printf("\nVALORES DE LAS FUNCIONES RESPUESTA MACROTURBULENCIA \n");
-	int number_parametros = 0;
-	for (number_parametros = 0; number_parametros < NTERMS; number_parametros++)
-	{
-		if(number_parametros==9){
-			printf("\n FUNCION RESPUESTA: %d \n",number_parametros);
-			for (int kk = 0; kk < nlambda; kk++)
-			{
-				printf("1\t%lf\t%le\t%le\t%le\t%le\n", lambda[kk],
-				d_spectra[kk + nlambda * number_parametros],
-				d_spectra[kk + nlambda * number_parametros + nlambda * NTERMS],
-				d_spectra[kk + nlambda * number_parametros + nlambda * NTERMS * 2],
-				d_spectra[kk + nlambda * number_parametros + nlambda * NTERMS * 3]);
-			}
-		}
-	}
-	printf("\n");	
-
-	printf("\n valores de spectro sintetizado INICIAL\n");
-	for (int kk = 0; kk < nlambda; kk++)
-	{
-		printf("1\t%f\t%le\t%le\t%le\t%le\n", lambda[kk], spectra[kk], spectra[kk + nlambda], spectra[kk + nlambda * 2], spectra[kk + nlambda * 3]);
-	}*/
-
 	FijaACeroDerivadasNoNecesarias(d_spectra,fixed,nlambda);
 	covarm(weight, sigma, spectro, nlambda, spectra, d_spectra, beta, alpha);
-	//covarm(weight, sigmaTemp, spectro, nlambda, spectra, d_spectra, beta, alpha);
 
 	for (i = 0; i < NTERMS; i++)
 		betad[i] = beta[i];
 
-	//printf("\nALPHA: \n");
 	for (i = 0; i < NTERMS * NTERMS; i++){
 		covar[i] = alpha[i];
-		//printf("%f, ",alpha[i]);
 	}
-	//printf("\n");
-	/**************************************************************************/
+
 
 	ochisqr = fchisqr(spectra, nspectro, spectro, weight, sigma, nfree);
-	//ochisqr = fchisqr(spectra, nspectro, spectro, weight, sigmaTemp, nfree);
-
-	//printf("\n OBJETIVED CHISQR: %0.10f\n",ochisqr);
-	//printf("\n FLAMBDA INICIAL: %lf\n",flambda);
 	chisqr_mem = (REAL)ochisqr;
 	iter_chisqr_same = 0;
 
@@ -716,61 +621,21 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 	
 	do
 	{
-
+		
+		// CHANGE VALUES OF DIAGONAL 
 		for (i = 0; i < NTERMS; i++)
 		{
 			ind = i * (NTERMS + 1);
 			covar[ind] = alpha[ind] * (1.0 + flambda);
 		}
 
-		/*printf("\n COVAR \n");
-		for (i = 0; i < NTERMS * NTERMS; i++){
-			printf("%f, ",covar[i]);
-		}
-		printf("\n");*/
-
 		mil_svd(covar, betad, delta);
-		/*printf("\n DELTA CALCULADO POR EL SVD: \n");
-		for( i =0; i< NTERMS;i++){
-			printf("%f,",delta[i]);
-		}*/
-		/*printf("\n BETAD CALCULADO POR EL SVD: \n");
-		for( i =0; i< NTERMS;i++){
-			printf("%f,",betad[i]);
-		}
-		printf("\n");*/
-
 		AplicaDelta(initModel, delta, fixed, &model);
 
 		check(&model);
-
-		
-		/**************************************************************************/
-		//=[Eta0,Strength,Vlos,Lambdadopp,Damp,Gamma,Azimuth,S0,S1,Macro,Alpha]
-		//printf("\n MODELO INICIAL FUNCIONES RESPUESTA: %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf\n",model.eta0,model.B,model.vlos,model.dopp,model.aa,model.gm,model.az,model.S0,model.S1,model.mac,model.alfa);
-
-
-		//mil_sinrf(cuantic, &model, wlines, lambda, nlambda, spectra, AH,NULL,spectra_mac,0);
 		mil_sinrf(cuantic, &model, wlines, lambda, nlambda, spectra, AH,slight,spectra_mac,*INSTRUMENTAL_CONVOLUTION);
-		/*printf("\n valores de spectro sintetizado con MIL_SINRF sin aplicar PSF %d\n", *iter);
-		for (int kk = 0; kk < nlambda; kk++)
-		{
-			printf("1\t%f\t%le\t%le\t%le\t%le\n", lambda[kk], spectra[kk], spectra[kk + nlambda], spectra[kk + nlambda * 2], spectra[kk + nlambda * 3]);
-		}*/
-			
-		
-		/*if(*INSTRUMENTAL_CONVOLUTION){			
-			spectral_synthesis_convolution(&nlambda);
-		}*/
-		/*printf("\n valores de spectro sintetizado con MIL_SINRF en la iteracion %d\n", *iter);
-		for (int kk = 0; kk < nlambda; kk++)
-		{
-			printf("1\t%f\t%le\t%le\t%le\t%le\n", lambda[kk], spectra[kk], spectra[kk + nlambda], spectra[kk + nlambda * 2], spectra[kk + nlambda * 3]);
-		}
-		*/
+	
 		chisqr = fchisqr(spectra, nspectro, spectro, weight, sigma, nfree);
-		//chisqr = fchisqr(spectra, nspectro, spectro, weight, sigmaTemp, nfree);
-		
 		
 		/**************************************************************************/
 		/*if(chisqr == chisqr_mem){
@@ -792,46 +657,11 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 		{
 
 			flambda = flambda / 10.0;
-
 			*initModel = model;
-
-			//printf("iteration=%d , chisqr = %e CONVERGE	- ilambda= %e \n",*iter,chisqr,flambda);
-
-
-			//me_der(cuantic, initModel, wlines, lambda, nlambda, d_spectra, spectra_mac, AH, slight,0,0);
 			me_der(cuantic, initModel, wlines, lambda, nlambda, d_spectra, spectra_mac,spectra, AH, slight,0,*INSTRUMENTAL_CONVOLUTION);
-
-			//convolucionamos las funciones respuesta ( d_spectra )
-			
-			/*if(*INSTRUMENTAL_CONVOLUTION){
-				response_functions_convolution(&nlambda);
-			}*/
-
-			/*printf("\nVALORES DE LAS FUNCIONES RESPUESTA MACROTURBULENCIA \n");
-			int number_parametros = 0;
-			for (number_parametros = 0; number_parametros < NTERMS; number_parametros++)
-			{
-				if(number_parametros==9){
-					printf("\n FUNCION RESPUESTA: %d \n",number_parametros);
-					for (int kk = 0; kk < nlambda; kk++)
-					{
-						printf("1\t%lf\t%le\t%le\t%le\t%le\n", lambda[kk],
-						d_spectra[kk + nlambda * number_parametros],
-						d_spectra[kk + nlambda * number_parametros + nlambda * NTERMS],
-						d_spectra[kk + nlambda * number_parametros + nlambda * NTERMS * 2],
-						d_spectra[kk + nlambda * number_parametros + nlambda * NTERMS * 3]);
-					}
-				}
-			}
-			printf("\n");
-
-			exit(1);*/
-
 			FijaACeroDerivadasNoNecesarias(d_spectra,fixed,nlambda);	
 			covarm(weight, sigma, spectro, nlambda, spectra, d_spectra, beta, alpha);
-			//covarm(weight, sigmaTemp, spectro, nlambda, spectra, d_spectra, beta, alpha);
 			
-
 			for (i = 0; i < NTERMS; i++)
 				betad[i] = beta[i];
 
@@ -844,8 +674,6 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 		else
 		{
 			flambda = flambda * 10; //10;
-
-			//printf("iteration=%d , chisqr = %e NOT CONVERGE	- lambda= %e \n",*iter,ochisqr,flambda);
 		}
 
 		if ((flambda > 1e+7) || (flambda < 1e-25)) 

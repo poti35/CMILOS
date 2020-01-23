@@ -20,7 +20,8 @@
 #define ATAN(x)	atan(x)
 #define ATAN2(x,y) atan2(x,y)
 #define FABS(x)	fabs(x)
-
+#define CREAL(x) creal(x)
+#define CIMAG(x) cimag(x)
 
 #else
 
@@ -32,7 +33,8 @@
 #define ATAN(x) atanf(x)
 #define ATAN2(x,y) atan2f(x,y)
 #define FABS(x) fabsf(x)
-
+#define CREAL(x) crealf(x)
+#define CIMAG(x) cimagf(x)
 
 #endif /* USE_DOUBLE_PRECISION */
 
