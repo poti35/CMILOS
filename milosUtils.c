@@ -550,7 +550,7 @@ void estimacionesClasicas(PRECISION lambda_0, PRECISION *lambda, int nlambda, fl
  */
 
 int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda, float *spectro, int nspectro,
-				Init_Model *initModel, REAL *spectra, PRECISION *chisqrf,
+				Init_Model *initModel, REAL *spectra, float *chisqrf,
 				PRECISION * slight, PRECISION toplim, int miter, REAL *weight, int *fix,
 				REAL *sigma, REAL ilambda, int * INSTRUMENTAL_CONVOLUTION, int * iter)
 {
@@ -638,15 +638,6 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 		chisqr = fchisqr(spectra, nspectro, spectro, weight, sigma, nfree);
 		
 		/**************************************************************************/
-		/*if(chisqr == chisqr_mem){
-			iter_chisqr_same++;
-			if(iter_chisqr_same>=3) // exit after 4 iterations with chisqr equal
-				clanda = 1;
-		}
-		else
-		{
-			chisqr_mem = chisqr;
-		}*/
 
 		//printf("\n CHISQR EN LA ITERACION %d,: %e",*iter,chisqr);
 		

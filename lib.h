@@ -11,10 +11,7 @@ int covarm(REAL *w,REAL *sig,float *spectro,int nspectro,REAL *spectra,REAL  *d_
  * 
  */
 int multmatrix(PRECISION *a,int naf,int nac, PRECISION *b,int nbf,int nbc,PRECISION *result,int *fil,int *col);
-/**
- * 
- * */
-int multmatrixCblas(PRECISION *a,int naf,int nac, PRECISION *b,int nbf,int nbc,PRECISION *result,int *fil,int *col);
+
 /**
  * 
  */
@@ -38,12 +35,6 @@ void totalParcialf(REAL * A, int f,int c,REAL * result);
  * 
  */
 int multmatrix_transpose(REAL *a,int naf,int nac, REAL *b,int nbf,int nbc,REAL *result,int *fil,int *col,REAL value);
-
-int multmatrix_transpose_param(PRECISION *a,int naf,int nac, PRECISION *b,int nbf,int nbc,PRECISION *result,int *fil,int *col);
-
-int multmatrix_transpose_omp(PRECISION *a,int naf,int nac, PRECISION *b,int nbf,int nbc,PRECISION *result,int *fil,int *col,PRECISION value);
-
-int multmatrix_transpose_cblas(PRECISION *a,int naf,int nac, PRECISION *b,int nbf,int nbc,PRECISION *result,int *fil,int *col,PRECISION value);
 
 
 /**

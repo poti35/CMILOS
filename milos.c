@@ -126,7 +126,7 @@ int main(int argc, char **argv)
 	PRECISION *wlines;
 	int nlambda;
 	Init_Model *vModels;
-	PRECISION chisqrf, * vChisqrf;
+	float chisqrf, * vChisqrf;
 	int * vNumIter; // to store the number of iterations used to converge for each pixel
 	int indexLine; // index to identify central line to read it 
 
@@ -421,7 +421,7 @@ int main(int argc, char **argv)
 			// ALLOCATE MEMORY FOR STORE THE RESULTS 
 			int indexPixel = 0;
 			vModels = calloc (fitsImage->numPixels , sizeof(Init_Model));
-			vChisqrf = calloc (fitsImage->numPixels , sizeof(PRECISION));
+			vChisqrf = calloc (fitsImage->numPixels , sizeof(float));
 			vNumIter = calloc (fitsImage->numPixels , sizeof(int));
 			for(indexPixel = 0; indexPixel < fitsImage->numPixels; indexPixel++){
 
@@ -688,7 +688,7 @@ int main(int argc, char **argv)
 				// ALLOCATE MEMORY FOR STORE THE RESULTS 
 
 				vModels = calloc (fitsImage->numPixels , sizeof(Init_Model));
-				vChisqrf = calloc (fitsImage->numPixels , sizeof(PRECISION));
+				vChisqrf = calloc (fitsImage->numPixels , sizeof(float));
 				vNumIter = calloc (fitsImage->numPixels , sizeof(int));
 				t = clock();
 				printf("\n***********************  PROGRESS INVERSION *******************************\n\n");

@@ -6,17 +6,9 @@
 #include "fftw.h"
 #include "milosUtils.h"
 
-//pro me_der,param,wl,lmb,spectra,d_spectra,triplete=triplete,ah=ah,slight=slight,$
-//         filter=filter
-
-int funcionComponent_sinrf(PRECISION *u,PRECISION ulos,PRECISION shift,int numl,PRECISION *fi_x,
-		PRECISION *shi_x,PRECISION A);
 
 int funcionComponentFor_sinrf(PRECISION *u,int n_pi,int numl,PRECISION *wex,REAL *nuxB,REAL *fi_x,
 												REAL *shi_x,PRECISION A,PRECISION MF);
-
-
-
 
 /*
 	E00	int eta0; // 0
@@ -48,7 +40,7 @@ REAL **HGlobalInicial;
 REAL **FGlobalInicial;
 extern int FGlobal,HGlobal,uuGlobal;
 
-//extern PRECISION *G, *GMAC; // VECTOR WITH GAUSSIAN CREATED FOR CONVOLUTION 
+
 extern PRECISION *GMAC; // VECTOR WITH GAUSSIAN CREATED FOR CONVOLUTION 
 extern REAL *G;
 
@@ -330,9 +322,9 @@ int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISIO
 		int startShift = numl/2;
 		if(odd) startShift+=1;
 
-		//PRECISION * gMac=fgauss(MC,lambda,numl,wlines[1],0);   		 
-    	fgauss(MC,lambda,numl,wlines[1],0);   		 
-    	//convolucion del espectro original
+    	fgauss(MC,lambda,numl,wlines[1],0);  // gauss kernel is stored in global array GMAC  		 
+
+    	//convolution spectro
 
 		int i;
 		if(filter){// if there is PSF filter convolve both gaussian and use the result as the signal to convolve
@@ -340,10 +332,6 @@ int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISIO
 				inPSF_MAC[i] = (GMAC[i]) + 0 * _Complex_I;
 			}
 			fftw_execute(planForwardPSF_MAC);
-			/*for(i=0;i<numl;i++){ // multiply both fft gaussians
-				outFilterMAC[i] = (fftw_G_PSF[i]*numl) * (fftw_G_MAC_PSF[i]);
-			}
-			*/
 			for(i=0;i<numl;i++){ // multiply both fft gaussians
 				inMulMacPSF[i] = fftw_G_PSF[i] * (fftw_G_MAC_PSF[i]/numl);
 			}
@@ -360,33 +348,27 @@ int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISIO
 			for(i=0;i<numl;i++){
 				inFilterMAC[i] = GMAC[i] + 0 * _Complex_I;
 			}
-			//fftw_execute(planFilterMAC);
 		}
 		fftw_execute(planFilterMAC);
 
     	//convolucion
     	for(il=0;il<4;il++){
-    		//if(fabs(mean(spectra+numl*il,numl)) > 1.e-25	){
-				for(i=0;i<numl;i++){
-					inSpectraFwMAC[i] = spectra[numl*il+i] + 0 * _Complex_I;
-				}				 
-    			fftw_execute(planForwardMAC);
-    			for(i=0;i<numl;i++){
-					inSpectraBwMAC[i]=(outSpectraFwMAC[i]/numl)*(outFilterMAC[i]/numl);
-    			}
-    			fftw_execute(planBackwardMAC);
-    			//shift: -numl/2				
-				for(i=0,ishift=startShift;i<numl/2;i++,ishift++){
-					spectra[ishift+il*numl]=creal(outSpectraBwMAC[i])*numl;
-				}
-				for(i=(numl/2),ishift=0;i<numl;i++,ishift++){
-					spectra[ishift+il*numl]=creal(outSpectraBwMAC[i])*numl;
-				}					
-				
-    		//}
+			for(i=0;i<numl;i++){
+				inSpectraFwMAC[i] = spectra[numl*il+i] + 0 * _Complex_I;
+			}				 
+			fftw_execute(planForwardMAC);
+			for(i=0;i<numl;i++){
+				inSpectraBwMAC[i]=(outSpectraFwMAC[i]/numl)*(outFilterMAC[i]/numl);
+			}
+			fftw_execute(planBackwardMAC);
+			//shift: -numl/2				
+			for(i=0,ishift=startShift;i<numl/2;i++,ishift++){
+				spectra[ishift+il*numl]=creal(outSpectraBwMAC[i])*numl;
+			}
+			for(i=(numl/2),ishift=0;i<numl;i++,ishift++){
+				spectra[ishift+il*numl]=creal(outSpectraBwMAC[i])*numl;
+			}
     	}
-		//free(gMac);
-
    }//end if(MC > 0.0001)
     
 	if(slight!=NULL){  //ADDING THE STRAY-LIGHT PROFILE
@@ -401,7 +383,7 @@ int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISIO
 		
 	//int nlambda = NLAMBDA;
 	//convolucionamos los perfiles IQUV (spectra)			
-		/*odd=(numl%2);
+		odd=(numl%2);
 		
 		int startShift = numl/2;
 		if(odd) startShift+=1;
@@ -424,11 +406,11 @@ int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISIO
 				spectra[ishift+i*(numl)]=creal(outSpectraBwPSF[j])*(numl);
 			}
 		}
-		*/
+		
 		
 		
 		//convolucion de I
-		REAL Ic = spectra[nlambda - 1];
+		/*REAL Ic = spectra[nlambda - 1];
 
 		for (i = 0; i < nlambda; i++)
 			spectra[i] = Ic - spectra[i];
@@ -443,7 +425,7 @@ int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISIO
 		for (i = 1; i < NPARMS; i++)
 			direct_convolution(spectra + nlambda * i, nlambda, G, nlambda, 1); //no convolucionamos el ultimo valor
 			//convolve(spectra + nlambda * i, nlambda, G, nlambda);
-		
+		*/
 		//spectral_synthesis_convolution(&nlambda);
 	}
 
@@ -489,38 +471,6 @@ int funcionComponentFor_sinrf(PRECISION *u,int n_pi,int numl,PRECISION *wex,REAL
 	return 1;	
 }
 
-/*
- * 
- */
-/*int funcionComponent_sinrf(PRECISION *u,PRECISION ulos,PRECISION shift,int numl,PRECISION *fi_x,PRECISION *shi_x,PRECISION A){
-	
-
-	int j;
-
-	PRECISION H[numl],F[numl],uu[numl];
-
-	
-
-	for(j=0;j<numl;j++){
-		uu[j]=u[j]-ulos+shift;
-	}	
-	
-	fvoigt(A,uu,numl,H,F);
-
-	for(j=0;j<numl;j++){
-		fi_x[j]=H[j];
-	}
-
-	for(j=0;j<numl;j++){
-		shi_x[j]=F[j]*2.0;
-	}
-
-
-
-
-	return 1;
-	
-}*/
 
 
 

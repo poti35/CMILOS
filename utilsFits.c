@@ -1398,7 +1398,7 @@ void freeFitsImage(FitsImage * image){
  * fixed = array with positions to write in the file, Positions are in the following order: 
  * [Eta0,Strength,Vlos,Lambdadopp,Damp,Gamma,Azimuth,S0,S1,Macro,Alpha]
  * */
-int writeFitsImageModels(const char * fitsFile, int numRows, int numCols, Init_Model * vInitModel, PRECISION * vChisqrf, int * vNumIterPixel, int addChiqr){
+int writeFitsImageModels(const char * fitsFile, int numRows, int numCols, Init_Model * vInitModel, float * vChisqrf, int * vNumIterPixel, int addChiqr){
 
 	fitsfile *fptr;       /* pointer to the FITS file, defined in fitsio.h */
    int status;
