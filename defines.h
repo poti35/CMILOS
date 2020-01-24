@@ -1,4 +1,3 @@
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
@@ -10,6 +9,38 @@
 
 
 
+
+#ifdef USE_DOUBLE_PRECISION
+
+#define REAL double
+#define SQRT(x)	sqrt(x)
+#define SIN(x)	sin(x)
+#define COS(x)	cos(x)
+#define TAN(x)	tan(x)
+#define ATAN(x)	atan(x)
+#define ATAN2(x,y) atan2(x,y)
+#define FABS(x)	fabs(x)
+#define CREAL(x) creal(x)
+#define CIMAG(x) cimag(x)
+
+#else
+
+#define REAL float
+#define SQRT(x) sqrtf(x)
+#define SIN(x) sinf(x)
+#define COS(x) cosf(x)
+#define TAN(x) tanf(x)
+#define ATAN(x) atanf(x)
+#define ATAN2(x,y) atan2f(x,y)
+#define FABS(x) fabsf(x)
+#define CREAL(x) crealf(x)
+#define CIMAG(x) cimagf(x)
+
+#endif /* USE_DOUBLE_PRECISION */
+
+
+
+
 #ifndef DEFINES_H_
 #define DEFINES_H_
 
@@ -18,8 +49,6 @@
 //---------------------------------------------------------
 //---------------------------------------------------------
 // USER CONFIGURATION
-
-//#define CENTRAL_WL   6173.341000 //6173.341000 (oficial requ.) //6173.3500// 341000  // // 6173.335600 //6173.335400
 
 
 //NumeroS cuanticos
@@ -49,7 +78,8 @@
 #define LIMITE_INFERIOR_PRECISION_SVD pow(2.0,-54)
 #define LIMITE_INFERIOR_PRECISION_TRIG pow(2.0,-54)
 #define LIMITE_INFERIOR_PRECISION_SINCOS pow(2.0,-54)
-#define PRECISION double //double or float
+#define PRECISION double //double 
+
 
 //#############################################
 
@@ -137,22 +167,22 @@ void FreeMemoryDerivedSynthesis();
 
 Cuantic * create_cuantic(PRECISION * dat, int log);
 
-int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *lambda,int nlambda,
-			PRECISION *d_spectraOut,PRECISION *spectra, PRECISION * spectra_slight,PRECISION ah,PRECISION * slight,int calcSpectra,int filter);
+int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *lambda,int nlambda, REAL *d_spectra,REAL *spectra, REAL * spectra_slight,PRECISION ah,PRECISION * slight,int calcSpectra,int filter);
 
-int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *lambda,int nlambda,PRECISION *spectra,
-			PRECISION ah,PRECISION * slight,PRECISION * spectra_mc, int filter);
+int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *lambda,int nlambda,REAL *spectra,
+			PRECISION ah,PRECISION * slight,REAL * spectra_mc, int filter);
 			
 
 PRECISION * fgauss(PRECISION MC, PRECISION * eje,int neje,PRECISION landa,int deriv);
-float * fgauss_WL(PRECISION FWHM, PRECISION step_between_lw, PRECISION lambda0, PRECISION lambdaCentral, int nLambda, int * sizeG);
+REAL * fgauss_WL(PRECISION FWHM, PRECISION step_between_lw, PRECISION lambda0, PRECISION lambdaCentral, int nLambda, int * sizeG);
 
 
 
 int Guarda(char * nombre,PRECISION *v,int nv);
 int GuardaC(char * nombre,PRECISION _Complex *v,int nv,int a);
 
-int fvoigt(PRECISION damp,PRECISION *vv,int nvv,PRECISION *h, PRECISION *f);
+//int fvoigt(PRECISION damp,PRECISION *vv,int nvv,PRECISION *h, PRECISION *f);
+int fvoigt(PRECISION damp,REAL *vv,int nvv,REAL *h, REAL *f);
 
 //PRECISION * vgauss(PRECISION fwhm,int nmuestras_G,PRECISION delta);
 
@@ -240,14 +270,14 @@ struct CONFIG_CONTROL{
 	char AtomicParametersFile[4096];
 	char InitialGuessModel[4096];
 	char InitialGuessModel_2[4096];
-	PRECISION WeightForStokes[4];
+	REAL WeightForStokes[4];
 	int InvertFillingFactor;
 	int InvertStrayLightFactor;
 	PRECISION mu;
 	int EstimatedSNForI;
 	int ContinuumContrast;
 	PRECISION ToleranceForSVD;
-	PRECISION InitialDiagonalElement;
+	REAL InitialDiagonalElement;
 	int ConvolveWithPSF;
 	PRECISION FWHM;
 	PRECISION CentralWaveLenght;
@@ -256,8 +286,8 @@ struct CONFIG_CONTROL{
 	int fix2[11]; // eta0, B, vlos, dopp, aa, gm , az, S0, S1, mac, alpha
 	int saveChisqr;
 	PRECISION toplim; // Optional minimum relative difference between two succesive merit-function values
-	PRECISION sigma [4];
-	PRECISION noise;
+	REAL sigma [4];
+	REAL noise;
 	int UseClassicalEstimates;
 	int UseRTEInversion;
 	int SaveSynthesisAdjusted;	

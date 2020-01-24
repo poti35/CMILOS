@@ -6,7 +6,7 @@
 #include "convolution.h"
 
 
-int funcionComponentFor(int n_pi,PRECISION iwlines,int numl,PRECISION *wex,PRECISION *nuxB,PRECISION *dfi,PRECISION *dshi,PRECISION LD,PRECISION A,int desp);
+int funcionComponentFor(int n_pi,PRECISION iwlines,int numl,PRECISION *wex,REAL *nuxB,REAL *dfi,REAL *dshi,PRECISION LD,PRECISION A,int desp);
 
 void Resetear_Valores_Intermedios(int nlambda);
 
@@ -27,25 +27,25 @@ void Resetear_Valores_Intermedios(int nlambda);
 */
 
 //extern PRECISION gp4_gp2_rhoq[NLAMBDA],gp5_gp2_rhou[NLAMBDA],gp6_gp2_rhov[NLAMBDA];
-extern PRECISION *dtaux, *etai_gp3, *ext1, *ext2, *ext3, *ext4;
-extern PRECISION *gp4_gp2_rhoq,*gp5_gp2_rhou,*gp6_gp2_rhov;
-extern PRECISION * gp1,*gp2,*dt,*dti,*gp3,*gp4,*gp5,*gp6,*etai_2;
-extern PRECISION *dgp1,*dgp2,*dgp3,*dgp4,*dgp5,*dgp6,*d_dt;
-extern PRECISION * d_ei,*d_eq,*d_eu,*d_ev,*d_rq,*d_ru,*d_rv;
-extern PRECISION *dfi,*dshi;
+extern REAL *dtaux, *etai_gp3, *ext1, *ext2, *ext3, *ext4;
+extern REAL *gp4_gp2_rhoq,*gp5_gp2_rhou,*gp6_gp2_rhov;
+extern REAL * gp1,*gp2,*dt,*dti,*gp3,*gp4,*gp5,*gp6,*etai_2;
+extern REAL *dgp1,*dgp2,*dgp3,*dgp4,*dgp5,*dgp6,*d_dt;
+extern REAL * d_ei,*d_eq,*d_eu,*d_ev,*d_rq,*d_ru,*d_rv;
+extern REAL *dfi,*dshi;
 extern PRECISION CC,CC_2,sin_gm,azi_2,sinis,cosis,cosis_2,cosi,sina,cosa,sinda,cosda,sindi,cosdi,sinis_cosa,sinis_sina;
-extern PRECISION *fi_p,*fi_b,*fi_r,*shi_p,*shi_b,*shi_r;
-extern PRECISION *etain,*etaqn,*etaun,*etavn,*rhoqn,*rhoun,*rhovn;
-extern PRECISION *etai,*etaq,*etau,*etav,*rhoq,*rhou,*rhov;
-extern PRECISION *parcial1,*parcial2,*parcial3;
-extern PRECISION *nubB,*nupB,*nurB;
-PRECISION **uuGlobalInicial;
-PRECISION **HGlobalInicial;
-PRECISION **FGlobalInicial;
+extern REAL *fi_p,*fi_b,*fi_r,*shi_p,*shi_b,*shi_r;
+extern REAL *etain,*etaqn,*etaun,*etavn,*rhoqn,*rhoun,*rhovn;
+extern REAL *etai,*etaq,*etau,*etav,*rhoq,*rhou,*rhov;
+extern REAL *parcial1,*parcial2,*parcial3;
+extern REAL *nubB,*nupB,*nurB;
+REAL **uuGlobalInicial;
+REAL **HGlobalInicial;
+REAL **FGlobalInicial;
 extern int FGlobal,HGlobal,uuGlobal;
 //extern PRECISION *G, *GMAC; // VECTOR WITH GAUSSIAN CREATED FOR CONVOLUTION 
 extern PRECISION *GMAC; // VECTOR WITH GAUSSIAN CREATED FOR CONVOLUTION 
-extern float *G;
+extern REAL *G;
 //extern VSLConvTaskPtr taskConv;
 
 extern fftw_complex * inSpectraFwMAC, *inSpectraBwMAC, *outSpectraFwMAC, *outSpectraBwMAC;
@@ -59,7 +59,7 @@ extern fftw_plan planForwardPSF_MAC, planForwardPSF_MAC_DERIV,planBackwardPSF_MA
 extern fftw_complex * inSpectraFwPSF, *inSpectraBwPSF, *outSpectraFwPSF, *outSpectraBwPSF;
 extern fftw_plan planForwardPSF, planBackwardPSF;
 
-int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *lambda,int nlambda,PRECISION *d_spectra,PRECISION *spectra, PRECISION * spectra_slight, PRECISION ah,PRECISION * slight,int calcSpectra, int filter)
+int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *lambda,int nlambda,REAL *d_spectra,REAL *spectra, REAL * spectra_slight, PRECISION ah,PRECISION * slight,int calcSpectra, int filter)
 {
 
 	int nterms,numl;
@@ -94,45 +94,17 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 	
 	Resetear_Valores_Intermedios(nlambda);
 
-	
-/*	for(j=0;j<numl;j++){
-		etai[j]=1.0;
-	}*/
-
-	//a radianes	
-/*	CC=PI/180.0;
-	AZI=AZI*CC;
-	GM=GM*CC;
-	sinis=sin(GM)*sin(GM);
-	cosis=cos(GM)*cos(GM);
-	cosi=cos(GM);
-	sina=sin(2*AZI);
-	cosa=cos(2*AZI);
-
-	sinda=cos(2*AZI)*2*CC;
-	cosda=-sin(2*AZI)*2*CC;
-	sindi=cos(GM)*sin(GM)*2*CC;
-	cosdi=-sin(GM)*CC;
-*/
-
-	//reserva de memoria para vectores auxiliares
-//    u=calloc(nlambda,sizeof(double));
     
     for(il=0;il<lineas;il++) {
 		//Line strength
 	    E0=E00*cuantic[il].FO; //y sino se definio Fo que debe de pasar 0 o 1 ...??
 
-		fi_p=fi_p+nlambda*il*sizeof(PRECISION);
-		fi_b=fi_b+nlambda*il*sizeof(PRECISION);
-		fi_r=fi_r+nlambda*il*sizeof(PRECISION);
-		shi_p=shi_p+nlambda*il*sizeof(PRECISION);
-		shi_b=shi_b+nlambda*il*sizeof(PRECISION);
-		shi_r=shi_r+nlambda*il*sizeof(PRECISION);
-
-		
-//			Leer_Puntero_Calculos_Compartidos(3,&nubB,&nupB,&nurB);
-
-			
+		fi_p=fi_p+nlambda*il*sizeof(REAL);
+		fi_b=fi_b+nlambda*il*sizeof(REAL);
+		fi_r=fi_r+nlambda*il*sizeof(REAL);
+		shi_p=shi_p+nlambda*il*sizeof(REAL);
+		shi_b=shi_b+nlambda*il*sizeof(REAL);
+		shi_r=shi_r+nlambda*il*sizeof(REAL);
 
 		//central component					    					
 		funcionComponentFor(cuantic[il].N_PI,wlines[il+1],numl,cuantic[il].WEP,nupB,dfi,dshi,LD,A,0);
@@ -142,27 +114,6 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 
 		//red component
 		funcionComponentFor(cuantic[il].N_SIG,wlines[il+1],numl,cuantic[il].WER,nurB,dfi,dshi,LD,A,2);
-/*			free(nubB);
-		free(nurB);
-		free(nupB);*/
-		
-
-		//dispersion profiles				
-		PRECISION E0_2;
-//		Leer_Puntero_Calculos_Compartidos(3,&parcial1,&parcial2,&parcial3);
-
-//		Leer_Puntero_Calculos_Compartidos(7,&etain,&etaqn,&etaun,&etavn,&rhoqn,&rhoun,&rhovn);
-
-		//derivadas respecto de eta0 
-		/*for(i=0;i<numl;i++){
-			d_ei[i]=d_ei[i]+etain[i]/E0;
-			d_eq[i]=d_eq[i]+etaqn[i]/E0;
-			d_eu[i]=d_eu[i]+etaun[i]/E0;
-			d_ev[i]=d_ev[i]+etavn[i]/E0;
-			d_rq[i]=d_rq[i]+rhoqn[i]/E0;
-			d_ru[i]=d_ru[i]+rhoun[i]/E0;
-			d_rv[i]=d_rv[i]+rhovn[i]/E0;
-		}*/
 
 		for(i=0;i<numl;i++){
 			d_ei[i]=d_ei[i]+etain[i]/E0;
@@ -186,11 +137,13 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 			d_rv[i]=d_rv[i]+rhovn[i]/E0;
 		}
 
-		PRECISION cosi_2_E0;
+		//dispersion profiles
+		REAL E0_2;
+		REAL cosi_2_E0;
 		sinis_cosa=E0*sinis_cosa/2;
 		sinis_sina=E0*sinis_sina/2;
 		E0_2=E0/2.0;
-		PRECISION sindi_cosa,sindi_sina,cosdi_E0_2,cosis_2_E0_2,sinis_E0_2;
+		REAL sindi_cosa,sindi_sina,cosdi_E0_2,cosis_2_E0_2,sinis_E0_2;
 		sindi_cosa=sindi*cosa;
 		sindi_sina=sindi*sina;
 		cosdi_E0_2=(E0_2)*cosdi;
@@ -213,7 +166,7 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 		for(j=1;j<5;j++){
 			//derivadas de los perfiles de dispersion respecto de B,VL,LDOPP,A 
 			for(i=0;i<numl;i++){
-				PRECISION dfisum,aux;
+				REAL dfisum,aux;
 				dfisum=	dfi[i + (j-1)*numl+ (numl*4)]+dfi[i + (j-1)*numl + (numl*4*2)];
 				
 				d_ei[j*numl+i] = d_ei[j*numl+i] + (dfi[i+ (j-1)*numl] * sinis_E0_2 + dfisum * cosis_2_E0_2);
@@ -228,7 +181,7 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 		}
 		for(j=1;j<5;j++){
 			for(i=0;i<numl;i++){
-				PRECISION aux=dshi[(j-1)*numl+i]-(dshi[(j-1)*numl+i+(numl*4)]+dshi[(j-1)*numl+i+(numl*4*2)])/2.0;
+				REAL aux=dshi[(j-1)*numl+i]-(dshi[(j-1)*numl+i+(numl*4)]+dshi[(j-1)*numl+i+(numl*4*2)])/2.0;
 				d_rq[j*numl+i]=d_rq[j*numl+i]+(aux)*sinis_cosa;
 				d_ru[j*numl+i]=d_ru[j*numl+i]+(aux)*sinis_sina;
 			}
@@ -238,7 +191,7 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 		}
 		
 		//derivadas de los perfiles de dispersion respecto de GAMMA
-		PRECISION cosi_cosdi,sindi_E0_2;
+		REAL cosi_cosdi,sindi_E0_2;
 		cosi_cosdi=cosi*cosdi*E0_2;
 		sindi_E0_2=sindi*E0_2;
 		for(i=0;i<numl;i++)
@@ -260,7 +213,7 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 		
 
 		//derivadas de los perfiles de dispersion respecto de AZI
-		PRECISION sinis_cosda,sinis_sinda;
+		REAL sinis_cosda,sinis_sinda;
 		sinis_cosda=sinis*cosda;
 		sinis_sinda=sinis*sinda;		
 		for(i=0;i<numl;i++){				
@@ -326,7 +279,7 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 	}
 
    for(i=0;i<numl;i++){
-		PRECISION aux=2*etai[i];
+		REAL aux=2*etai[i];
 		ext1[i]=aux*etaq[i]+etav[i]*rhou[i]-etau[i]*rhov[i];
 		ext2[i]=aux*etau[i]+etaq[i]*rhov[i]-etav[i]*rhoq[i];
 		ext3[i]=aux*etav[i]+etau[i]*rhoq[i]-etaq[i]*rhou[i];
@@ -702,6 +655,15 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 			}
 		}
 
+		/*for (j = 0; j < NPARMS; j++)
+		{
+			for (i = 0; i < NTERMS; i++)
+			{
+				if (i != 7)																															 //no convolucionamos S0
+					direct_convolution(d_spectra + nlambda * i + nlambda * NTERMS * j, nlambda, G, nlambda, 1); //no convolucionamos el ultimo valor
+			}
+		}*/
+
 		//response_functions_convolution(&nlambda);
 	}
 	ResetPointerShareCalculation();
@@ -714,13 +676,13 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 /*
  * 
  */
-int funcionComponentFor(int n_pi,PRECISION iwlines,int numl,PRECISION *wex,PRECISION *nuxB,PRECISION *dfi,PRECISION *dshi,PRECISION LD,PRECISION A,int desp)
+int funcionComponentFor(int n_pi,PRECISION iwlines,int numl,PRECISION *wex,REAL *nuxB,REAL *dfi,REAL *dshi,PRECISION LD,PRECISION A,int desp)
 {
-	PRECISION *uu;
+	REAL *uu;
 	int i,j;
-	PRECISION dH_u[numl],dF_u[numl],auxCte[numl];
+	REAL dH_u[numl],dF_u[numl],auxCte[numl];
 	
-	PRECISION *H,*F;
+	REAL *H,*F;
 	
 	/*PRECISION *dH_u,*dF_u,*auxCte;
 	dH_u = malloc(numl * sizeof(PRECISION));
@@ -837,15 +799,15 @@ void Resetear_Valores_Intermedios(int nlambda){
 	
 
 	
-	memset(d_ei , 0, (nlambda*7)*sizeof(PRECISION));
-	memset(d_eq , 0, (nlambda*7)*sizeof(PRECISION));
-	memset(d_ev , 0, (nlambda*7)*sizeof(PRECISION));
-	memset(d_eu , 0, (nlambda*7)*sizeof(PRECISION));
-	memset(d_rq , 0, (nlambda*7)*sizeof(PRECISION));
-	memset(d_ru , 0, (nlambda*7)*sizeof(PRECISION));
-	memset(d_rv , 0, (nlambda*7)*sizeof(PRECISION));
-	memset(dfi , 0, (nlambda*4*3)*sizeof(PRECISION));
-	memset(dshi , 0, (nlambda*4*3)*sizeof(PRECISION));
+	memset(d_ei , 0, (nlambda*7)*sizeof(REAL));
+	memset(d_eq , 0, (nlambda*7)*sizeof(REAL));
+	memset(d_ev , 0, (nlambda*7)*sizeof(REAL));
+	memset(d_eu , 0, (nlambda*7)*sizeof(REAL));
+	memset(d_rq , 0, (nlambda*7)*sizeof(REAL));
+	memset(d_ru , 0, (nlambda*7)*sizeof(REAL));
+	memset(d_rv , 0, (nlambda*7)*sizeof(REAL));
+	memset(dfi , 0, (nlambda*4*3)*sizeof(REAL));
+	memset(dshi , 0, (nlambda*4*3)*sizeof(REAL));
 
 	/*
 	int i=0;

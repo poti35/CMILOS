@@ -62,38 +62,37 @@ PRECISION **PUNTEROS_CALCULOS_COMPARTIDOS;
 int POSW_PUNTERO_CALCULOS_COMPARTIDOS;
 int POSR_PUNTERO_CALCULOS_COMPARTIDOS;
 
-PRECISION *dtaux, *etai_gp3, *ext1, *ext2, *ext3, *ext4;
-PRECISION *gp1, *gp2, *dt, *dti, *gp3, *gp4, *gp5, *gp6, *etai_2;
+REAL *dtaux, *etai_gp3, *ext1, *ext2, *ext3, *ext4;
+REAL *gp1, *gp2, *dt, *dti, *gp3, *gp4, *gp5, *gp6, *etai_2;
 //PRECISION gp4_gp2_rhoq[NLAMBDA],gp5_gp2_rhou[NLAMBDA],gp6_gp2_rhov[NLAMBDA];
-PRECISION *gp4_gp2_rhoq, *gp5_gp2_rhou, *gp6_gp2_rhov;
-PRECISION *dgp1, *dgp2, *dgp3, *dgp4, *dgp5, *dgp6, *d_dt;
-PRECISION *d_ei, *d_eq, *d_eu, *d_ev, *d_rq, *d_ru, *d_rv;
-PRECISION *dfi, *dshi;
+REAL *gp4_gp2_rhoq, *gp5_gp2_rhou, *gp6_gp2_rhov;
+REAL *dgp1, *dgp2, *dgp3, *dgp4, *dgp5, *dgp6, *d_dt;
+REAL *d_ei, *d_eq, *d_eu, *d_ev, *d_rq, *d_ru, *d_rv;
+REAL *dfi, *dshi;
 PRECISION CC, CC_2, sin_gm, azi_2, sinis, cosis, cosis_2, cosi, sina, cosa, sinda, cosda, sindi, cosdi, sinis_cosa, sinis_sina;
-PRECISION *fi_p, *fi_b, *fi_r, *shi_p, *shi_b, *shi_r;
-PRECISION *etain, *etaqn, *etaun, *etavn, *rhoqn, *rhoun, *rhovn;
-PRECISION *etai, *etaq, *etau, *etav, *rhoq, *rhou, *rhov;
-PRECISION *parcial1, *parcial2, *parcial3;
-PRECISION *nubB, *nupB, *nurB;
-PRECISION **uuGlobalInicial;
-PRECISION **HGlobalInicial;
-PRECISION **FGlobalInicial;
-PRECISION *perfil_instrumental;
+REAL *fi_p, *fi_b, *fi_r, *shi_p, *shi_b, *shi_r;
+REAL *etain, *etaqn, *etaun, *etavn, *rhoqn, *rhoun, *rhovn;
+REAL *etai, *etaq, *etau, *etav, *rhoq, *rhou, *rhov;
+REAL *parcial1, *parcial2, *parcial3;
+REAL *nubB, *nupB, *nurB;
+REAL **uuGlobalInicial;
+REAL **HGlobalInicial;
+REAL **FGlobalInicial;
+
 //PRECISION *G, *GMAC;
 PRECISION *GMAC;
-float * G;
-PRECISION *interpolatedPSF;
+REAL * G, *dirConvPar;
 
 
-PRECISION AP[NTERMS*NTERMS*NPARMS],BT[NPARMS*NTERMS];
+REAL AP[NTERMS*NTERMS*NPARMS],BT[NPARMS*NTERMS];
 
 
 
-PRECISION * opa;
+REAL * opa;
 int FGlobal, HGlobal, uuGlobal;
 
-PRECISION *d_spectra, *spectra, *spectra_mac;
-//float *d_spectra, *spectra, *spectra_mac;
+//PRECISION *d_spectra, *spectra, *spectra_mac;
+REAL *d_spectra, *spectra, *spectra_mac;
 
 
 
@@ -119,7 +118,7 @@ PRECISION FWHM = 0;
 ConfigControl configCrontrolFile;
 
 // fvoigt memory consuption
-_Complex PRECISION *z,* zden, * zdiv;
+REAL _Complex  *z,* zden, * zdiv;
 
 int main(int argc, char **argv)
 {
@@ -154,8 +153,6 @@ int main(int argc, char **argv)
     FitsImage * fitsImage;
 	PRECISION  dat[7];
 
-	/*int fftw_init_threads(void);
-	fftw_plan_with_nthreads(6);*/
 	/********************* Read data input from file ******************************/
 
 	/* Read data input from file */
@@ -235,18 +232,18 @@ int main(int argc, char **argv)
 	// MACROTURBULENCE PLANS
 	inFilterMAC = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
 	outFilterMAC = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
-	planFilterMAC = fftw_plan_dft_1d(numln, inFilterMAC, outFilterMAC, FFT_FORWARD, FFTW_EXHAUSTIVE);
+	planFilterMAC = fftw_plan_dft_1d(numln, inFilterMAC, outFilterMAC, FFT_FORWARD, FFTW_MEASURE );
 	inFilterMAC_DERIV = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
 	outFilterMAC_DERIV = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
-	planFilterMAC_DERIV = fftw_plan_dft_1d(numln, inFilterMAC_DERIV, outFilterMAC_DERIV, FFT_FORWARD, FFTW_EXHAUSTIVE);
+	planFilterMAC_DERIV = fftw_plan_dft_1d(numln, inFilterMAC_DERIV, outFilterMAC_DERIV, FFT_FORWARD, FFTW_MEASURE );
 
 
 	inSpectraFwMAC = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
 	outSpectraFwMAC = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
-	planForwardMAC = fftw_plan_dft_1d(numln, inSpectraFwMAC, outSpectraFwMAC, FFT_FORWARD, FFTW_EXHAUSTIVE);
+	planForwardMAC = fftw_plan_dft_1d(numln, inSpectraFwMAC, outSpectraFwMAC, FFT_FORWARD, FFTW_MEASURE );
 	inSpectraBwMAC = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
 	outSpectraBwMAC = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);		
-	planBackwardMAC = fftw_plan_dft_1d(numln, inSpectraBwMAC, outSpectraBwMAC, FFT_BACKWARD, FFTW_EXHAUSTIVE);
+	planBackwardMAC = fftw_plan_dft_1d(numln, inSpectraBwMAC, outSpectraBwMAC, FFT_BACKWARD, FFTW_MEASURE );
 
 	// ********************************************* IF PSF HAS BEEN SELECTEC IN TROL READ PSF FILE OR CREATE GAUSSIAN FILTER ***********//
 	if(configCrontrolFile.ConvolveWithPSF){
@@ -295,10 +292,10 @@ int main(int argc, char **argv)
 		//PSF FILTER PLANS 
 		inSpectraFwPSF = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
 		outSpectraFwPSF = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
-		planForwardPSF = fftw_plan_dft_1d(numln, inSpectraFwPSF, outSpectraFwPSF, FFT_FORWARD, FFTW_EXHAUSTIVE);
+		planForwardPSF = fftw_plan_dft_1d(numln, inSpectraFwPSF, outSpectraFwPSF, FFT_FORWARD, FFTW_MEASURE );
 		inSpectraBwPSF = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
 		outSpectraBwPSF = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);		
-		planBackwardPSF = fftw_plan_dft_1d(numln, inSpectraBwPSF, outSpectraBwPSF, FFT_BACKWARD, FFTW_EXHAUSTIVE);
+		planBackwardPSF = fftw_plan_dft_1d(numln, inSpectraBwPSF, outSpectraBwPSF, FFT_BACKWARD, FFTW_MEASURE );
 
 		fftw_complex * in = (fftw_complex *)fftw_malloc(sizeof(fftw_complex) * numln);
 		int i;
@@ -307,7 +304,7 @@ int main(int argc, char **argv)
 			in[i] = G[i] + 0 * _Complex_I;
 		}
 		fftw_G_PSF = (fftw_complex *)fftw_malloc(sizeof(fftw_complex) * numln);
-		fftw_plan p = fftw_plan_dft_1d(numln, in, fftw_G_PSF, FFT_FORWARD, FFTW_ESTIMATE);
+		fftw_plan p = fftw_plan_dft_1d(numln, in, fftw_G_PSF, FFT_FORWARD, FFTW_MEASURE );
 		fftw_execute(p);
 		for (i = 0; i < numln; i++)
 		{
@@ -318,18 +315,18 @@ int main(int argc, char **argv)
 		
 		inPSF_MAC = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
 		fftw_G_MAC_PSF = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
-		planForwardPSF_MAC = fftw_plan_dft_1d(numln, inPSF_MAC, fftw_G_MAC_PSF, FFT_FORWARD, FFTW_EXHAUSTIVE);
+		planForwardPSF_MAC = fftw_plan_dft_1d(numln, inPSF_MAC, fftw_G_MAC_PSF, FFT_FORWARD, FFTW_MEASURE );
 		inMulMacPSF = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
 		outConvFilters = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
-		planBackwardPSF_MAC = fftw_plan_dft_1d(numln, inMulMacPSF, outConvFilters, FFT_BACKWARD, FFTW_EXHAUSTIVE);
+		planBackwardPSF_MAC = fftw_plan_dft_1d(numln, inMulMacPSF, outConvFilters, FFT_BACKWARD, FFTW_MEASURE );
 
 
 		inPSF_MAC_DERIV = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
 		fftw_G_MAC_DERIV_PSF = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
-		planForwardPSF_MAC_DERIV = fftw_plan_dft_1d(numln, inPSF_MAC_DERIV, fftw_G_MAC_DERIV_PSF, FFT_FORWARD, FFTW_EXHAUSTIVE);
+		planForwardPSF_MAC_DERIV = fftw_plan_dft_1d(numln, inPSF_MAC_DERIV, fftw_G_MAC_DERIV_PSF, FFT_FORWARD, FFTW_MEASURE );
 		inMulMacPSFDeriv = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
 		outConvFiltersDeriv = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * numln);
-		planBackwardPSF_MAC_DERIV = fftw_plan_dft_1d(numln, inMulMacPSFDeriv, outConvFiltersDeriv, FFT_BACKWARD, FFTW_EXHAUSTIVE);			
+		planBackwardPSF_MAC_DERIV = fftw_plan_dft_1d(numln, inMulMacPSFDeriv, outConvFiltersDeriv, FFT_BACKWARD, FFTW_MEASURE );			
 
 	}		
 
@@ -352,7 +349,7 @@ int main(int argc, char **argv)
 			size_t len = 0;
 			ssize_t read;
 			fReadSpectro = fopen(configCrontrolFile.ObservedProfiles, "r");
-			float indexLine;
+			
 			int contLine=0;
 			if (fReadSpectro == NULL)
 			{
@@ -361,12 +358,14 @@ int main(int argc, char **argv)
 				fclose(fReadSpectro);
 				exit(EXIT_FAILURE);
 			}
-			float dummy;
+			float aux1, aux2,aux3,aux4,aux5,aux6;
 			while ((read = getline(&line, &len, fReadSpectro)) != -1 && contLine<nlambda) {
-				//sscanf(line,"%le %le %le %le %le %le",&indexLine,&vLambdaTest[contLine],&spectroTest[contLine], &spectroTest[contLine + numLambdaTest], &spectroTest[contLine + numLambdaTest * 2], &spectroTest[contLine + numLambdaTest * 3]);
-				sscanf(line,"%e %e %e %e %e %e",&indexLine,&dummy,&spectroPER[contLine], &spectroPER[contLine + nlambda], &spectroPER[contLine + nlambda * 2], &spectroPER[contLine + nlambda * 3]);
-				//vLambda[contLine] = configCrontrolFile.CentralWaveLenght+(dummy/1000);
-				//sscanf(line,"%le %le %le %le %le",&vLambdaTest[contLine],&spectroTest[contLine], &spectroTest[contLine + numLambdaTest], &spectroTest[contLine + numLambdaTest * 2], &spectroTest[contLine + numLambdaTest * 3]);
+				//sscanf(line,"%e %e %e %e %e %e",&indexLine,&dummy,&spectroPER[contLine], &spectroPER[contLine + nlambda], &spectroPER[contLine + nlambda * 2], &spectroPER[contLine + nlambda * 3]);
+				sscanf(line,"%e %e %e %e %e %e",&aux1,&aux2,&aux3,&aux4,&aux5,&aux6);
+				spectroPER[contLine] = aux3;
+				spectroPER[contLine + nlambda] = aux4;
+				spectroPER[contLine + nlambda * 2] = aux5;
+				spectroPER[contLine + nlambda * 3] = aux6;
 				contLine++;
 			}
 			fclose(fReadSpectro);
@@ -511,7 +510,7 @@ int main(int argc, char **argv)
 
 		// synthesis
       mil_sinrf(cuantic, &initModel, wlines, vLambda, nlambda, spectra, AH, slight,spectra_mac, configCrontrolFile.ConvolveWithPSF);
-      me_der(cuantic, &initModel, wlines, vLambda, nlambda, d_spectra, spectra_mac, spectra, AH, slight, 0, configCrontrolFile.ConvolveWithPSF);	
+      //me_der(cuantic, &initModel, wlines, vLambda, nlambda, d_spectra, spectra_mac, spectra, AH, slight, 0, configCrontrolFile.ConvolveWithPSF);	
 
 		// in this case basenamefile is from initmodel
 		char nameAux [4096];
@@ -541,7 +540,7 @@ int main(int argc, char **argv)
 			size_t len = 0;
 			ssize_t read;
 			fReadSpectro = fopen(configCrontrolFile.ObservedProfiles, "r");
-			float numLine;
+			
 			int contLine=0;
 			if (fReadSpectro == NULL)
 			{
@@ -550,12 +549,14 @@ int main(int argc, char **argv)
 				fclose(fReadSpectro);
 				exit(EXIT_FAILURE);
 			}
-			float dummy;
+			
+			float aux1, aux2, aux3, aux4, aux5, aux6;
 			while ((read = getline(&line, &len, fReadSpectro)) != -1 && contLine<nlambda) {
-				//sscanf(line,"%le %le %le %le %le %le",&indexLine,&vLambdaTest[contLine],&spectroTest[contLine], &spectroTest[contLine + numLambdaTest], &spectroTest[contLine + numLambdaTest * 2], &spectroTest[contLine + numLambdaTest * 3]);
-				sscanf(line,"%e %e %e %e %e %e",&numLine,&dummy,&spectroPER[contLine], &spectroPER[contLine + nlambda], &spectroPER[contLine + nlambda * 2], &spectroPER[contLine + nlambda * 3]);
-				//vLambda[contLine] = configCrontrolFile.CentralWaveLenght+(dummy/1000);
-				//sscanf(line,"%le %le %le %le %le",&vLambdaTest[contLine],&spectroTest[contLine], &spectroTest[contLine + numLambdaTest], &spectroTest[contLine + numLambdaTest * 2], &spectroTest[contLine + numLambdaTest * 3]);
+				sscanf(line,"%e %e %e %e %e %e",&aux1,&aux2,&aux3,&aux4,&aux5,&aux6);
+				spectroPER[contLine] = aux3;
+				spectroPER[contLine + nlambda] = aux4;
+				spectroPER[contLine + nlambda * 2] = aux5;
+				spectroPER[contLine + nlambda * 3] = aux6;
 				contLine++;
 			}
 			fclose(fReadSpectro);
@@ -671,12 +672,8 @@ int main(int argc, char **argv)
 					imageStokesAdjust->pos_stokes_parameters = fitsImage->pos_stokes_parameters;
 					imageStokesAdjust->numPixels = fitsImage->numPixels;
 					imageStokesAdjust->pixels = calloc(imageStokesAdjust->numPixels, sizeof(vpixels));
-					//imageStokesAdjust->vLambdaImagen = calloc(imageStokesAdjust->numPixels*imageStokesAdjust->nLambdas, sizeof(PRECISION));
-					//imageStokesAdjust->spectroImagen = calloc(imageStokesAdjust->numPixels*imageStokesAdjust->nLambdas*imageStokesAdjust->numStokes, sizeof(PRECISION));
 					for( i=0;i<imageStokesAdjust->numPixels;i++){
 						imageStokesAdjust->pixels[i].spectro = calloc ((imageStokesAdjust->numStokes*imageStokesAdjust->nLambdas),sizeof(float));
-						//imageStokesAdjust->pixels[i].vLambda = calloc (imageStokesAdjust->nLambdas, sizeof(PRECISION));
-						//imageStokesAdjust->pixels[i].nLambda = imageStokesAdjust->nLambdas;
 					}
 				}				
 				// check if read stray light

@@ -3,24 +3,10 @@
 /**
  * 
  */
-int covarm(PRECISION *w, PRECISION *sig, float *spectro, int nspectro, PRECISION *spectra, PRECISION *d_spectra,
-			  PRECISION *beta, PRECISION *alpha);
+
+int covarm(REAL *w,REAL *sig,float *spectro,int nspectro,REAL *spectra,REAL  *d_spectra,REAL *beta,REAL *alpha);
 
 
-
-
-/**
- * 
- */
-PRECISION *totalParcial(PRECISION * A, int f,int c,int dire);
-/**
- * 
- */
-PRECISION *totalParcialMatrix(PRECISION * A, int f,int c,int p);
-/**
- * 
- */
-PRECISION total(PRECISION * A, int f,int c);
 /**
  * 
  */
@@ -32,25 +18,26 @@ int multmatrixCblas(PRECISION *a,int naf,int nac, PRECISION *b,int nbf,int nbc,P
 /**
  * 
  */
-PRECISION fchisqr(PRECISION * spectra,int nspectro,float *spectro,PRECISION *w,PRECISION *sig,PRECISION nfree);
+
+REAL fchisqr(REAL * spectra,int nspectro,float *spectro,REAL *w,REAL *sig,REAL nfree);
 
 
 /**
  * 
  */
-int multmatrixIDLValue(PRECISION *a,int naf,int nac,PRECISION *b,int nbf,int nbc,PRECISION *result,int *fil,int *col,PRECISION value);
+int multmatrixIDLValue(REAL *a,int naf,int nac,REAL *b,int nbf,int nbc,REAL *result,int *fil,int *col,REAL value);
 /**
  * 
  */
-void totalParcialMatrixf(PRECISION * A, int f,int c,int p,PRECISION *result);
+void totalParcialMatrixf(REAL * A, int f,int c,int p,REAL *result);
 /**
  * 
  */
-void totalParcialf(PRECISION * A, int f,int c,PRECISION * result);
+void totalParcialf(REAL * A, int f,int c,REAL * result);
 /**
  * 
  */
-int multmatrix_transpose(PRECISION *a,int naf,int nac, PRECISION *b,int nbf,int nbc,PRECISION *result,int *fil,int *col,PRECISION value);
+int multmatrix_transpose(REAL *a,int naf,int nac, REAL *b,int nbf,int nbc,REAL *result,int *fil,int *col,REAL value);
 
 int multmatrix_transpose_param(PRECISION *a,int naf,int nac, PRECISION *b,int nbf,int nbc,PRECISION *result,int *fil,int *col);
 

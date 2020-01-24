@@ -16,8 +16,8 @@
 
 
 
-extern PRECISION AP[NTERMS*NTERMS*NPARMS],BT[NPARMS*NTERMS];
-extern PRECISION * opa;
+extern REAL AP[NTERMS*NTERMS*NPARMS],BT[NPARMS*NTERMS];
+extern REAL * opa;
 
 
 /*
@@ -30,17 +30,13 @@ return
 
 */
 
-int covarm(PRECISION *w,PRECISION *sig,float *spectro,int nspectro,PRECISION *spectra,PRECISION  *d_spectra,
-		PRECISION *beta,PRECISION *alpha){	
+int covarm(REAL *w,REAL *sig,float *spectro,int nspectro,REAL *spectra,REAL  *d_spectra,REAL *beta,REAL *alpha){	
 	
 	int j,i,bt_nf,bt_nc,aux_nf,aux_nc;
-	//static PRECISION AP[NTERMS*NTERMS*NPARMS],BT[NPARMS*NTERMS];
-	//PRECISION opa[nspectro];
+
 	
-	PRECISION *BTaux,*APaux;
-	PRECISION auxWeight,aux;
-	//PRECISION *opa;
-	//opa = calloc(nspectro,sizeof(PRECISION));
+	REAL *BTaux,*APaux;
+	REAL auxWeight;
 	//printf("\nVALORES DEL SIGMA SQUARE\n");
 
 	for(j=0;j<NPARMS;j++){
@@ -75,10 +71,10 @@ int covarm(PRECISION *w,PRECISION *sig,float *spectro,int nspectro,PRECISION *sp
 
 
 
-PRECISION fchisqr(PRECISION * spectra,int nspectro,float *spectro,PRECISION *w,PRECISION *sig,PRECISION nfree){
+REAL fchisqr(REAL * spectra,int nspectro,float *spectro,REAL *w,REAL *sig,REAL nfree){
 	
-	PRECISION TOT,dif;	
-	PRECISION opa;
+	REAL TOT,dif;	
+	REAL opa;
 	int i,j;
 
 	TOT=0;
@@ -111,18 +107,14 @@ PRECISION fchisqr(PRECISION * spectra,int nspectro,float *spectro,PRECISION *w,P
 	El tamaño de columnas de b, nbc, debe de ser igual al de filas de a, naf.
 
 */
-int multmatrixIDLValue(PRECISION *a,int naf,int nac,PRECISION *b,int nbf,int nbc,PRECISION *result,int *fil,int *col,PRECISION value){
+int multmatrixIDLValue(REAL *a,int naf,int nac,REAL *b,int nbf,int nbc,REAL *result,int *fil,int *col,REAL value){
     
-     int i,j,k;
-    PRECISION sum;
+   int i,j,k;
+   REAL sum;
 	
 	if(naf==nbc){
 		(*fil)=nbf;
 		(*col)=nac;
-		
-//		free(*result);
-//		result=calloc((nbf)*(nac),sizeof(PRECISION));
-//		printf("a ver ..\n");
 
 		for ( i = 0; i < nbf; i++){
 		    for ( j = 0; j < nac; j++){
@@ -143,33 +135,9 @@ int multmatrixIDLValue(PRECISION *a,int naf,int nac,PRECISION *b,int nbf,int nbc
 }
 
 
-/*
-	dire:
-		1: suma por filas, return PRECISION * de tam f
-		2: suma por columnas, return PRECISION * de tam c
-*/
-
-PRECISION *totalParcial(PRECISION * A, int f,int c,int dire){
+void totalParcialf(REAL * A, int f,int c,REAL * result){
 
 	int i,j;
-//	PRECISION 	sum;
-	PRECISION *result;	
-	result=calloc(dire==1?f:c,sizeof(PRECISION));
-
-	for(i=0;i<f;i++)
-		for(j=0;j<c;j++){
-			result[(dire==1)?i:j]+=A[i*c+j];
-		}
-
-	return result;
-}
-
-void totalParcialf(PRECISION * A, int f,int c,PRECISION * result){
-
-	int i,j;
-//	PRECISION 	sum;
-
-//	result=calloc(dire==1?f:c,sizeof(PRECISION));
 	
 	for(i=0;i<c;i++){
 		result[i]=0;
@@ -180,32 +148,9 @@ void totalParcialf(PRECISION * A, int f,int c,PRECISION * result){
 }
 
 
-/*
-return matriz de tam f*c
-*/
-
-PRECISION *totalParcialMatrix(PRECISION * A, int f,int c,int p){
+void totalParcialMatrixf(REAL * A, int f,int c,int p,REAL *result){
 
 	int i,j,k;
-//	PRECISION 	sum;
-	PRECISION *result;	
-	result=calloc(f*c,sizeof(PRECISION));
-
-	for(i=0;i<f;i++)
-		for(j=0;j<c;j++){
-			for(k=0;k<p;k++)
-				result[i*c+j]+=A[i*c+j+f*c*k];
-		}
-
-	return result;
-}
-
-void totalParcialMatrixf(PRECISION * A, int f,int c,int p,PRECISION *result){
-
-	int i,j,k;
-//	PRECISION 	sum;
-//	PRECISION *result;	
-//	result=calloc(f*c,sizeof(PRECISION));
 
 	for(i=0;i<f;i++)
 		for(j=0;j<c;j++){
@@ -216,21 +161,6 @@ void totalParcialMatrixf(PRECISION * A, int f,int c,int p,PRECISION *result){
 
 //	return result;
 }
-
-
-PRECISION total(PRECISION * A, int f,int c){
-
-	int i,j;
-	PRECISION 	sum;
-	sum=0;
-	for(i=0;i<f;i++)
-		for(j=0;j<c;j++)
-			sum+=A[i*c+j];
-
-	return sum;
-}
-
-
 
 /*
 	Multiplica la matriz a (tamaño naf,nac)
@@ -304,7 +234,7 @@ int multmatrixCblas(PRECISION *a,int naf,int nac, PRECISION *b,int nbf,int nbc,P
 
 
 
-int multmatrix_transpose(PRECISION *a,int naf,int nac, PRECISION *b,int nbf,int nbc,PRECISION *result,int *fil,int *col,PRECISION value){
+int multmatrix_transpose(REAL *a,int naf,int nac, REAL *b,int nbf,int nbc,REAL *result,int *fil,int *col,REAL value){
     
     int i,j,k;
     PRECISION sum;

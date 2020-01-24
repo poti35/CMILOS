@@ -12,8 +12,8 @@
 int funcionComponent_sinrf(PRECISION *u,PRECISION ulos,PRECISION shift,int numl,PRECISION *fi_x,
 		PRECISION *shi_x,PRECISION A);
 
-int funcionComponentFor_sinrf(PRECISION *u,int n_pi,int numl,PRECISION *wex,PRECISION *nuxB,PRECISION *fi_x,
-												PRECISION *shi_x,PRECISION A,PRECISION MF);
+int funcionComponentFor_sinrf(PRECISION *u,int n_pi,int numl,PRECISION *wex,REAL *nuxB,REAL *fi_x,
+												REAL *shi_x,PRECISION A,PRECISION MF);
 
 
 
@@ -33,24 +33,24 @@ int funcionComponentFor_sinrf(PRECISION *u,int n_pi,int numl,PRECISION *wex,PREC
 */
 
 
-extern PRECISION * gp1,*gp2,*dt,*dti,*gp3,*gp4,*gp5,*gp6,*etai_2;
+extern REAL * gp1,*gp2,*dt,*dti,*gp3,*gp4,*gp5,*gp6,*etai_2;
 
-extern PRECISION *gp4_gp2_rhoq,*gp5_gp2_rhou,*gp6_gp2_rhov;
+extern REAL *gp4_gp2_rhoq,*gp5_gp2_rhou,*gp6_gp2_rhov;
 
 extern PRECISION CC,CC_2,sin_gm,azi_2,sinis,cosis,cosis_2,cosi,sina,cosa,sinda,cosda,sindi,cosdi,sinis_cosa,sinis_sina;
-extern PRECISION *fi_p,*fi_b,*fi_r,*shi_p,*shi_b,*shi_r;
-extern PRECISION *etain,*etaqn,*etaun,*etavn,*rhoqn,*rhoun,*rhovn;
-extern PRECISION *etai,*etaq,*etau,*etav,*rhoq,*rhou,*rhov;
-extern PRECISION *parcial1,*parcial2,*parcial3;
-extern PRECISION *nubB,*nupB,*nurB;
-PRECISION **uuGlobalInicial;
-PRECISION **HGlobalInicial;
-PRECISION **FGlobalInicial;
+extern REAL *fi_p,*fi_b,*fi_r,*shi_p,*shi_b,*shi_r;
+extern REAL *etain,*etaqn,*etaun,*etavn,*rhoqn,*rhoun,*rhovn;
+extern REAL *etai,*etaq,*etau,*etav,*rhoq,*rhou,*rhov;
+extern REAL *parcial1,*parcial2,*parcial3;
+extern REAL *nubB,*nupB,*nurB;
+REAL **uuGlobalInicial;
+REAL **HGlobalInicial;
+REAL **FGlobalInicial;
 extern int FGlobal,HGlobal,uuGlobal;
 
 //extern PRECISION *G, *GMAC; // VECTOR WITH GAUSSIAN CREATED FOR CONVOLUTION 
 extern PRECISION *GMAC; // VECTOR WITH GAUSSIAN CREATED FOR CONVOLUTION 
-extern float *G;
+extern REAL *G;
 
 extern fftw_complex * inSpectraFwMAC, *inSpectraBwMAC, *outSpectraFwMAC, *outSpectraBwMAC;
 extern fftw_complex * inFilterMAC, * inFilterMAC_DERIV, * outFilterMAC, * outFilterMAC_DERIV;
@@ -63,8 +63,8 @@ extern fftw_plan planForwardPSF_MAC, planForwardPSF_MAC_DERIV,planBackwardPSF_MA
 extern fftw_complex * inSpectraFwPSF, *inSpectraBwPSF, *outSpectraFwPSF, *outSpectraBwPSF;
 extern fftw_plan planForwardPSF, planBackwardPSF;
 
-int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *lambda,int nlambda,PRECISION *spectra,
-			PRECISION ah,PRECISION * slight, PRECISION * spectra_mc, int filter)
+int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *lambda,int nlambda,REAL *spectra,
+			PRECISION ah,PRECISION * slight, REAL * spectra_mc, int filter)
 {
 
 	int offset,numl;
@@ -119,14 +119,14 @@ int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISIO
 	AZI=AZI*CC;
 	GM=GM*CC;
 
-	sin_gm=sin(GM);
-	cosi=cos(GM);
+	sin_gm=SIN(GM);
+	cosi=COS(GM);
 	sinis=sin_gm*sin_gm;
 	cosis=cosi*cosi;
 	cosis_2=(1+cosis)/2;
 	azi_2=2*AZI;
-	sina=sin(azi_2);
-	cosa=cos(azi_2);
+	sina=SIN(azi_2);
+	cosa=COS(azi_2);
 	
 
 	sinda=cosa*CC_2;
@@ -142,13 +142,13 @@ int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISIO
     for(il=0;il<lineas;il++) {
 		//reserva de memoria para vectores auxiliares
 
-		etain=etain+nlambda*il*sizeof(PRECISION);
-		etaqn=etaqn+nlambda*il*sizeof(PRECISION);
-		etaun=etaun+nlambda*il*sizeof(PRECISION);
-		etavn=etavn+nlambda*il*sizeof(PRECISION);
-		rhoqn=rhoqn+nlambda*il*sizeof(PRECISION);
-		rhoun=rhoun+nlambda*il*sizeof(PRECISION);
-		rhovn=rhovn+nlambda*il*sizeof(PRECISION);
+		etain=etain+nlambda*il*sizeof(REAL);
+		etaqn=etaqn+nlambda*il*sizeof(REAL);
+		etaun=etaun+nlambda*il*sizeof(REAL);
+		etavn=etavn+nlambda*il*sizeof(REAL);
+		rhoqn=rhoqn+nlambda*il*sizeof(REAL);
+		rhoun=rhoun+nlambda*il*sizeof(REAL);
+		rhovn=rhovn+nlambda*il*sizeof(REAL);
 
 		//Line strength
 	    E0=E00*cuantic[il].FO; //y sino se definio Fo que debe de pasar 0 o 1 ...??
@@ -163,12 +163,12 @@ int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISIO
 	    	u[i]=((lambda[i]-wlines[il+1])/LD)-ulos;
 	    }
 
-		fi_p=fi_p+nlambda*il*sizeof(PRECISION);
-		fi_b=fi_b+nlambda*il*sizeof(PRECISION);
-		fi_r=fi_r+nlambda*il*sizeof(PRECISION);
-		shi_p=shi_p+nlambda*il*sizeof(PRECISION);
-		shi_b=shi_b+nlambda*il*sizeof(PRECISION);
-		shi_r=shi_r+nlambda*il*sizeof(PRECISION);
+		fi_p=fi_p+nlambda*il*sizeof(REAL);
+		fi_b=fi_b+nlambda*il*sizeof(REAL);
+		fi_r=fi_r+nlambda*il*sizeof(REAL);
+		shi_p=shi_p+nlambda*il*sizeof(REAL);
+		shi_b=shi_b+nlambda*il*sizeof(REAL);
+		shi_r=shi_r+nlambda*il*sizeof(REAL);
 
 	    for(i=0;i<nlambda;i++){
 			fi_p[i]=0;
@@ -184,9 +184,9 @@ int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISIO
 
 		// ******* GENERAL MULTIPLET CASE ********
 		
-		nubB=nubB+nlambda*il*sizeof(PRECISION);
-		nurB=nurB+nlambda*il*sizeof(PRECISION);
-		nupB=nupB+nlambda*il*sizeof(PRECISION);
+		nubB=nubB+nlambda*il*sizeof(REAL);
+		nurB=nurB+nlambda*il*sizeof(REAL);
+		nupB=nupB+nlambda*il*sizeof(REAL);
 
 
 		parcial=(((wlines[il+1]*wlines[il+1]))/LD)*(CTE4_6_13);
@@ -224,7 +224,7 @@ int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISIO
 		//*****
 
 		//dispersion profiles				
-		PRECISION E0_2;
+		REAL E0_2;
 		E0_2=E0/2.0;
 
 		for(i=0;i<numl;i++){
@@ -233,7 +233,7 @@ int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISIO
 			parcial3[i]=(E0_2)*(shi_p[i]-(shi_b[i]+shi_r[i])/2);
 		}	
 
-		PRECISION cosi_E0_2;
+		REAL cosi_E0_2;
 		cosi_E0_2=E0_2*cosi;
 		for(i=0;i<numl;i++){
 			etain[i]=((E0_2)*(fi_p[i]*sinis+(parcial1[i])*cosis_2));
@@ -268,7 +268,7 @@ int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISIO
     } 
 
     for(i=0;i<numl;i++){
-		PRECISION auxq,auxu,auxv;
+		REAL auxq,auxu,auxv;
 		auxq=rhoq[i]*rhoq[i];
 		auxu=rhou[i]*rhou[i];
 		auxv=rhov[i]*rhov[i];
@@ -294,7 +294,7 @@ int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISIO
     	gp6[i]=(etai_2[i])*etav[i]+etai[i]*(etau[i]*rhoq[i]-etaq[i]*rhou[i]);
     }       
    
-	PRECISION dtiaux[nlambda];
+	REAL dtiaux[nlambda];
 
    for(i=0;i<numl;i++){
 		gp4_gp2_rhoq[i] = gp4[i]+rhoq[i]*gp2[i];
@@ -401,7 +401,7 @@ int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISIO
 		
 	//int nlambda = NLAMBDA;
 	//convolucionamos los perfiles IQUV (spectra)			
-		odd=(numl%2);
+		/*odd=(numl%2);
 		
 		int startShift = numl/2;
 		if(odd) startShift+=1;
@@ -424,6 +424,26 @@ int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISIO
 				spectra[ishift+i*(numl)]=creal(outSpectraBwPSF[j])*(numl);
 			}
 		}
+		*/
+		
+		
+		//convolucion de I
+		REAL Ic = spectra[nlambda - 1];
+
+		for (i = 0; i < nlambda; i++)
+			spectra[i] = Ic - spectra[i];
+
+		direct_convolution(spectra, nlambda, G, nlambda, 1); //no convolucionamos el ultimo valor Ic
+		//convolve(spectra, nlambda, G, nlambda);
+
+		for (i = 0; i < nlambda; i++)
+			spectra[i] = Ic - spectra[i];
+
+		//convolucion QUV
+		for (i = 1; i < NPARMS; i++)
+			direct_convolution(spectra + nlambda * i, nlambda, G, nlambda, 1); //no convolucionamos el ultimo valor
+			//convolve(spectra + nlambda * i, nlambda, G, nlambda);
+		
 		//spectral_synthesis_convolution(&nlambda);
 	}
 
@@ -431,10 +451,10 @@ int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISIO
 }
 
 
-int funcionComponentFor_sinrf(PRECISION *u,int n_pi,int numl,PRECISION *wex,PRECISION *nuxB,PRECISION *fi_x,
-												PRECISION *shi_x,PRECISION A,PRECISION MF)
+int funcionComponentFor_sinrf(PRECISION *u,int n_pi,int numl,PRECISION *wex,REAL *nuxB,REAL *fi_x,
+												REAL *shi_x,PRECISION A,PRECISION MF)
 {
-	PRECISION *uu,*F,*H;
+	REAL *uu,*F,*H;
 	int i,j;
 
 
@@ -472,18 +492,13 @@ int funcionComponentFor_sinrf(PRECISION *u,int n_pi,int numl,PRECISION *wex,PREC
 /*
  * 
  */
-int funcionComponent_sinrf(PRECISION *u,PRECISION ulos,PRECISION shift,int numl,PRECISION *fi_x,PRECISION *shi_x,PRECISION A){
+/*int funcionComponent_sinrf(PRECISION *u,PRECISION ulos,PRECISION shift,int numl,PRECISION *fi_x,PRECISION *shi_x,PRECISION A){
 	
 
 	int j;
 
 	PRECISION H[numl],F[numl],uu[numl];
 
-	/*PRECISION *H,*F,*uu;
-					
-	uu=calloc(numl,sizeof(PRECISION));
-	H=calloc(numl,sizeof(PRECISION));
-	F=calloc(numl,sizeof(PRECISION));*/
 	
 
 	for(j=0;j<numl;j++){
@@ -501,14 +516,11 @@ int funcionComponent_sinrf(PRECISION *u,PRECISION ulos,PRECISION shift,int numl,
 	}
 
 
-	/*free(uu);
-	free(H);
-	free(F);*/
 
 
 	return 1;
 	
-}
+}*/
 
 
 

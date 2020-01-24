@@ -513,24 +513,26 @@ FitsImage *  readFitsSpectroImage (const char * fitsFileSpectra, int forParallel
 				}
 
 				// allocate memory for reorder the image
-				image->pixels = calloc(image->numPixels, sizeof(vpixels));
+				
 				if(forParallel){
 					//image->vLambdaImagen = calloc(image->numPixels*image->nLambdas, sizeof(PRECISION));
 					image->vLambdaImagen = NULL;
 					image->spectroImagen = calloc(image->numPixels*image->nLambdas*image->numStokes, sizeof(float));
 				}
 				else{
+					image->pixels = calloc(image->numPixels, sizeof(vpixels));
+					for( i=0;i<image->numPixels;i++){
+						image->pixels[i].spectro = calloc ((image->numStokes*image->nLambdas),sizeof(float));
+						//image->pixels[i].vLambda = calloc (image->nLambdas, sizeof(float));
+						image->pixels[i].vLambda = NULL;
+						image->pixels[i].nLambda = image->nLambdas;
+					}					
 					image->vLambdaImagen = NULL;
 					image->spectroImagen = NULL;
 				}
 				//printf("\n Número de pixeles: %d", image->numPixels);
 				//printf("\n ***********************************************");
-				for( i=0;i<image->numPixels;i++){
-					image->pixels[i].spectro = calloc ((image->numStokes*image->nLambdas),sizeof(float));
-					//image->pixels[i].vLambda = calloc (image->nLambdas, sizeof(float));
-					image->pixels[i].vLambda = NULL;
-					image->pixels[i].nLambda = image->nLambdas;
-				}
+
 				
 				//PRECISION pixel;
 				if(naxis==4){ // image with 4 dimension 
@@ -550,9 +552,11 @@ FitsImage *  readFitsSpectroImage (const char * fitsFileSpectra, int forParallel
 						for( j=0; j<naxes[2];j++){
 							for( k=0;k<naxes[1];k++){
 								for( h=0;h<naxes[0];h++){
-									image->pixels[(i*naxes[2]) + j].spectro[h + (image->nLambdas * k)] = imageTemp [(i*naxes[2]*naxes[1]*naxes[0]) + (j*naxes[1]*naxes[0]) + (k*naxes[0]) + h];  // I =0, Q = 1, U = 2, V = 3
 									if(forParallel){
 										image->spectroImagen[ (((i*naxes[2]) + j)*(image->nLambdas*image->numStokes)) + (image->nLambdas * k) + h] = imageTemp [(i*naxes[2]*naxes[1]*naxes[0]) + (j*naxes[1]*naxes[0]) + (k*naxes[0]) + h];  // I =0, Q = 1, U = 2, V = 3
+									}
+									else{
+										image->pixels[(i*naxes[2]) + j].spectro[h + (image->nLambdas * k)] = imageTemp [(i*naxes[2]*naxes[1]*naxes[0]) + (j*naxes[1]*naxes[0]) + (k*naxes[0]) + h];  // I =0, Q = 1, U = 2, V = 3
 									}
 								}
 							}
@@ -962,7 +966,7 @@ FitsImage * readFitsSpectroImageRectangular (const char * fitsFileSpectra, Confi
 				
 				
 				// allocate memory to read all pixels in the same array 
-				PRECISION * imageTemp = calloc(numPixelsFitsFile, sizeof(float));
+				float * imageTemp = calloc(numPixelsFitsFile, sizeof(float));
 				if (!imageTemp)  {
 					printf("ERROR ALLOCATION MEMORY FOR TEMP IMAGE");
 					return NULL;
@@ -1837,7 +1841,7 @@ int writeFitsImageModelsWithArray(char * fitsFile, int numRows, int numCols, PRE
 		return 0;
 	}
 
-	PRECISION * vModel = malloc(numRows * numCols * NUMBER_PARAM_MODELS);
+	float * vModel = malloc(numRows * numCols * NUMBER_PARAM_MODELS);
 
 	int indexModel = 0;
 	for( i=0;i<NUMBER_PARAM_MODELS;i++){
@@ -1892,7 +1896,7 @@ int writeFitsImageModelsWithArray(char * fitsFile, int numRows, int numCols, PRE
    nelements = naxes[0] * naxes[1] * naxes[2];          /* number of pixels to write */
 
     /* write the array of unsigned integers to the FITS file */
-   if ( fits_write_img(fptr, TUSHORT, fpixel, nelements, vModel, &status) ){
+   if ( fits_write_img(fptr, TFLOAT, fpixel, nelements, vModel, &status) ){
 		printerror( status );
 		free(vModel);
 		return 0;
