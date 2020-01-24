@@ -482,7 +482,7 @@ PRECISION readFileCuanticLines(const char * inputLineFile, PRECISION * cuanticDa
 	
 	if(printLog){
 		printf("\n***********************************");
-		printf("\n\n CUANTIC NUMBERS READ FROM FILE, FOR CENTRAL WAVELENGTH %lf: \n",lambdaLine);
+		printf("\n\n QUANTUM NUMBERS READ FROM FILE, FOR CENTRAL WAVELENGTH %lf: \n",lambdaLine);
 		printf("\n\tSLOI: %fd",cuanticDat[1]);
 		printf("\n\tLLOI: %fd",cuanticDat[2]);
 		printf("\n\tJLOI: %fd",cuanticDat[3]);
