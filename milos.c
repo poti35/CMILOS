@@ -76,10 +76,7 @@ REAL **FGlobalInicial;
 PRECISION *GMAC;
 REAL * G, *dirConvPar;
 
-
 REAL AP[NTERMS*NTERMS*NPARMS],BT[NPARMS*NTERMS];
-
-
 
 REAL * opa;
 int FGlobal, HGlobal, uuGlobal;
