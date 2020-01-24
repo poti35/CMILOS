@@ -38,9 +38,6 @@
 // ***************************** FUNCTIONS TO READ FITS FILE *********************************************************
 
 
-long long int c1, c2, cd, semi, c1a, c2a, cda; //variables of 64 bits to read whatch cycles 
-long long int c1total, c2total, cdtotal, ctritotal;
-
 Cuantic *cuantic; // Global variable with cuantic information 
 
 

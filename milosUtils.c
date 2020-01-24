@@ -1,8 +1,6 @@
 #include "lib.h"
 #include "defines.h"
 #include "milosUtils.h"
-//#include "nrutil.h"
-//#include "svdcmp.h"
 #include "time.h"
 #include <complex.h>
 #include <fftw3.h> //siempre a continuacion de complex.h
@@ -13,16 +11,8 @@
 #include <gsl/gsl_eigen.h>
 #include "fftw.h"
 #include "convolution.h"
-//#include "mkl_vsl.h"
-//#include "mkl_lapacke.h"
-
-#define tiempo(ciclos) asm volatile("rdtsc \n\t" \
-												: "=A"(ciclos))
 
 
-
-extern long long int c1, c2, cd, semi, c1a, c2a, cda; //variables de 64 bits para leer ciclos de reloj
-extern long long int c1total, cdtotal;
 
 extern PRECISION **PUNTEROS_CALCULOS_COMPARTIDOS;
 extern int POSW_PUNTERO_CALCULOS_COMPARTIDOS;
@@ -318,8 +308,6 @@ int mil_svd(PRECISION *h, PRECISION *beta, PRECISION *delta)
 	int aux_nf, aux_nc;
 	
 	epsilon = 1e-12;
-	
-	/**/
 	
 	gsl_vector *eval = gsl_vector_alloc (NTERMS);
   	gsl_matrix *evec = gsl_matrix_alloc (NTERMS, NTERMS);

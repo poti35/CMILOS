@@ -48,13 +48,6 @@
 #include <fftw3.h> //siempre a continuacion de complex.h
 #include "fftw.h"
 
-
-//#include "slog.h"
-//#include "mkl_vsl.h"
-
-long long int c1, c2, cd, semi, c1a, c2a, cda; //variables de 64 bits para leer ciclos de reloj
-long long int c1total, cdtotal;
-
 Cuantic *cuantic; // Variable global, está hecho así, de momento,para parecerse al original
 
 
