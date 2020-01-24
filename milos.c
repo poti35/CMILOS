@@ -218,7 +218,6 @@ int main(int argc, char **argv)
 	/******************* CREATE CUANTINC AND INITIALIZE DINAMYC MEMORY*******************/
 
 	cuantic = create_cuantic(dat,1);
-	InitializePointerShareCalculation();
 
 	/****************************************************************************************************/
 	int numln=nlambda;
@@ -333,7 +332,7 @@ int main(int argc, char **argv)
 
 	if(configCrontrolFile.NumberOfCycles<0){
 		// read fits or per 
-      InitializePointerShareCalculation();
+      
 		AllocateMemoryDerivedSynthesis(nlambda);
 		if(strcmp(file_ext(configCrontrolFile.ObservedProfiles),PER_FILE)==0){ // invert only per file
 			float * spectroPER = calloc(nlambda*NPARMS,sizeof(float));
@@ -498,7 +497,7 @@ int main(int argc, char **argv)
 		printf("\n");    
 
       
-      InitializePointerShareCalculation();
+      
       AllocateMemoryDerivedSynthesis(nlambda);
 
 		// synthesis
@@ -555,7 +554,7 @@ int main(int argc, char **argv)
 			fclose(fReadSpectro);
 
       
-      		InitializePointerShareCalculation();
+      	
 			AllocateMemoryDerivedSynthesis(nlambda);
 			Init_Model initModel;
 			initModel.eta0 = INITIAL_MODEL.eta0;

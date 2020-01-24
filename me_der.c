@@ -512,7 +512,7 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 
 		//response_functions_convolution(&nlambda);
 	}
-	ResetPointerShareCalculation();
+	//ResetPointerShareCalculation();
 	
 	return 1;
 	

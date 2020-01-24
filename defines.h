@@ -72,13 +72,6 @@
 //#############################################
 
 
-
-// END USER CONFIGURATION
-//---------------------------------------------------------
-//---------------------------------------------------------
-//---------------------------------------------------------
-//---------------------------------------------------------
-
 // DONT'T MODIFY ANYTHING BELOW OF THIS LINE
 
 #define PI 	3.14159265358979323846264338327950288419716939937510
@@ -100,7 +93,7 @@
 
 #define NPARMS 4 //(IQUV)
 
-#define LONG_PUNTERO_CALCULOS_COMPARTIDOS 100  //no se usa...
+
 
 #define INSTRUMENTAL_CONVOLUTION_INTERPOLACION 0  //realizar interpolacion en la convolucion ?? //No funciona !
 
@@ -141,12 +134,6 @@ typedef struct CUANTIC Cuantic;
 
 /******************************************************/
 
-void InitializePointerShareCalculation();
-void ResetPointerShareCalculation();
-void ReadPointerShareCalculation(int Numero,PRECISION ** a,...);
-void AsignPointerShareCalculation(int Numero,PRECISION * a,...);
-void DeleteSpectraCalculation();
-
 void AllocateMemoryDerivedSynthesis(int numl);
 void FreeMemoryDerivedSynthesis();
 
@@ -164,15 +151,9 @@ int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISIO
 PRECISION * fgauss(PRECISION MC, PRECISION * eje,int neje,PRECISION landa,int deriv);
 REAL * fgauss_WL(PRECISION FWHM, PRECISION step_between_lw, PRECISION lambda0, PRECISION lambdaCentral, int nLambda, int * sizeG);
 
-
-
-int Guarda(char * nombre,PRECISION *v,int nv);
-int GuardaC(char * nombre,PRECISION _Complex *v,int nv,int a);
-
-//int fvoigt(PRECISION damp,PRECISION *vv,int nvv,PRECISION *h, PRECISION *f);
 int fvoigt(PRECISION damp,REAL *vv,int nvv,REAL *h, REAL *f);
 
-//PRECISION * vgauss(PRECISION fwhm,int nmuestras_G,PRECISION delta);
+
 
 /******************* DEFINITIONS FOR READ FITS FILE *********************/
 

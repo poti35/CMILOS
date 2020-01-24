@@ -286,7 +286,7 @@ int main(int argc, char **argv)
 	/******************* APPLY GAUSSIAN, CREATE CUANTINC AND INITIALIZE DINAMYC MEMORY*******************/
 	MPI_Barrier(MPI_COMM_WORLD);
 	cuantic = create_cuantic(dat,(idProc==root));
-	InitializePointerShareCalculation();
+	
 
 	/**************************************** READ FITS  STRAY LIGHT ******************************/
 	MPI_Barrier(MPI_COMM_WORLD);
@@ -572,7 +572,7 @@ int main(int argc, char **argv)
 				}
 
 				//***************************************** INIT MEMORY WITH SIZE OF LAMBDA ****************************************************//
-				InitializePointerShareCalculation();
+				
 				AllocateMemoryDerivedSynthesis(nlambda);
 				
 				int indexPixel = 0;
@@ -748,7 +748,7 @@ int main(int argc, char **argv)
 				vSpectraAjustedTotal = calloc (numPixels*nlambda*NPARMS,sizeof(float));
 			}
 			// allocate memory in all processes 
-			InitializePointerShareCalculation();
+			
 			AllocateMemoryDerivedSynthesis(nlambda);
 			
 			
