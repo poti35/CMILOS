@@ -23,7 +23,7 @@ vpixels * readImagePixels (char * fitsFile, int * numPixels){
 	int nLambda;
 	vpixels * image = NULL;
 	float * spectro;
-	PRECISION * vlambda;
+	REAL * vlambda;
 	
 	printf("\n ***********************START READING FITS FILE***********************");
 
@@ -104,7 +104,7 @@ vpixels * readImagePixels (char * fitsFile, int * numPixels){
 						
 						//printf(" \n Reservo memoria para nLambda %4d", nLambda);
 						spectro = calloc( 4 * nLambda, sizeof(float));
-						vlambda = calloc(nLambda, sizeof(PRECISION));
+						vlambda = calloc(nLambda, sizeof(REAL));
 						currentLambda = 0;
 						for(fpixel[pos_lambda] = 1; fpixel[pos_lambda] <= naxes[pos_lambda]; fpixel[pos_lambda]++){
 							vlambda[currentLambda] = 6173+ (currentLambda+1)*0.03;
@@ -564,16 +564,7 @@ FitsImage *  readFitsSpectroImage (const char * fitsFileSpectra, int forParallel
 					}					
 					
 				}
-/*				if(forParallel){
-					int contSpectro = 0;
-					for( i=0;i<image->numPixels;i++){
-						for( j=0;j<(image->nLambdas*image->numStokes);j++){
-							image->spectroImagen[contSpectro++] = image->pixels[i].spectro[j];
-						}
-					}
-				}*/
-				/*printf("\n IMAGEN LEIDA size spectro %d ", contSpectro);
-				printf("**********");*/
+
 				free(imageTemp);
 				fits_close_file(fptr, &status);
 				if (status){
@@ -1207,12 +1198,12 @@ int  readFitsLambdaFile (const char * fitsFileLambda, FitsImage * fitsImage){
  * @return Vector with 
  */
 
-PRECISION * readFitsLambdaToArray (const char * fitsFileLambda, int numRow, int numCol, int * indexLine, int * nLambda){
+double * readFitsLambdaToArray (const char * fitsFileLambda, int numRow, int numCol, int * indexLine, int * nLambda){
 	int i, j, k;
 	fitsfile *fptr;   /* FITS file pointer, defined in fitsio.h */
 	int status = 0;   /* CFITSIO status value MUST be initialized to zero! */
-	PRECISION  nulval = 0.; // define null value to 0 because the performance to read from fits file is better doing this. 
-	PRECISION * vLambda = NULL;
+	REAL  nulval = 0.; // define null value to 0 because the performance to read from fits file is better doing this. 
+	double * vLambda = NULL;
 	int bitpix, naxis, anynul;
 	long naxes [4] = {1,1,1,1}; /* The maximun number of dimension that we will read is 4*/
 	
@@ -1226,11 +1217,11 @@ PRECISION * readFitsLambdaToArray (const char * fitsFileLambda, int numRow, int 
 					*nLambda = naxes[0];
 					long fpixel [2] = {1,1};
 					i=0;
-					vLambda = calloc(*nLambda,sizeof(PRECISION));
+					vLambda = calloc(*nLambda,sizeof(double));
 					for(fpixel[1]=1;fpixel[1]<=naxes[1];fpixel[1]++){
 						for(fpixel[0]=1;fpixel[0]<=naxes[0];fpixel[0]++){
-							PRECISION lambdaAux;
-							fits_read_pix(fptr, TDOUBLE, fpixel, 1, &nulval, &lambdaAux, &anynul, &status) ;		
+							float lambdaAux;
+							fits_read_pix(fptr, TFLOAT, fpixel, 1, &nulval, &lambdaAux, &anynul, &status) ;		
 							if(fpixel[1]==1)
 								*indexLine = (int) lambdaAux;
 							else
@@ -1255,7 +1246,7 @@ PRECISION * readFitsLambdaToArray (const char * fitsFileLambda, int numRow, int 
 					int numLambdas2Read = naxes[0]*naxes[1]*naxes[2];
 					//fits_read_img(fptr, datatype, first, numLambdas2Read, &nulval, vAuxLambdas, &anynul, &status);
 					long fpixel [3] = {1,1,1};
-					fits_read_pix(fptr, TDOUBLE, fpixel, numLambdas2Read, &nulval, vLambda, &anynul, &status);
+					fits_read_pix(fptr, TFLOAT, fpixel, numLambdas2Read, &nulval, vLambda, &anynul, &status);
 					if(status){
 						fits_report_error(stderr, status);
 						free(vLambda);
@@ -1398,7 +1389,7 @@ void freeFitsImage(FitsImage * image){
  * fixed = array with positions to write in the file, Positions are in the following order: 
  * [Eta0,Strength,Vlos,Lambdadopp,Damp,Gamma,Azimuth,S0,S1,Macro,Alpha]
  * */
-int writeFitsImageModels(const char * fitsFile, int numRows, int numCols, Init_Model * vInitModel, PRECISION * vChisqrf, int * vNumIterPixel, int addChiqr){
+int writeFitsImageModels(const char * fitsFile, int numRows, int numCols, Init_Model * vInitModel, float * vChisqrf, int * vNumIterPixel, int addChiqr){
 
 	fitsfile *fptr;       /* pointer to the FITS file, defined in fitsio.h */
    int status;

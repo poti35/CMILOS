@@ -15,19 +15,16 @@
 	
 	direct_convolution(x,h,delta)
 	x spectro
-	h gaussiana -perfil instrumental- � ojo, solo con longitud impar!
+	h gaussiana -perfil instrumental
 	delta anchura de muestreo
 
 	--nota: como h es simetrico no se invierte su orden 
-	
-	//result=calloc(nresult,sizeof(PRECISION*));
-	//free();
 
 	_juanp
 */
 extern REAL *dirConvPar;
 
-void direct_convolution(REAL *x, int nx, REAL *h, int nh, PRECISION delta)
+void direct_convolution(REAL *x, int nx, REAL *h, int nh, REAL delta)
 {
 
 	
@@ -60,7 +57,7 @@ void direct_convolution(REAL *x, int nx, REAL *h, int nh, PRECISION delta)
 		{
 			x[k] += h[j] * dirConvPar[j + k];
 		}
-		//x[k] *= delta;
+		x[k] *= delta;
 	}
 
 }

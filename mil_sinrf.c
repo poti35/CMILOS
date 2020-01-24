@@ -48,9 +48,8 @@ REAL **HGlobalInicial;
 REAL **FGlobalInicial;
 extern int FGlobal,HGlobal,uuGlobal;
 
-//extern PRECISION *G, *GMAC; // VECTOR WITH GAUSSIAN CREATED FOR CONVOLUTION 
-extern PRECISION *GMAC; // VECTOR WITH GAUSSIAN CREATED FOR CONVOLUTION 
-extern REAL *G;
+extern REAL *G, *GMAC; // VECTOR WITH GAUSSIAN CREATED FOR CONVOLUTION 
+
 
 extern fftw_complex * inSpectraFwMAC, *inSpectraBwMAC, *outSpectraFwMAC, *outSpectraBwMAC;
 extern fftw_complex * inFilterMAC, * inFilterMAC_DERIV, * outFilterMAC, * outFilterMAC_DERIV;
@@ -63,7 +62,7 @@ extern fftw_plan planForwardPSF_MAC, planForwardPSF_MAC_DERIV,planBackwardPSF_MA
 extern fftw_complex * inSpectraFwPSF, *inSpectraBwPSF, *outSpectraFwPSF, *outSpectraBwPSF;
 extern fftw_plan planForwardPSF, planBackwardPSF;
 
-int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *lambda,int nlambda,REAL *spectra,
+int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,double * wlines,double *lambda,int nlambda,REAL *spectra,
 			PRECISION ah,PRECISION * slight, REAL * spectra_mc, int filter)
 {
 
@@ -401,7 +400,7 @@ int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISIO
 		
 	//int nlambda = NLAMBDA;
 	//convolucionamos los perfiles IQUV (spectra)			
-		/*odd=(numl%2);
+		odd=(numl%2);
 		
 		int startShift = numl/2;
 		if(odd) startShift+=1;
@@ -424,11 +423,11 @@ int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISIO
 				spectra[ishift+i*(numl)]=creal(outSpectraBwPSF[j])*(numl);
 			}
 		}
-		*/
+		
 		
 		
 		//convolucion de I
-		REAL Ic = spectra[nlambda - 1];
+		/*REAL Ic = spectra[nlambda - 1];
 
 		for (i = 0; i < nlambda; i++)
 			spectra[i] = Ic - spectra[i];
@@ -443,7 +442,7 @@ int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISIO
 		for (i = 1; i < NPARMS; i++)
 			direct_convolution(spectra + nlambda * i, nlambda, G, nlambda, 1); //no convolucionamos el ultimo valor
 			//convolve(spectra + nlambda * i, nlambda, G, nlambda);
-		
+		*/
 		//spectral_synthesis_convolution(&nlambda);
 	}
 

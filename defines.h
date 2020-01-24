@@ -22,6 +22,7 @@
 #define FABS(x)	fabs(x)
 #define CREAL(x) creal(x)
 #define CIMAG(x) cimag(x)
+#define EXP(x) exp(x)
 
 #else
 
@@ -35,6 +36,7 @@
 #define FABS(x) fabsf(x)
 #define CREAL(x) crealf(x)
 #define CIMAG(x) cimagf(x)
+#define EXP(x) expf(x)
 
 #endif /* USE_DOUBLE_PRECISION */
 
@@ -167,15 +169,14 @@ void FreeMemoryDerivedSynthesis();
 
 Cuantic * create_cuantic(PRECISION * dat, int log);
 
-int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *lambda,int nlambda, REAL *d_spectra,REAL *spectra, REAL * spectra_slight,PRECISION ah,PRECISION * slight,int calcSpectra,int filter);
+int me_der(Cuantic *cuantic,Init_Model *initModel,double * wlines,double *lambda,int nlambda, REAL *d_spectra,REAL *spectra, REAL * spectra_slight,PRECISION ah,PRECISION * slight,int calcSpectra,int filter);
 
-int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *lambda,int nlambda,REAL *spectra,
-			PRECISION ah,PRECISION * slight,REAL * spectra_mc, int filter);
+int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,double * wlines,double *lambda,int nlambda,REAL *spectra,PRECISION ah,PRECISION * slight,REAL * spectra_mc, int filter);
 			
 
-PRECISION * fgauss(PRECISION MC, PRECISION * eje,int neje,PRECISION landa,int deriv);
-REAL * fgauss_WL(PRECISION FWHM, PRECISION step_between_lw, PRECISION lambda0, PRECISION lambdaCentral, int nLambda, int * sizeG);
 
+void fgauss(PRECISION MC, REAL *eje, int neje, REAL landa, int deriv);
+REAL * fgauss_WL(REAL FWHM, REAL step_between_lw, REAL lambda0, REAL lambdaCentral, int nLambda, int * sizeG);
 
 
 int Guarda(char * nombre,PRECISION *v,int nv);
@@ -217,7 +218,7 @@ int fvoigt(PRECISION damp,REAL *vv,int nvv,REAL *h, REAL *f);
 	KERNEL of CUDA. 
  */
 struct VPIXEL {
-	PRECISION * vLambda;
+	REAL * vLambda;
 	float * spectro;
 	int nLambda;
 };
@@ -250,7 +251,7 @@ struct FITS_IMAGE{
 
 	int numPixels;
 	vpixels * pixels;
-	PRECISION * vLambdaImagen;
+	REAL * vLambdaImagen;
 	float * spectroImagen;
 };
 

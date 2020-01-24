@@ -14,7 +14,6 @@ extern REAL *dgp1, *dgp2, *dgp3, *dgp4, *dgp5, *dgp6, *d_dt;
 extern REAL *d_ei, *d_eq, *d_eu, *d_ev, *d_rq, *d_ru, *d_rv;
 extern REAL *dfi, *dshi;
 extern REAL *fi_p, *fi_b, *fi_r, *shi_p, *shi_b, *shi_r;
-//extern PRECISION *spectra, *d_spectra,*spectra_mac;
 extern REAL *spectra, *d_spectra,*spectra_mac;
 extern REAL *etain, *etaqn, *etaun, *etavn, *rhoqn, *rhoun, *rhovn;
 extern REAL *etai, *etaq, *etau, *etav, *rhoq, *rhou, *rhov;
@@ -24,7 +23,7 @@ REAL **uuGlobalInicial;
 REAL **HGlobalInicial;
 REAL **FGlobalInicial;
 extern int FGlobal, HGlobal, uuGlobal;
-extern PRECISION *GMAC;
+extern REAL *GMAC;
 extern Cuantic *cuantic;
 
 extern REAL * opa;
@@ -131,17 +130,12 @@ void AllocateMemoryDerivedSynthesis(int numl)
 	/********************************************************/
 
 
-	GMAC = calloc(numl, sizeof(PRECISION));
+	GMAC = calloc(numl, sizeof(REAL));
 	dirConvPar = calloc((numl+numl)+1,sizeof(REAL));
 
 	spectra = calloc(numl * NPARMS, sizeof(REAL));
 	spectra_mac = calloc(numl * NPARMS, sizeof(REAL));
 	d_spectra = calloc(numl * NTERMS * NPARMS, sizeof(REAL));
-
-	/*spectra = calloc(numl * NPARMS, sizeof(PRECISION));
-	spectra_mac = calloc(numl * NPARMS, sizeof(PRECISION));
-	d_spectra = calloc(numl * NTERMS * NPARMS, sizeof(PRECISION));*/
-	
 	
 	opa = calloc(numl,sizeof(REAL));
 

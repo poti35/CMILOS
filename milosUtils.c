@@ -42,7 +42,7 @@ extern REAL *etain, *etaqn, *etaun, *etavn, *rhoqn, *rhoun, *rhovn;
 extern REAL *etai, *etaq, *etau, *etav, *rhoq, *rhou, *rhov;
 extern REAL *parcial1, *parcial2, *parcial3;
 extern REAL *nubB, *nupB, *nurB;
-extern PRECISION *G,*GMAC; // VECTOR WITH GAUSSIAN CREATED FOR CONVOLUTION 
+extern REAL *G,*GMAC; // VECTOR WITH GAUSSIAN CREATED FOR CONVOLUTION 
 extern fftw_complex * inSpectraFwPSF, *inSpectraBwPSF, *outSpectraFwPSF, *outSpectraBwPSF;
 extern fftw_plan planForwardPSF, planBackwardPSF;
 
@@ -396,16 +396,16 @@ void weights_init(PRECISION *sigma, PRECISION **sigOut, PRECISION noise)
 * @Date:  Nov. 2011
 *
 */
-void estimacionesClasicas(PRECISION lambda_0, PRECISION *lambda, int nlambda, float *spectro, Init_Model *initModel)
+void estimacionesClasicas(double lambda_0, double *lambda, int nlambda, float *spectro, Init_Model *initModel)
 {
 
-	PRECISION x, y, aux, LM_lambda_plus, LM_lambda_minus, Blos, beta_B, Ic, Vlos;
+	REAL x, y, aux, LM_lambda_plus, LM_lambda_minus, Blos, beta_B, Ic, Vlos;
 	float *spectroI, *spectroQ, *spectroU, *spectroV;
-	PRECISION L, m, gamma, gamma_rad, tan_gamma, C;
+	REAL L, m, gamma, gamma_rad, tan_gamma, C;
 	int i;
 
 	//Es necesario crear un lambda en FLOAT para probar como se hace en la FPGA
-	PRECISION *lambda_aux = lambda;
+	REAL *lambda_aux = lambda;
 	
 	
 
@@ -495,7 +495,7 @@ void estimacionesClasicas(PRECISION lambda_0, PRECISION *lambda, int nlambda, fl
 
 	//azimuth
 
-	PRECISION tan2phi, phi;
+	REAL tan2phi, phi;
 	int muestra;
 
 	if (nlambda == 6)
@@ -516,7 +516,7 @@ void estimacionesClasicas(PRECISION lambda_0, PRECISION *lambda, int nlambda, fl
 	else if (spectroU[muestra] > 0 && spectroQ[muestra] < 0)
 		phi = phi + 90;
 
-	PRECISION B_aux;
+	REAL B_aux;
 
 	B_aux = FABS(Blos / COS(gamma_rad)) * 2; // 2 factor de corrección
 
@@ -549,8 +549,8 @@ void estimacionesClasicas(PRECISION lambda_0, PRECISION *lambda, int nlambda, fl
  * spectra : IQUV por filas, longitud ny=nlambda
  */
 
-int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda, float *spectro, int nspectro,
-				Init_Model *initModel, REAL *spectra, PRECISION *chisqrf,
+int lm_mils(Cuantic *cuantic, double *wlines, double *lambda, int nlambda, float *spectro, int nspectro,
+				Init_Model *initModel, REAL *spectra, float *chisqrf,
 				PRECISION * slight, PRECISION toplim, int miter, REAL *weight, int *fix,
 				REAL *sigma, REAL ilambda, int * INSTRUMENTAL_CONVOLUTION, int * iter)
 {
@@ -729,7 +729,7 @@ int interpolationSplinePSF(PRECISION *deltaLambda, PRECISION * PSF, PRECISION * 
  * Make the interpolation between deltaLambda and PSF where deltaLambda es x and PSF f(x)
  *  Return the array with the interpolation. 
  * */
-int interpolationLinearPSF(PRECISION *deltaLambda, PRECISION * PSF, PRECISION * lambdasSamples, PRECISION centralLambda, size_t N_PSF, PRECISION * fInterpolated, size_t NSamples){
+int interpolationLinearPSF(double *deltaLambda, double * PSF, double * lambdasSamples, REAL centralLambda, size_t N_PSF, REAL * fInterpolated, size_t NSamples){
 
 	size_t i;
 	gsl_interp *interpolation = gsl_interp_alloc (gsl_interp_linear,N_PSF);
@@ -738,7 +738,7 @@ int interpolationLinearPSF(PRECISION *deltaLambda, PRECISION * PSF, PRECISION * 
 
 
 	for (i = 0; i < NSamples; ++i){
-   	PRECISION xi = lambdasSamples[i]-centralLambda;
+   	double xi = lambdasSamples[i]-centralLambda;
       fInterpolated[i] = gsl_interp_eval(interpolation, deltaLambda, PSF, xi, accelerator);
     }
 

@@ -64,7 +64,6 @@ int POSR_PUNTERO_CALCULOS_COMPARTIDOS;
 
 REAL *dtaux, *etai_gp3, *ext1, *ext2, *ext3, *ext4;
 REAL *gp1, *gp2, *dt, *dti, *gp3, *gp4, *gp5, *gp6, *etai_2;
-//PRECISION gp4_gp2_rhoq[NLAMBDA],gp5_gp2_rhou[NLAMBDA],gp6_gp2_rhov[NLAMBDA];
 REAL *gp4_gp2_rhoq, *gp5_gp2_rhou, *gp6_gp2_rhov;
 REAL *dgp1, *dgp2, *dgp3, *dgp4, *dgp5, *dgp6, *d_dt;
 REAL *d_ei, *d_eq, *d_eu, *d_ev, *d_rq, *d_ru, *d_rv;
@@ -79,9 +78,9 @@ REAL **uuGlobalInicial;
 REAL **HGlobalInicial;
 REAL **FGlobalInicial;
 
-//PRECISION *G, *GMAC;
-PRECISION *GMAC;
-REAL * G, *dirConvPar;
+REAL *G, *GMAC;
+
+REAL *dirConvPar;
 
 
 REAL AP[NTERMS*NTERMS*NPARMS],BT[NPARMS*NTERMS];
@@ -90,8 +89,6 @@ REAL AP[NTERMS*NTERMS*NPARMS],BT[NPARMS*NTERMS];
 
 REAL * opa;
 int FGlobal, HGlobal, uuGlobal;
-
-//PRECISION *d_spectra, *spectra, *spectra_mac;
 REAL *d_spectra, *spectra, *spectra_mac;
 
 
@@ -113,7 +110,7 @@ fftw_plan planForwardPSF_MAC, planForwardPSF_MAC_DERIV,planBackwardPSF_MAC, plan
 
 //Convolutions values
 int sizeG = 0;
-PRECISION FWHM = 0;
+REAL FWHM = 0;
 
 ConfigControl configCrontrolFile;
 
@@ -123,17 +120,17 @@ REAL _Complex  *z,* zden, * zdiv;
 int main(int argc, char **argv)
 {
 	int i; // for indexes
-	PRECISION *wlines;
+	double *wlines;
 	int nlambda;
 	Init_Model *vModels;
-	PRECISION chisqrf, * vChisqrf;
+	float chisqrf, * vChisqrf;
 	int * vNumIter; // to store the number of iterations used to converge for each pixel
 	int indexLine; // index to identify central line to read it 
 
 	int posCENTRAL_WL; // position central wl in file of LINES
 	Init_Model INITIAL_MODEL;
-	PRECISION * deltaLambda, * PSF;
-	PRECISION initialLambda, step, finalLambda;
+	double * deltaLambda, * PSF;
+	REAL initialLambda, step, finalLambda;
 	int N_SAMPLES_PSF;
 	clock_t t_ini;
 	//----------------------------------------------
@@ -179,7 +176,7 @@ int main(int argc, char **argv)
 	}
 	
 	/***************** READ WAVELENGHT FROM GRID OR FITS ********************************/
-	PRECISION * vLambda;
+	double * vLambda;
 
 	if(configCrontrolFile.useMallaGrid){ // read lambda from grid file
       indexLine = readMallaGrid(configCrontrolFile.MallaGrid, &initialLambda, &step, &finalLambda, 1);      
@@ -188,7 +185,7 @@ int main(int argc, char **argv)
       initialLambda = initialLambda/1000;
       step = step/1000;
       finalLambda = finalLambda/1000;
-	   vLambda = calloc(nlambda,sizeof(PRECISION));
+	   vLambda = calloc(nlambda,sizeof(double));
 		configCrontrolFile.CentralWaveLenght = readFileCuanticLines(nameInputFileLines,dat,indexLine,1);
 		if(configCrontrolFile.CentralWaveLenght==0){
 			printf("\n CUANTIC LINE NOT FOUND, REVIEW IT. INPUT CENTRAL WAVE LENGHT: %f",configCrontrolFile.CentralWaveLenght);
@@ -218,7 +215,7 @@ int main(int argc, char **argv)
 	CC = PI / 180.0;
 	CC_2 = CC * 2;
 
-	wlines = (PRECISION *)calloc(2, sizeof(PRECISION));
+	wlines = (double *)calloc(2, sizeof(double));
 	wlines[0] = 1;
 	wlines[1] = configCrontrolFile.CentralWaveLenght;
 
@@ -249,7 +246,6 @@ int main(int argc, char **argv)
 	if(configCrontrolFile.ConvolveWithPSF){
 		
 		if(configCrontrolFile.FWHM > 0){
-			//G = vgauss(FWHM, NMUESTRAS_G, DELTA);
 			G = fgauss_WL(FWHM,vLambda[1]-vLambda[0],vLambda[0],vLambda[nlambda/2],nlambda,&sizeG);
 		}else{
 			// read the number of lines 
@@ -275,15 +271,13 @@ int main(int argc, char **argv)
 			//close the file
 			fclose(fp);
 			if(N_SAMPLES_PSF>0){
-				deltaLambda = calloc(N_SAMPLES_PSF,sizeof(PRECISION));
-				PSF = calloc(N_SAMPLES_PSF,sizeof(PRECISION));
+				deltaLambda = calloc(N_SAMPLES_PSF,sizeof(double));
+				PSF = calloc(N_SAMPLES_PSF,sizeof(double));
 				readPSFFile(deltaLambda,PSF,nameInputFilePSF);
-				PRECISION * fInterpolated = calloc(nlambda,sizeof(PRECISION));
+				REAL * fInterpolated = calloc(nlambda,sizeof(REAL));
 				interpolationLinearPSF(deltaLambda,  PSF, vLambda ,configCrontrolFile.CentralWaveLenght, N_SAMPLES_PSF,fInterpolated, nlambda);						
 			}
 			else{
-				//G = vgauss(FWHM, NMUESTRAS_G, DELTA);
-				//PRECISION * fgauss_WL(PRECISION FWHM, PRECISION step_between_lw, PRECISION lambda0, PRECISION lambdaCentral, int nLambda, int * sizeG)
 				G = fgauss_WL(FWHM,vLambda[1]-vLambda[0],vLambda[0],vLambda[nlambda/2],nlambda,&sizeG);
 			}
 
@@ -438,7 +432,7 @@ int main(int argc, char **argv)
 				initModel.alfa = INITIAL_MODEL.alfa; //0.38; //stray light factor
 				initModel.S0 = INITIAL_MODEL.S0;
 				initModel.S1 = INITIAL_MODEL.S1;
-				estimacionesClasicas(wlines[1], fitsImage->pixels[indexPixel].vLambda, fitsImage->pixels[indexPixel].nLambda, fitsImage->pixels[indexPixel].spectro, &initModel);
+				estimacionesClasicas(wlines[1], vLambda, nlambda, fitsImage->pixels[indexPixel].spectro, &initModel);
 				//Se comprueba si el resultado fue "nan" en las CE
 				if (isnan(initModel.B))
 					initModel.B = 1;
@@ -604,7 +598,7 @@ int main(int argc, char **argv)
 				fprintf(fptr,"\nMODEL_MAC: %lf",initModel.mac);
 				fprintf(fptr,"\nMODEL_ALFA: %lf",initModel.alfa);
 				fprintf(fptr,"\nNUMBER ITERATIONS TO CONVERGE: %d",numIter);
-				fprintf(fptr,"\nChisqrf %le",chisqrf);
+				fprintf(fptr,"\nChisqrf %e",chisqrf);
 				fprintf(fptr,"\n\n");
 				fclose(fptr);
 				printf("\n*******************************************************************************************");
@@ -688,7 +682,7 @@ int main(int argc, char **argv)
 				// ALLOCATE MEMORY FOR STORE THE RESULTS 
 
 				vModels = calloc (fitsImage->numPixels , sizeof(Init_Model));
-				vChisqrf = calloc (fitsImage->numPixels , sizeof(PRECISION));
+				vChisqrf = calloc (fitsImage->numPixels , sizeof(float));
 				vNumIter = calloc (fitsImage->numPixels , sizeof(int));
 				t = clock();
 				printf("\n***********************  PROGRESS INVERSION *******************************\n\n");

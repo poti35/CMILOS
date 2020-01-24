@@ -85,11 +85,8 @@ REAL fchisqr(REAL * spectra,int nspectro,float *spectro,REAL *w,REAL *sig,REAL n
 			opa+= (dif*dif);
 		}
 		TOT+=((w[j]*opa)/(sig[j]));
-		//TOT+=((w[j]*opa)/(sig[j]*sig[j]));
-		//TOT+= opa;///(sig[j]*sig[j]);
 	}
-		
-	//return TOT/15;		
+			
 	return TOT/nfree;
 	
 }

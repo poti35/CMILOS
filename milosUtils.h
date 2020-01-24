@@ -56,7 +56,7 @@ void weights_init(PRECISION *sigma, PRECISION **sigOut, PRECISION noise);
 * @Date:  Nov. 2011
 *
 */
-void estimacionesClasicas(PRECISION lambda_0, PRECISION *lambda, int nlambda, float *spectro, Init_Model *initModel);
+void estimacionesClasicas(double lambda_0, double *lambda, int nlambda, float *spectro, Init_Model *initModel);
 
 /**
  * 
@@ -72,8 +72,8 @@ void AplicaSlight(REAL * d_spectra, int numl, PRECISION ALFA, PRECISION * slight
  * spectra : IQUV por filas, longitud ny=nlambda
  */
 
-int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda, float *spectro, int nspectro,
-				Init_Model *initModel, REAL *spectra, PRECISION *chisqrf,
+int lm_mils(Cuantic *cuantic, double *wlines, REAL *lambda, int nlambda, float *spectro, int nspectro,
+				Init_Model *initModel, REAL *spectra, float *chisqrf,
 				PRECISION * slight, PRECISION toplim, int miter, REAL *weight, int *fix,
 				REAL *sigma, REAL ilambda, int * INSTRUMENTAL_CONVOLUTION, int * iter);
 
@@ -88,4 +88,4 @@ int interpolationSplinePSF(PRECISION *deltaLambda, PRECISION * PSF, PRECISION * 
  * Make the interpolation between deltaLambda and PSF where deltaLambda es x and PSF f(x)
  *  Return the array with the interpolation. 
  * */
-int interpolationLinearPSF(PRECISION *deltaLambda, PRECISION * PSF, PRECISION * lambdasSamples, PRECISION centralLambda, size_t N_PSF, PRECISION * fInterpolated, size_t NSamples);
+int interpolationLinearPSF(double *deltaLambda, double * PSF, double * lambdasSamples, REAL centralLambda, size_t N_PSF, REAL * fInterpolated, size_t NSamples);

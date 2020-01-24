@@ -6,7 +6,7 @@
 #include "convolution.h"
 
 
-int funcionComponentFor(int n_pi,PRECISION iwlines,int numl,PRECISION *wex,REAL *nuxB,REAL *dfi,REAL *dshi,PRECISION LD,PRECISION A,int desp);
+int funcionComponentFor(int n_pi,REAL iwlines,int numl,PRECISION *wex,REAL *nuxB,REAL *dfi,REAL *dshi,PRECISION LD,PRECISION A,int desp);
 
 void Resetear_Valores_Intermedios(int nlambda);
 
@@ -43,9 +43,7 @@ REAL **uuGlobalInicial;
 REAL **HGlobalInicial;
 REAL **FGlobalInicial;
 extern int FGlobal,HGlobal,uuGlobal;
-//extern PRECISION *G, *GMAC; // VECTOR WITH GAUSSIAN CREATED FOR CONVOLUTION 
-extern PRECISION *GMAC; // VECTOR WITH GAUSSIAN CREATED FOR CONVOLUTION 
-extern REAL *G;
+extern REAL *G, *GMAC; // VECTOR WITH GAUSSIAN CREATED FOR CONVOLUTION 
 //extern VSLConvTaskPtr taskConv;
 
 extern fftw_complex * inSpectraFwMAC, *inSpectraBwMAC, *outSpectraFwMAC, *outSpectraBwMAC;
@@ -59,20 +57,15 @@ extern fftw_plan planForwardPSF_MAC, planForwardPSF_MAC_DERIV,planBackwardPSF_MA
 extern fftw_complex * inSpectraFwPSF, *inSpectraBwPSF, *outSpectraFwPSF, *outSpectraBwPSF;
 extern fftw_plan planForwardPSF, planBackwardPSF;
 
-int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *lambda,int nlambda,REAL *d_spectra,REAL *spectra, REAL * spectra_slight, PRECISION ah,PRECISION * slight,int calcSpectra, int filter)
+int me_der(Cuantic *cuantic,Init_Model *initModel,double * wlines,double *lambda,int nlambda,REAL *d_spectra,REAL *spectra, REAL * spectra_slight, PRECISION ah,PRECISION * slight,int calcSpectra, int filter)
 {
 
 	int nterms,numl;
 	int lineas;
 
-//	PRECISION *etain,*etaqn,*etaun,*etavn,*rhoqn,*rhoun,*rhovn,etaaux;
-//	PRECISION *etai,*etaq,*etau,*etav,*rhoq,*rhou,*rhov;
-
 	PRECISION E00,LD,A,B1,MC,ALF;
 	int il,i,j,k;
 	PRECISION E0;	
-//	PRECISION ulos,*nubB,*nupB,*nurB;
-
 
     int odd,ishift,par;
     
@@ -150,17 +143,6 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 		cosi_2_E0=E0*cosi/2.0;
 		cosis_2_E0_2=cosis_2*E0_2;
 		sinis_E0_2=sinis*E0_2;
-
-		
-		/*printf("-------------------> d_fi :  %d\n",il);	
-		printf("\n\nd_fi_c=[");
-		int In,kk1;
-		for(kk1=0;kk1<3;kk1++)		
-			for(In=0;In<4;In++)		
-				for(i=0;i<nlambda;i++){
-					printf("%.16e\n",dfi[i + (In)*numl + (numl*4*kk1)]);										  
-				}	
-		printf("];\n\n\n");*/
 	
 		
 		for(j=1;j<5;j++){
@@ -230,26 +212,7 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 			d_ru[6*numl+i]=d_ru[6*numl+i]+parcial3[i]*sinis_sinda;
 		}
 
-/*		free(parcial1);
-		free(parcial2);
-		free(parcial3);
-*/
-	
-/*		free(fi_p);
-		free(fi_b);
-		free(fi_r);
-		free(shi_p);
-		free(shi_b);
-		free(shi_r);
-*/
-/*		free(etain);
-		free(etaqn);
-		free(etaun);
-		free(etavn);
-		free(rhoqn);
-		free(rhoun);
-		free(rhovn);
-*/
+
 	} //end for
 
             	
@@ -260,16 +223,6 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
     //bucle para derivadas de I,Q,U,V 
     //derivada de spectra respecto  E0,MF,VL,LD,A,gamma,azi
 
-	//static PRECISION dtaux[nlambda];
-	//PRECISION *dtaux,*etai_gp3,*ext1,*ext2,*ext3,*ext4;
-	//PRECISION dtaux[nlambda], etai_gp3[nlambda],ext1[nlambda],ext2[nlambda],ext3[nlambda],ext4[nlambda];
-	
-	/*dtaux = calloc(nlambda,sizeof(PRECISION));
-	etai_gp3 = calloc(nlambda,sizeof(PRECISION));
-	ext1 = calloc(nlambda,sizeof(PRECISION));
-	ext2 = calloc(nlambda,sizeof(PRECISION));
-	ext3 = calloc(nlambda,sizeof(PRECISION));
-	ext4 = calloc(nlambda,sizeof(PRECISION));*/
 
    for(i=0;i<numl;i++)
 		dtaux[i]=(B1)/(dt[i]*dt[i]);
@@ -285,17 +238,6 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 		ext3[i]=aux*etav[i]+etau[i]*rhoq[i]-etaq[i]*rhou[i];
 		ext4[i]=aux*gp1[i];
 	}
-
-	/*
-	printf("-------------------> d_ei :  %d\n",il);	
-	printf("\n\nd_ei_c=[");
-	int In;
-	for(In=0;In<NTERMS;In++)		
-		for(i=0;i<nlambda;i++){
-			printf("%.16e\n",d_ei[i+nlambda*In]);										  
-		}	
-	printf("];\n\n\n");
-	*/
 	
 	
 	//printf("-------------------> dpgx :  %d\n",il);
@@ -353,42 +295,7 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
     		d_spectra[i+numl*il+(numl*nterms*3)]=((dgp6[i]+d_rv[i+numl*il]*gp2[i]+rhov[i]*dgp2[i])*dt[i]-
     				d_dt[i]*(gp6_gp2_rhov[i]))*(dtaux[i]);
     	} 
-
-		
-		 // printf("-------------------> IL :  %d\n",il);
-		 // for(i=0;i<numl;i++)
-			 // printf("%.8e\n",dgp1[i]);
-			 
-		 // for(i=0;i<numl;i++)
-			 // printf("%.8e\n",dgp2[i]);
-
-		 // for(i=0;i<numl;i++)
-			 // printf("%.8e\n",dgp3[i]);
-			 
-		 // for(i=0;i<numl;i++)
-			 // printf("%.8e\n",dgp4[i]);
-
-		 // for(i=0;i<numl;i++)
-			 // printf("%.8e\n",dgp5[i]);
-			 
-		 // for(i=0;i<numl;i++)
-			 // printf("%.8e\n",dgp6[i]);
-			 
-
-		/*
-		//printf("-------------------> dspectra :  %d\n",il);
-		for(i=0;i<numl;i++)
-			printf("%.8e\n",d_spectra[i+numl*il+(numl*nterms*0)]);			 
-						 
-		for(i=0;i<numl;i++)
-			printf("%.8e\n",d_spectra[i+numl*il+(numl*nterms*1)]);			 
-			 
-		for(i=0;i<numl;i++)
-			printf("%.8e\n",d_spectra[i+numl*il+(numl*nterms*2)]);			 
-
-		for(i=0;i<numl;i++)
-			printf("%.8e\n",d_spectra[i+numl*il+(numl*nterms*3)]);			 
-		*/	 
+	
     }
 	//printf("------------------->  end dpgx :  %d\n",il);
 	// printf("-------------------> end dspectra :  %d\n",il);
@@ -396,21 +303,7 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 	
     //LA 7-8 RESPECTO B0 Y B1
 
-	/*for(i=0;i<numl;i++){
-		dti[i]=-(dti[i]*ah);		
-		d_spectra[i+numl*8]=-dti[i]*etai_gp3[i];
-		d_spectra[i+numl*8+(numl*nterms)]= dti[i]*(gp4_gp2_rhoq[i]);   		
-		d_spectra[i+numl*8+(numl*nterms*2)]= dti[i]*(gp5_gp2_rhou[i]);
-		d_spectra[i+numl*8+(numl*nterms*3)]= dti[i]*(gp6_gp2_rhov[i]);
-		// S0 
-		d_spectra[i+numl*7]=1;
-    	d_spectra[i+numl*7+(numl*nterms)]=0;
-    	d_spectra[i+numl*7+(numl*nterms*2)]=0;
-    	d_spectra[i+numl*7+(numl*nterms*3)]=0;
-		// azimuth stokes I &V
-    	d_spectra[i+numl*6]=0;
-    	d_spectra[i+numl*6+(numl*nterms*3)]=0;
-	}*/
+	
     for(i=0;i<numl;i++)
 		dti[i]=-(dti[i]*ah);
 
@@ -443,24 +336,7 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
     	d_spectra[i+numl*6]=0;
     	d_spectra[i+numl*6+(numl*nterms*3)]=0;				  
 	}
-	
-	
-/*        
-    free(etai);
-    free(etaq);
-    free(etau);
-    free(etav);
 
-    free(rhoq);
-    free(rhou);
-    free(rhov);
-*/
-	/*free(etai_gp3);
-	free(ext1);
-	free(ext2);
-	free(ext3);
-	free(ext4);
-	free(dtaux);*/
     //MACROTURBULENCIA
                 
 	 int macApplied = 0;
@@ -472,16 +348,13 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 		if(odd) startShift+=1;		
 		
 
-//		printf("dentro MC \n");
+
     	//la 9 respecto MC
     	//convolucion del espectro original
-    	//PRECISION *g1 =fgauss(MC,lambda,numl,wlines[1],0);  // Gauss Function
-		fgauss(MC,lambda,numl,wlines[1],0);  // Gauss Function
-		// CALCULATE DERIV OF G1 
-		PRECISION ild = (wlines[1] * MC) / 2.99792458e5; //Sigma
-		PRECISION centro = lambda[(int)numl / 2];		  //center of the axis
-    	//PRECISION * g2=fgauss(MC,lambda,numl,wlines[1],1);  // Derivative of the Gauss F. with respect macro
-		// CALCULATE FFT OF G1 
+		fgauss(MC,lambda,numl,wlines[1],0);  // Gauss Function stored in GMAC
+		// VARIABLES TO CALCULATE DERIV OF G1
+		REAL ild = (wlines[1] * MC) / 2.99792458e5; //Sigma
+		REAL centro = lambda[(int)numl / 2];		  //center of the axis
 
 		if(filter){// if there is PSF filter convolve both gaussian and use the result as the signal to convolve
 			for(i=0;i<numl;i++){ // copy gmac to
@@ -490,18 +363,7 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 			}
 			fftw_execute(planForwardPSF_MAC);
 			fftw_execute(planForwardPSF_MAC_DERIV);
-			/*for(i=0;i<numl;i++){ // multiply both fft gaussians
-				outConvFilters[i] = fftw_G_PSF[i] * (fftw_G_MAC_PSF[i]/numl);
-				outConvFiltersDeriv[i] = fftw_G_PSF[i] * (fftw_G_MAC_DERIV_PSF[i]/numl);
-			}			
-			for(i=0,ishift=numl/2;i<numl/2;i++,ishift++){
-				outFilterMAC[ishift]= outConvFilters[i]*numl;
-				outFilterMAC_DERIV[ishift]= outConvFiltersDeriv[i]*numl;
-			}
-			for(i=numl/2,ishift=0;i<numl;i++,ishift++){
-				outFilterMAC[ishift]= outConvFilters[i]*numl;
-				outFilterMAC_DERIV[ishift]= outConvFiltersDeriv[i]*numl;
-			}*/
+
 			for(i=0;i<numl;i++){ // multiply both fft gaussians
 				inMulMacPSF[i] = fftw_G_PSF[i] * (fftw_G_MAC_PSF[i]/numl);
 				inMulMacPSFDeriv[i] = fftw_G_PSF[i] * (fftw_G_MAC_DERIV_PSF[i]/numl);
@@ -589,9 +451,6 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 	    		}
 	    	}
     	}
-		//free(g1);
-		//free(g2);
-
    
     }//end if(MC > 0.0001)
 
@@ -676,7 +535,7 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 /*
  * 
  */
-int funcionComponentFor(int n_pi,PRECISION iwlines,int numl,PRECISION *wex,REAL *nuxB,REAL *dfi,REAL *dshi,PRECISION LD,PRECISION A,int desp)
+int funcionComponentFor(int n_pi,REAL iwlines,int numl,PRECISION *wex,REAL *nuxB,REAL *dfi,REAL *dshi,PRECISION LD,PRECISION A,int desp)
 {
 	REAL *uu;
 	int i,j;

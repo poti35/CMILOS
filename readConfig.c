@@ -630,7 +630,7 @@ int readInitialModel(Init_Model * INIT_MODEL, char * fileInitModel){
  * 
  * 
  * */
-int readMallaGrid(const char * fileMallaGrid, PRECISION * initialLambda, PRECISION * step, PRECISION * finalLambda, int printLog){
+int readMallaGrid(const char * fileMallaGrid, REAL * initialLambda, REAL * step, REAL * finalLambda, int printLog){
 	// try open the file with the 
 	FILE * fp;
 	char * line = NULL;
@@ -644,14 +644,18 @@ int readMallaGrid(const char * fileMallaGrid, PRECISION * initialLambda, PRECISI
 	int indexLine, indexLine2;
 	int found = 0, dataRead = 0;;
 	double damping, potentialExcitation, logGf;
-	PRECISION lambdaLine;
+	REAL lambdaLine;
 	char name[100];
 
 	while ((read = getline(&line, &len, fp)) != -1 && !dataRead){
 		//printf("\n linea leida %s",line);
 		if(found){ //1                       :        -624.37,        21.53,     1765.46
 			//sscanf(line,"%i,%i%99[^:]:%lf,%lf,%lf",&indexLine,initialLambda,step,finalLambda);
-			sscanf(line,"%i%99[^:]:%lf%lf%lf",&indexLine,name,initialLambda,step,finalLambda);
+			float aux1, aux2, aux3;
+			sscanf(line,"%i%99[^:]:%f%f%f",&indexLine,name,&aux1,&aux2,&aux3);
+			*initialLambda = aux1;
+			*step = aux2;
+			*finalLambda = aux3;
 			dataRead = 1;
 		}
 		else{
@@ -677,7 +681,7 @@ int readMallaGrid(const char * fileMallaGrid, PRECISION * initialLambda, PRECISI
 /**
  * 
  * */
-int readPSFFile(PRECISION * deltaLambda, PRECISION * PSF, const char * nameInputPSF){
+int readPSFFile(double * deltaLambda, double * PSF, const char * nameInputPSF){
 
 	// first of all read the number of lines to give size for arrays deltaLambda and PSF
 	FILE *fp;

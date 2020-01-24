@@ -9,9 +9,9 @@ PRECISION readFileCuanticLines(const char * inputLineFile, PRECISION * cuanticDa
 
 int readInitialModel(Init_Model * INIT_MODEL, char * fileInitModel);
 
-int readMallaGrid(const char * fileMallaGrid, PRECISION * initialLambda, PRECISION * step, PRECISION * finalLambda, int printLog);
+int readMallaGrid(const char * fileMallaGrid, REAL * initialLambda, REAL * step, REAL * finalLambda, int printLog);
 
-int readPSFFile(PRECISION * deltaLambda, PRECISION * PSF, const char * nameInputPSF);
+int readPSFFile(double * deltaLambda, double * PSF, const char * nameInputPSF);
 
 void loadInitialValues(ConfigControl * configControlFile);
 

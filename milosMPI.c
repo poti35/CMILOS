@@ -64,15 +64,14 @@ REAL **uuGlobalInicial;
 REAL **HGlobalInicial;
 REAL **FGlobalInicial;
 
-//PRECISION *G,*GMAC;
-PRECISION *GMAC;
-REAL *G, *dirConvPar;
+REAL *G,*GMAC;
+REAL *dirConvPar;
 
 REAL AP[NTERMS*NTERMS*NPARMS],BT[NPARMS*NTERMS];
 REAL * opa;
 int FGlobal, HGlobal, uuGlobal;
 
-//PRECISION *d_spectra, *spectra, *spectra_mac;
+
 REAL *d_spectra, *spectra, *spectra_mac;
 
 
@@ -92,7 +91,7 @@ fftw_plan planForwardPSF_MAC, planForwardPSF_MAC_DERIV,planBackwardPSF_MAC, plan
 
 //Convolutions values
 int sizeG = 0;
-PRECISION FWHM = 0;
+REAL FWHM = 0;
 
 ConfigControl configCrontrolFile;
 
@@ -103,7 +102,7 @@ int main(int argc, char **argv)
 	int i, j;  // indexes 
 	
 	int indexLine; // index to identify central line to read it 
-	PRECISION initialLambda, step, finalLambda;
+	REAL initialLambda, step, finalLambda;
 	// INIT MPI  PROGRAM 
 	int numProcs, idProc;
 	MPI_Init(&argc, &argv);
@@ -147,12 +146,12 @@ int main(int argc, char **argv)
 	
 	// FINISH STARTING PROGRAM 
 
-	PRECISION *wlines;
+	double *wlines;
 	int nlambda, numPixels, indexPixel;
 	
 	int posCENTRAL_WL; // position central wl in file of LINES
 	Init_Model INITIAL_MODEL;
-	PRECISION * deltaLambda, * PSF;
+	double * deltaLambda, * PSF;
 	int N_SAMPLES_PSF;
 	
 	
@@ -188,7 +187,7 @@ int main(int argc, char **argv)
 	
 	Init_Model * resultsInitModel;
 	Init_Model * resultsInitModelTotal;
-	PRECISION * chisqrfTotal, *vChisqrf, chisqrf;
+	float * chisqrfTotal, *vChisqrf, chisqrf;
 	int * vNumIter, * vNumIterTotal; // to store the number of iterations used to converge for each pixel
 	float  * vSpectraSplit, * vSpectraAdjustedSplit, * vSpectraAjustedTotal;
 
@@ -240,7 +239,7 @@ int main(int argc, char **argv)
 	}
 
 	/***************** READ WAVELENGHT FROM GRID OR FITS ********************************/
-	PRECISION * vGlobalLambda;
+	REAL * vGlobalLambda;
 
 	if(configCrontrolFile.useMallaGrid){ // read lambda from grid file
 		indexLine = readMallaGrid(configCrontrolFile.MallaGrid, &initialLambda, &step, &finalLambda, (idProc==root));      
@@ -249,7 +248,7 @@ int main(int argc, char **argv)
 		initialLambda = initialLambda/1000;
 		step = step/1000;
 		finalLambda = finalLambda/1000;
-		vGlobalLambda = calloc(nlambda,sizeof(PRECISION));
+		vGlobalLambda = calloc(nlambda,sizeof(REAL));
 		configCrontrolFile.CentralWaveLenght = readFileCuanticLines(configCrontrolFile.AtomicParametersFile,dat,indexLine,(idProc==root));
 		if(configCrontrolFile.CentralWaveLenght==0){
 			printf("\n CUANTIC LINE NOT FOUND, REVIEW IT. INPUT CENTRAL WAVELENGHT: %f",configCrontrolFile.CentralWaveLenght);
@@ -281,7 +280,7 @@ int main(int argc, char **argv)
 	CC = PI / 180.0;
 	CC_2 = CC * 2;
 	
-	wlines = (PRECISION *)calloc(2, sizeof(PRECISION));
+	wlines = (double *)calloc(2, sizeof(double));
 	wlines[0] = 1;
 	wlines[1] = configCrontrolFile.CentralWaveLenght;
 
@@ -346,14 +345,13 @@ int main(int argc, char **argv)
 				//close the file
 				fclose(fp);
 				if(N_SAMPLES_PSF>0){
-					deltaLambda = calloc(N_SAMPLES_PSF,sizeof(PRECISION));
-					PSF = calloc(N_SAMPLES_PSF,sizeof(PRECISION));
+					deltaLambda = calloc(N_SAMPLES_PSF,sizeof(REAL));
+					PSF = calloc(N_SAMPLES_PSF,sizeof(REAL));
 					readPSFFile(deltaLambda,PSF,nameInputFilePSF);
-					PRECISION * fInterpolated = calloc(nlambda,sizeof(PRECISION));
+					REAL * fInterpolated = calloc(nlambda,sizeof(REAL));
 					interpolationLinearPSF(deltaLambda,  PSF, vGlobalLambda ,configCrontrolFile.CentralWaveLenght, N_SAMPLES_PSF,fInterpolated, nlambda);						
 				}
 				else{
-					//PRECISION * fgauss_WL(PRECISION FWHM, PRECISION step_between_lw, PRECISION lambda0, PRECISION lambdaCentral, int nLambda, int * sizeG)
 					G = fgauss_WL(FWHM,vGlobalLambda[1]-vGlobalLambda[0],vGlobalLambda[0],vGlobalLambda[nlambda/2],nlambda,&sizeG);
 				}
 		}
@@ -584,7 +582,7 @@ int main(int argc, char **argv)
 				// ALLOCATE MEMORY FOR STORE THE RESULTS 
 
 				vModels = calloc (fitsImage->numPixels , sizeof(Init_Model));
-				vChisqrf = calloc (fitsImage->numPixels , sizeof(PRECISION));
+				vChisqrf = calloc (fitsImage->numPixels , sizeof(float));
 				vNumIter = calloc (fitsImage->numPixels, sizeof(int));
 				t = clock();
 				
@@ -748,7 +746,7 @@ int main(int argc, char **argv)
 			if(idProc == root){
 				printf("\n***********************  DOING INVERSION: %s *******************************\n\n",vInputFileSpectraParalell[indexInputFits].name );
 				resultsInitModelTotal = calloc (numPixels , sizeof(Init_Model));
-				chisqrfTotal = calloc (numPixels , sizeof(PRECISION));
+				chisqrfTotal = calloc (numPixels , sizeof(float));
 				vNumIterTotal = calloc (numPixels, sizeof(int));
 				vSpectraAjustedTotal = calloc (numPixels*nlambda*NPARMS,sizeof(float));
 			}
@@ -794,12 +792,12 @@ int main(int argc, char **argv)
 				MPI_Scatterv(fitsImage->spectroImagen, sendcountsSpectro, displsSpectro, MPI_FLOAT, vSpectraSplit, sendcountsSpectro[idProc], MPI_FLOAT, root, MPI_COMM_WORLD);
 			}
 			else{
-				MPI_Scatterv(NULL, NULL,NULL, MPI_DOUBLE, vSpectraSplit, sendcountsSpectro[idProc], MPI_DOUBLE, root, MPI_COMM_WORLD);
+				MPI_Scatterv(NULL, NULL,NULL, MPI_FLOAT, vSpectraSplit, sendcountsSpectro[idProc], MPI_FLOAT, root, MPI_COMM_WORLD);
 			}		
 			local_finish_scatter = MPI_Wtime();
 
 			resultsInitModel = calloc(sendcountsPixels[idProc], sizeof(Init_Model));
-			vChisqrf = calloc(sendcountsPixels[idProc], sizeof(PRECISION));
+			vChisqrf = calloc(sendcountsPixels[idProc], sizeof(float));
 			vNumIter = calloc(sendcountsPixels[idProc], sizeof(int));
 			
 
@@ -848,7 +846,7 @@ int main(int argc, char **argv)
 			//MPI_Igatherv(resultsInitModel, sendcountsPixels[idProc], mpiInitModel, resultsInitModelTotal, sendcountsPixels, displsPixels, mpiInitModel, root, MPI_COMM_WORLD,&mpiRequestSpectro);
 			//MPI_Igatherv(vChisqrf, sendcountsPixels[idProc], MPI_DOUBLE, chisqrfTotal, sendcountsPixels, displsPixels, MPI_DOUBLE, root, MPI_COMM_WORLD,&mpiRequestLambda);		
 			MPI_Gatherv(resultsInitModel, sendcountsPixels[idProc], mpiInitModel, resultsInitModelTotal, sendcountsPixels, displsPixels, mpiInitModel, root, MPI_COMM_WORLD);
-			MPI_Gatherv(vChisqrf, sendcountsPixels[idProc], MPI_DOUBLE, chisqrfTotal, sendcountsPixels, displsPixels, MPI_DOUBLE, root, MPI_COMM_WORLD);		
+			MPI_Gatherv(vChisqrf, sendcountsPixels[idProc], MPI_FLOAT, chisqrfTotal, sendcountsPixels, displsPixels, MPI_FLOAT, root, MPI_COMM_WORLD);		
 			MPI_Gatherv(vNumIter, sendcountsPixels[idProc], MPI_INT, vNumIterTotal, sendcountsPixels, displsPixels, MPI_INT, root, MPI_COMM_WORLD);		
 			
 			if(configCrontrolFile.SaveSynthesisAdjusted)
