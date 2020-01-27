@@ -506,7 +506,7 @@ int readInitialModel(Init_Model * INIT_MODEL, char * fileInitModel){
 	size_t len = 0;
    ssize_t read;
 	char comment[200], name[100];
-	int rfscanf;
+	
 	fReadInitModel = fopen(fileInitModel, "r");
 	if (fReadInitModel == NULL)
 	{
@@ -517,7 +517,7 @@ int readInitialModel(Init_Model * INIT_MODEL, char * fileInitModel){
 	
 	while ((read = getline(&line, &len, fReadInitModel)) != -1) {
 		double aux_value;
-		rfscanf = sscanf(line,"%99[^:]:%lf%99[^!]!",name, &aux_value,comment);
+		sscanf(line,"%99[^:]:%lf%99[^!]!",name, &aux_value,comment);
 		if(strstr(name,"INITIAL_MODEL_B")!=NULL){ // B
 			INIT_MODEL->B = aux_value;
 		}
@@ -637,14 +637,14 @@ int readMallaGrid(const char * fileMallaGrid, PRECISION * initialLambda, PRECISI
 
    size_t len = 0;
    ssize_t read;
-	char atomo [2];
+	
 	fp = fopen(fileMallaGrid, "r");
    if(fp == NULL)	return 0;
 
-	int indexLine, indexLine2;
+	int indexLine;
 	int found = 0, dataRead = 0;;
-	double damping, potentialExcitation, logGf;
-	PRECISION lambdaLine;
+	
+	
 	char name[100];
 
 	while ((read = getline(&line, &len, fp)) != -1 && !dataRead){

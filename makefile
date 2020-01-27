@@ -2,8 +2,18 @@ CC=mpicc
 
 CFLAGS=
 CFLAGS+=-O3 
-CFLAGS+=-g 
-#CFLAGS+=-D USE_DOUBLE_PRECISION=double
+
+ifdef develop
+	ifeq ($(develop),yes)
+		CFLAGS+=-g 
+		CFLAGS+=-Wall -Wextra		
+	endif
+endif
+ifdef use_double
+	ifeq ($(use_double),yes)
+		CFLAGS+=-D USE_DOUBLE_PRECISION=double
+	endif
+endif
 CFLAGS+=-fno-omit-frame-pointer
 #CFLAGS+=-Wall -Wextra
 #CFLAGS+=-Wconversion
