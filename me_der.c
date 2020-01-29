@@ -462,7 +462,10 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 			}
 
 			REAL Ic;
-			Ic = spectra[nlambda - 1];
+			if(spectra[0]>spectra[nlambda - 1])
+				Ic = spectra[0];
+			else				
+				Ic = spectra[nlambda - 1];
 
 			for (i = 0; i < nlambda; i++)
 				spectra[i] = Ic - spectra[i];
@@ -487,7 +490,11 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 			{
 				// invert continuous
 				if (i != 7){		
-					Ic = d_spectra[(nlambda * i) + (nlambda - 1)];
+					//Ic = d_spectra[(nlambda * i) + (nlambda - 1)];
+					if(d_spectra[(nlambda * i)]>d_spectra[(nlambda * i) + (nlambda - 1)])
+						Ic = d_spectra[(nlambda * i)];	
+					else
+						Ic = d_spectra[(nlambda * i) + (nlambda - 1)];
 					for(h=0;h<nlambda;h++){
 						d_spectra[(nlambda * i) + h] = Ic - d_spectra[(nlambda * i) +h];
 					}																													
@@ -565,11 +572,19 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 		}
 		else{ // DIRECT CONVOLUTION 
 			REAL Ic;
+						
+			if(spectra[0]>spectra[nlambda - 1])
+				Ic = spectra[0];
+			else				
+				Ic = spectra[nlambda - 1];
 			for (i = 0; i < NTERMS; i++)
 			{
 				// invert continuous
-				if (i != 7){		
-					Ic = d_spectra[(nlambda * i) + (nlambda - 1)];
+				if (i != 7){	
+					if(d_spectra[(nlambda * i)]>d_spectra[(nlambda * i) + (nlambda - 1)])
+						Ic = d_spectra[(nlambda * i)];	
+					else
+						Ic = d_spectra[(nlambda * i) + (nlambda - 1)];
 					for(h=0;h<nlambda;h++){
 						d_spectra[(nlambda * i) + h] = Ic - d_spectra[(nlambda * i) +h];
 					}																													
