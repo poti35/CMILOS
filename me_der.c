@@ -454,6 +454,7 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 		else{ // USE DIRECT CONVOLUTION 
 			for(i=0;i<numl;i++){
 				GMAC_DERIV[i] = (GMAC[i] / MC * ((((lambda[i] - centro) / ild) * ((lambda[i] - centro) / ild)) - 1.0));
+				inFilterMAC_DERIV[i] = GMAC_DERIV[i];
 			}
 			if(filter){
 				// convolve both gaussians and use this to convolve this with spectra 
