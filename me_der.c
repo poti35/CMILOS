@@ -469,18 +469,19 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 
 			for (i = 0; i < nlambda; i++)
 				spectra[i] = Ic - spectra[i];
-			direct_convolution2(spectra, nlambda, GMAC_DERIV, nlambda,d_spectra+(9*numl),-1); //no convolucionamos el ultimo valor Ic
+			direct_convolution2(spectra, nlambda, GMAC_DERIV, nlambda,d_spectra+(9*numl),-1); 
 			if(calcSpectra){
-				direct_convolution(spectra, nlambda, GMAC, nlambda); //no convolucionamos el ultimo valor Ic
+				direct_convolution(spectra, nlambda, GMAC, nlambda); 
+				printf("\n estoy dentro de calc spectra\n");
 			}
 			for (i = 0; i < nlambda; i++){
 				spectra[i] = Ic - spectra[i];
 			}
 
 			for(il=1;il<4;il++){
-				direct_convolution2(spectra+nlambda*il, nlambda, GMAC_DERIV, nlambda,d_spectra+(9*numl)+(numl*nterms*il),1); //no convolucionamos el ultimo valor Ic	
+				direct_convolution2(spectra+nlambda*il, nlambda, GMAC_DERIV, nlambda,d_spectra+(9*numl)+(numl*nterms*il),1); 
 				if(calcSpectra){
-					direct_convolution(spectra + nlambda * il, nlambda, GMAC, nlambda); //no convolucionamos el ultimo valor
+					direct_convolution(spectra + nlambda * il, nlambda, GMAC, nlambda); 
 				}
 			}
 
@@ -498,7 +499,7 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 					for(h=0;h<nlambda;h++){
 						d_spectra[(nlambda * i) + h] = Ic - d_spectra[(nlambda * i) +h];
 					}																													
-					direct_convolution(d_spectra + (nlambda * i), nlambda, GMAC, nlambda); //no convolucionamos el ultimo valor
+					direct_convolution(d_spectra + (nlambda * i), nlambda, GMAC, nlambda); 
 					for(h=0;h<nlambda;h++){
 						d_spectra[(nlambda * i) +h] = Ic - d_spectra[(nlambda * i) + h];
 					}
@@ -510,7 +511,7 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 				for (i = 0; i < 9; i++)
 				{
 					if (i != 7)																															 //no convolucionamos S0
-						direct_convolution(d_spectra + (nlambda * i) + (nlambda * NTERMS * j), nlambda, GMAC, nlambda); //no convolucionamos el ultimo valor
+						direct_convolution(d_spectra + (nlambda * i) + (nlambda * NTERMS * j), nlambda, GMAC, nlambda); 
 				}
 			}
 		}  // END DIRECT CONVOLUTION 
@@ -588,7 +589,7 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 					for(h=0;h<nlambda;h++){
 						d_spectra[(nlambda * i) + h] = Ic - d_spectra[(nlambda * i) +h];
 					}																													
-					direct_convolution(d_spectra + (nlambda * i), nlambda, G, nlambda); //no convolucionamos el ultimo valor
+					direct_convolution(d_spectra + (nlambda * i), nlambda, G, nlambda); 
 					for(h=0;h<nlambda;h++){
 						d_spectra[(nlambda * i) +h] = Ic - d_spectra[(nlambda * i) + h];
 					}
@@ -600,7 +601,7 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 				for (i = 0; i < NTERMS; i++)
 				{
 					if (i != 7)																															 //no convolucionamos S0
-						direct_convolution(d_spectra + (nlambda * i) + (nlambda * NTERMS * j), nlambda, G, nlambda); //no convolucionamos el ultimo valor
+						direct_convolution(d_spectra + (nlambda * i) + (nlambda * NTERMS * j), nlambda, G, nlambda); 
 				}
 			}
 		}

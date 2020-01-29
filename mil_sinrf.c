@@ -388,7 +388,7 @@ int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISIO
 			for (i = 0; i < nlambda; i++)
 				spectra[i] = Ic - spectra[i];
 
-			direct_convolution(spectra, nlambda, GMAC, nlambda); //no convolucionamos el ultimo valor Ic
+			direct_convolution(spectra, nlambda, GMAC, nlambda); 
 			//convolve(spectra, nlambda, G, nlambda);
 
 			for (i = 0; i < nlambda; i++)
@@ -396,7 +396,7 @@ int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISIO
 
 			//convolucion QUV
 			for (i = 1; i < NPARMS; i++)
-				direct_convolution(spectra + nlambda * i, nlambda, GMAC, nlambda); //no convolucionamos el ultimo valor			
+				direct_convolution(spectra + nlambda * i, nlambda, GMAC, nlambda); 		
 		}
 
    }//end if(MC > 0.0001)
@@ -459,14 +459,14 @@ int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISIO
 			for (i = 0; i < nlambda; i++)
 				spectra[i] = Ic - spectra[i];
 
-			direct_convolution(spectra, nlambda, G, nlambda); //no convolucionamos el ultimo valor Ic
+			direct_convolution(spectra, nlambda, G, nlambda); 
 
 			for (i = 0; i < nlambda; i++)
 				spectra[i] = Ic - spectra[i];
 
 			//convolucion QUV
 			for (i = 1; i < NPARMS; i++)
-				direct_convolution(spectra + nlambda * i, nlambda, G, nlambda); //no convolucionamos el ultimo valor
+				direct_convolution(spectra + nlambda * i, nlambda, G, nlambda); 
 		}
 	}
 
