@@ -68,8 +68,10 @@ REAL **HGlobalInicial;
 REAL **FGlobalInicial;
 
 //PRECISION *G, *GMAC;
-PRECISION *GMAC;
-REAL * G, *dirConvPar;
+PRECISION *GMAC,* GMAC_DERIV;
+PRECISION * dirConvPar;
+PRECISION * G;
+//REAL * G;
 
 REAL AP[NTERMS*NTERMS*NPARMS],BT[NPARMS*NTERMS];
 
@@ -103,7 +105,7 @@ PRECISION FWHM = 0;
 ConfigControl configCrontrolFile;
 
 // fvoigt memory consuption
-REAL _Complex  *z,* zden, * zdiv;
+PRECISION _Complex  *z,* zden, * zdiv;
 
 int main(int argc, char **argv)
 {
@@ -493,7 +495,7 @@ int main(int argc, char **argv)
 
 		// synthesis
       mil_sinrf(cuantic, &initModel, wlines, vLambda, nlambda, spectra, AH, slight,spectra_mac, configCrontrolFile.ConvolveWithPSF);
-      //me_der(cuantic, &initModel, wlines, vLambda, nlambda, d_spectra, spectra_mac, spectra, AH, slight, 0, configCrontrolFile.ConvolveWithPSF);	
+      me_der(cuantic, &initModel, wlines, vLambda, nlambda, d_spectra, spectra_mac, spectra, AH, slight, 0, configCrontrolFile.ConvolveWithPSF);	
 
 		// in this case basenamefile is from initmodel
 		char nameAux [4096];
@@ -514,6 +516,30 @@ int main(int argc, char **argv)
 		else{
 			printf("\n ERROR !!! The output file can not be open: %s",nameAux);
 		}
+
+		/*int number_parametros = 0;
+      for (number_parametros = 0; number_parametros < NTERMS; number_parametros++)
+      {
+         strcpy(nameAux,get_basefilename(configCrontrolFile.InitialGuessModel));
+         strcat(nameAux,"_C_");
+			char extension[10];
+         sprintf(extension, "%d%s", number_parametros,".per");
+         strcat(nameAux,extension);
+         FILE *fptr = fopen(nameAux, "w");
+         //printf("\n FUNCION RESPUESTA: %d \n",number_parametros);
+			int kk;
+         for (kk = 0; kk < nlambda; kk++)
+         {
+            fprintf(fptr,"1\t%lf\t%le\t%le\t%le\t%le\n", vLambda[kk],
+            d_spectra[kk + nlambda * number_parametros],
+            d_spectra[kk + nlambda * number_parametros + nlambda * NTERMS],
+            d_spectra[kk + nlambda * number_parametros + nlambda * NTERMS * 2],
+            d_spectra[kk + nlambda * number_parametros + nlambda * NTERMS * 3]);
+         }
+         fclose(fptr);
+      }
+      printf("\n");*/
+
 	}
 	else{ // INVERT PIXEL FROM PER FILE OR IMAGE FROM FITS FILE 
 		if(strcmp(file_ext(configCrontrolFile.ObservedProfiles),PER_FILE)==0){ // invert only per file

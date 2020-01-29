@@ -33,7 +33,8 @@ extern REAL *etain, *etaqn, *etaun, *etavn, *rhoqn, *rhoun, *rhovn;
 extern REAL *etai, *etaq, *etau, *etav, *rhoq, *rhou, *rhov;
 extern REAL *parcial1, *parcial2, *parcial3;
 extern REAL *nubB, *nupB, *nurB;
-extern PRECISION *G,*GMAC; // VECTOR WITH GAUSSIAN CREATED FOR CONVOLUTION 
+extern PRECISION *G,*GMAC;
+//extern REAL *G;
 extern fftw_complex * inSpectraFwPSF, *inSpectraBwPSF, *outSpectraFwPSF, *outSpectraBwPSF;
 extern fftw_plan planForwardPSF, planBackwardPSF;
 
