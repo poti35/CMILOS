@@ -62,7 +62,7 @@ extern fftw_complex * inSpectraFwPSF, *inSpectraBwPSF, *outSpectraFwPSF, *outSpe
 extern fftw_plan planForwardPSF, planBackwardPSF;
 extern ConfigControl configCrontrolFile;
 
-int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *lambda,int nlambda,REAL *d_spectra,REAL *spectra, REAL * spectra_slight, PRECISION ah,PRECISION * slight,int calcSpectra, int filter)
+int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *lambda,int nlambda,REAL *d_spectra,REAL *spectra, REAL * spectra_slight, PRECISION ah,PRECISION * slight,int filter)
 {
 
 	int nterms,numl;
@@ -409,20 +409,7 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 				}
 				for(i=(numl/2),ishift=0;i<numl;i++,ishift++){
 					d_spectra[ishift+9*numl+numl*nterms*il]=creal(outSpectraBwMAC[i])*numl;
-				}  					
-				if(calcSpectra){
-					for(i=0;i<numl;i++){
-						inSpectraBwMAC[i]=(outSpectraFwMAC[i]/numl)*(outFilterMAC[i]/numl);
-					}
-					fftw_execute(planBackwardMAC);
-					//shift: -numl/2
-					for(i=0,ishift=numl/2;i<numl/2;i++,ishift++){
-						spectra[ishift+il*numl]=creal(outSpectraBwMAC[i])*numl;
-					}
-					for(i=numl/2,ishift=0;i<numl;i++,ishift++){
-						spectra[ishift+il*numl]=creal(outSpectraBwMAC[i])*numl;
-					} 
-				}  		
+				}		
 			}
 			
 			for(par=0;par<4;par++){
@@ -471,19 +458,12 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 			for (i = 0; i < nlambda; i++)
 				spectra[i] = Ic - spectra[i];
 			direct_convolution2(spectra, nlambda, GMAC_DERIV, nlambda,d_spectra+(9*numl),-1); 
-			if(calcSpectra){
-				direct_convolution(spectra, nlambda, GMAC, nlambda); 
-				printf("\n estoy dentro de calc spectra\n");
-			}
 			for (i = 0; i < nlambda; i++){
 				spectra[i] = Ic - spectra[i];
 			}
 
 			for(il=1;il<4;il++){
 				direct_convolution2(spectra+nlambda*il, nlambda, GMAC_DERIV, nlambda,d_spectra+(9*numl)+(numl*nterms*il),1); 
-				if(calcSpectra){
-					direct_convolution(spectra + nlambda * il, nlambda, GMAC, nlambda); 
-				}
 			}
 			/*fftw_execute(planFilterMAC_DERIV);
 			for(il=0;il<4;il++){

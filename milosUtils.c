@@ -589,7 +589,7 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 	
 
 	mil_sinrf(cuantic, initModel, wlines, lambda, nlambda, spectra, AH,slight,spectra_mac, *INSTRUMENTAL_CONVOLUTION);
-	me_der(cuantic, initModel, wlines, lambda, nlambda, d_spectra, spectra_mac, spectra,AH, slight, 0,*INSTRUMENTAL_CONVOLUTION);
+	me_der(cuantic, initModel, wlines, lambda, nlambda, d_spectra, spectra_mac, spectra,AH, slight, *INSTRUMENTAL_CONVOLUTION);
 
 	FijaACeroDerivadasNoNecesarias(d_spectra,fixed,nlambda);
 	covarm(weight, sigma, spectro, nlambda, spectra, d_spectra, beta, alpha);
@@ -637,7 +637,7 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 
 			flambda = flambda / 10.0;
 			*initModel = model;
-			me_der(cuantic, initModel, wlines, lambda, nlambda, d_spectra, spectra_mac,spectra, AH, slight,0,*INSTRUMENTAL_CONVOLUTION);
+			me_der(cuantic, initModel, wlines, lambda, nlambda, d_spectra, spectra_mac,spectra, AH, slight,*INSTRUMENTAL_CONVOLUTION);
 			FijaACeroDerivadasNoNecesarias(d_spectra,fixed,nlambda);	
 			covarm(weight, sigma, spectro, nlambda, spectra, d_spectra, beta, alpha);
 			
