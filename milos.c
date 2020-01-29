@@ -517,28 +517,28 @@ int main(int argc, char **argv)
 			printf("\n ERROR !!! The output file can not be open: %s",nameAux);
 		}
 
-		/*int number_parametros = 0;
-      for (number_parametros = 0; number_parametros < NTERMS; number_parametros++)
-      {
-         strcpy(nameAux,get_basefilename(configCrontrolFile.InitialGuessModel));
-         strcat(nameAux,"_C_");
+		int number_parametros = 0;
+		for (number_parametros = 0; number_parametros < NTERMS; number_parametros++)
+		{
+			strcpy(nameAux,get_basefilename(configCrontrolFile.InitialGuessModel));
+			strcat(nameAux,"_C_");
 			char extension[10];
-         sprintf(extension, "%d%s", number_parametros,".per");
-         strcat(nameAux,extension);
-         FILE *fptr = fopen(nameAux, "w");
-         //printf("\n FUNCION RESPUESTA: %d \n",number_parametros);
+			sprintf(extension, "%d%s", number_parametros,".per");
+			strcat(nameAux,extension);
+			FILE *fptr = fopen(nameAux, "w");
+			//printf("\n FUNCION RESPUESTA: %d \n",number_parametros);
 			int kk;
-         for (kk = 0; kk < nlambda; kk++)
-         {
-            fprintf(fptr,"1\t%lf\t%le\t%le\t%le\t%le\n", vLambda[kk],
-            d_spectra[kk + nlambda * number_parametros],
-            d_spectra[kk + nlambda * number_parametros + nlambda * NTERMS],
-            d_spectra[kk + nlambda * number_parametros + nlambda * NTERMS * 2],
-            d_spectra[kk + nlambda * number_parametros + nlambda * NTERMS * 3]);
-         }
-         fclose(fptr);
-      }
-      printf("\n");*/
+			for (kk = 0; kk < nlambda; kk++)
+			{
+			fprintf(fptr,"1\t%lf\t%le\t%le\t%le\t%le\n", vLambda[kk],
+			d_spectra[kk + nlambda * number_parametros],
+			d_spectra[kk + nlambda * number_parametros + nlambda * NTERMS],
+			d_spectra[kk + nlambda * number_parametros + nlambda * NTERMS * 2],
+			d_spectra[kk + nlambda * number_parametros + nlambda * NTERMS * 3]);
+			}
+			fclose(fptr);
+		}
+		printf("\n");
 
 	}
 	else{ // INVERT PIXEL FROM PER FILE OR IMAGE FROM FITS FILE 
