@@ -156,14 +156,15 @@ void convolve(REAL * Signal, size_t SignalLen, double * Kernel, size_t KernelLen
     size_t kmin, kmax, k;
 
     dirConvPar[n] = 0;
-
+	double aux = 0;
     kmin = (n >= KernelLen - 1) ? n - (KernelLen - 1) : 0;
     kmax = (n < SignalLen - 1) ? n : SignalLen - 1;
 
     for (k = kmin; k <= kmax; k++)
     {
-      dirConvPar[n] += Signal[k] * Kernel[n - k];
+      aux += Signal[k] * Kernel[n - k];
     }
+	dirConvPar[n] = aux;
   }
 
   int mitad_nh = SignalLen / 2;
