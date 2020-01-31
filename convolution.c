@@ -169,7 +169,8 @@ void convolve(REAL * Signal, size_t SignalLen, double * Kernel, size_t KernelLen
   */
   REAL * signalAux = calloc(SignalLen+SignalLen-1,sizeof(REAL));
   double * ketnelAux = calloc(KernelLen+KernelLen-1,sizeof(double));
-  for(n=0;n<SignalLen;n++){
+  int mitad_nh = SignalLen / 2;
+  for(n=mitad_nh;n<SignalLen+mitad_nh;n++){
 	  signalAux[n] = Signal[n];
 	  ketnelAux[n] = Kernel[n];
   }
@@ -179,7 +180,7 @@ void convolve(REAL * Signal, size_t SignalLen, double * Kernel, size_t KernelLen
 		  dirConvPar[n] = dirConvPar[n] + (signalAux[i]*ketnelAux[n-i]);
 	  }
   }
-  int mitad_nh = SignalLen / 2;
+  
   for(n=0;n<SignalLen;n++){
 	  Result[n] = dirConvPar[n+mitad_nh];
   }
