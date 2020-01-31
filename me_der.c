@@ -450,7 +450,9 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 			}
 
 			REAL Ic;
-			if(spectra[0]>spectra[nlambda - 1])
+
+			convolve(spectra, nlambda, GMAC_DERIV, nlambda, d_spectra+(9*numl) , 1);
+			/*if(spectra[0]>spectra[nlambda - 1])
 				Ic = spectra[0];
 			else				
 				Ic = spectra[nlambda - 1];
@@ -460,7 +462,7 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 			direct_convolution2(spectra, nlambda, GMAC_DERIV, nlambda,d_spectra+(9*numl),-1); 
 			for (i = 0; i < nlambda; i++){
 				spectra[i] = Ic - spectra[i];
-			}
+			}*/
 
 			for(il=1;il<4;il++){
 				direct_convolution2(spectra+nlambda*il, nlambda, GMAC_DERIV, nlambda,d_spectra+(9*numl)+(numl*nterms*il),1); 

@@ -156,11 +156,21 @@ void AplicaDelta(Init_Model *model, PRECISION *delta, int *fixed, Init_Model *mo
 	}
 	if (fixed[2])
 	{
+		/*if (delta[2] > 2)
+			delta[2] = 2;
+
+		if (delta[2] < -2)
+			delta[2] = -2;		*/
 		modelout->vlos = model->vlos - delta[2];
 	}
 
 	if (fixed[3])
 	{
+
+		if (delta[3] > 1e-2)
+			delta[3] = 1e-2;
+		else if (delta[3] < -1e-2)
+			delta[3] = -1e-2;
 		modelout->dopp = model->dopp - delta[3];
 	}
 
@@ -178,10 +188,15 @@ void AplicaDelta(Init_Model *model, PRECISION *delta, int *fixed, Init_Model *mo
 	}
 	if (fixed[6])
 	{
-		if (delta[6] < -30)
+		if (delta[6] < -15)
+			delta[6] = -15;
+		else if (delta[6] > 15)
+			delta[6] = 15;
+
+		/*if (delta[6] < -30)
 			delta[6] = -30;
 		else if (delta[6] > 30)
-			delta[6] = 30;
+			delta[6] = 30;*/
 
 		modelout->az = model->az - delta[6];
 	}
@@ -243,6 +258,7 @@ int check(Init_Model *model)
 	if (model->dopp > 0.6) // idl 0.6
 		model->dopp = 0.6;
 
+	// damping 
 	if (model->aa < 0.0001) // idl 1e-4
 		model->aa = 0.0001;
 	if (model->aa > 10.0) //10
