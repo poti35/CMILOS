@@ -35,11 +35,49 @@ PRECISION * fgauss(PRECISION MC, PRECISION *eje, int neje, PRECISION landa, int 
 		//printf("term (%d) %f  ...\n",i,term[i]);
 	}
 
+	/*int nloai = 0;
+	PRECISION * loai = calloc(neje, sizeof(PRECISION));
+	for (i = 0; i < neje; i++)
+	{
+		if (term[i] < 1e30)
+		{
+			nloai++;
+			loai[i] = 1;
+		}
+	}
+
+	if (nloai > 0)
+	{
+		nmtb = nloai;
+		mtb = calloc(nmtb, sizeof(PRECISION));
+		for (i = 0; i < *sizeG; i++)
+		{
+			if (loai[i])
+			{
+				mtb[i] = exp(-term[i]);
+				//printf("term (%d) %f  ...\n",i,mtb[i]);
+			}
+		}
+	}
+	else
+	{
+
+		nmtb = *sizeG;
+		mtb = calloc(nmtb, sizeof(PRECISION));
+		for (i = 0; i < *sizeG; i++)
+		{
+			mtb[i] = exp(-term[i]);
+			//printf("term (%d) %f  ...\n",i,mtb[i]);
+		}
+	}*/
 
 
 	for (i = 0; i < neje; i++)
 	{
-		GMAC[i] = exp(-term[i]);
+		if(term[i]< 1e30)
+			GMAC[i] = exp(-term[i]);
+		else 
+			GMAC[i] = 0;
 	}
 
 	cte = 0;
