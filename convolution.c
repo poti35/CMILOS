@@ -149,9 +149,9 @@ void direct_convolution2(REAL *x, int nx, PRECISION *h, int nh,REAL * result,int
 
 void convolve(REAL * Signal, size_t SignalLen, double * Kernel, size_t KernelLen, REAL * Result , int delta)
 {
-  size_t n;
+  size_t n,i;
 
-  for (n = 0; n < SignalLen + KernelLen - 1; n++)
+  /*for (n = 0; n < SignalLen + KernelLen - 1; n++)
   {
     size_t kmin, kmax, k;
 
@@ -166,7 +166,19 @@ void convolve(REAL * Signal, size_t SignalLen, double * Kernel, size_t KernelLen
     }
 	dirConvPar[n] = aux;
   }
-
+  */
+  REAL * signalAux = calloc(SignalLen+SignalLen-1,sizeof(REAL));
+  double * ketnelAux = calloc(KernelLen+KernelLen-1,sizeof(double));
+  for(n=0;n<SignalLen;n++){
+	  signalAux[n] = Signal[n];
+	  ketnelAux[n] = Kernel[n];
+  }
+  for(n = 0; n < SignalLen + KernelLen - 1; n++){
+	  dirConvPar[n] = 0;
+	  for(i=0;i<=n;i++){
+		  dirConvPar[n] = dirConvPar[n] + (signalAux[i]*ketnelAux[n-i]);
+	  }
+  }
   int mitad_nh = SignalLen / 2;
   for(n=0;n<SignalLen;n++){
 	  Result[n] = dirConvPar[n+mitad_nh];
