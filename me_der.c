@@ -441,7 +441,7 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 		else{ // USE DIRECT CONVOLUTION 
 			for(i=0;i<numl;i++){
 				GMAC_DERIV[i] = (GMAC[i] / MC * ((((lambda[i] - centro) / ild) * ((lambda[i] - centro) / ild)) - 1.0));
-				//inFilterMAC_DERIV[i] = GMAC_DERIV[i];
+				inFilterMAC_DERIV[i] = GMAC_DERIV[i];
 			}
 			if(filter){
 				// convolve both gaussians and use this to convolve this with spectra 
@@ -455,8 +455,8 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 				printf("\nspectro: %e , gmac: %e , gmac deriv: %e",spectra[i],GMAC[i],GMAC_DERIV[i]);
 			}
 			printf("\n");
-			convolve(spectra, nlambda, GMAC_DERIV, nlambda, d_spectra+(9*numl) , 1);
-			/*if(spectra[0]>spectra[nlambda - 1])
+			/*convolve(spectra, nlambda, GMAC_DERIV, nlambda, d_spectra+(9*numl) , 1);
+			if(spectra[0]>spectra[nlambda - 1])
 				Ic = spectra[0];
 			else				
 				Ic = spectra[nlambda - 1];
@@ -466,12 +466,12 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 			direct_convolution2(spectra, nlambda, GMAC_DERIV, nlambda,d_spectra+(9*numl),-1); 
 			for (i = 0; i < nlambda; i++){
 				spectra[i] = Ic - spectra[i];
-			}*/
+			}
 
 			for(il=1;il<4;il++){
 				direct_convolution2(spectra+nlambda*il, nlambda, GMAC_DERIV, nlambda,d_spectra+(9*numl)+(numl*nterms*il),1); 
-			}
-			/*fftw_execute(planFilterMAC_DERIV);
+			}*/
+			fftw_execute(planFilterMAC_DERIV);
 			for(il=0;il<4;il++){
 				for(i=0;i<numl;i++){
 					inSpectraFwMAC[i] = spectra[numl*il+i] + 0 * _Complex_I;
@@ -488,7 +488,7 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 				for(i=(numl/2),ishift=0;i<numl;i++,ishift++){
 					d_spectra[ishift+9*numl+numl*nterms*il]=creal(outSpectraBwMAC[i])*numl;
 				}  					 		
-			}	*/		
+			}			
 			
 			int h;
 			for (i = 0; i < 9; i++)
