@@ -452,7 +452,7 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 			REAL Ic;
 			printf("\nvalores GMAC DERIV");
 			for(i=0;i<nlambda;i++){
-				printf("\nspectro: %e , gmac: %e ",spectra[i],GMAC_DERIV[i]);
+				printf("\nspectro: %e , gmac: %e , gmac deriv: %e",spectra[i],GMAC[i],GMAC_DERIV[i]);
 			}
 			printf("\n");
 			convolve(spectra, nlambda, GMAC_DERIV, nlambda, d_spectra+(9*numl) , 1);
