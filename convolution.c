@@ -224,6 +224,6 @@ void conv(REAL *x, int xn, double *h, int nh, REAL *result, int delta)
 	int mitad_nh = nh/2;
 	for (i = 0; i < nh; i++)
 	{
-		result[i] = results[i + mitad_nh];
+		result[i] = results[i];
 	}
 }
