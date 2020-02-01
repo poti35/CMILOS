@@ -178,11 +178,11 @@ void convolve(REAL *Signal, size_t SignalLen, double *Kernel, size_t KernelLen, 
 void convCircular(REAL *x, int m, double *h, int n, REAL *result)
 {
 	int i,j, k;
-	double y[m];
+	//double y[m];
 	double x2[m];
 	double a[m];
 
-	y[0]=0;
+	result[0]=0;
     a[0]=h[0];
 
     for(j=1;j<n;j++)            /*folding h(n) to h(-n)*/
@@ -190,11 +190,11 @@ void convCircular(REAL *x, int m, double *h, int n, REAL *result)
 
     /*Circular convolution*/
 	for(i=0;i<n;i++)
-        y[0]+=x[i]*a[i];
+        result[0]+=x[i]*a[i];
 	
 	for(k=1;k<n;k++)
     {
-    	y[k]=0;
+    	result[k]=0;
         /*circular shift*/
 
         for(j=1;j<n;j++)
@@ -203,9 +203,8 @@ void convCircular(REAL *x, int m, double *h, int n, REAL *result)
         for(i=0;i<n;i++)
         {
         	a[i]=x2[i];
-            y[k]+=x[i]*x2[i];
+            result[k]+=x[i]*x2[i];
         }
     }
-	for(i=0;i<n;i++)
-		result[i] = y[i];
+
 }
