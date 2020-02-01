@@ -454,13 +454,13 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 			PRECISION timeReadImage;
 			clock_t t;
 			t = clock();
-			//convolve(spectra, nlambda, GMAC_DERIV, nlambda, d_spectra+(9*numl) , 1);
-			//REAL results[numl];
-			convCircular(spectra, nlambda, GMAC_DERIV, nlambda, d_spectra+(9*numl));
+			convolve(spectra, nlambda, GMAC_DERIV, nlambda, d_spectra+(9*numl) , 1);
+
+			//convCircular(spectra, nlambda, GMAC_DERIV, nlambda, d_spectra+(9*numl));
 			t = clock() - t;
 			timeReadImage = ((PRECISION)t)/CLOCKS_PER_SEC; // in seconds 
 			
-			printf("\n\n TIME convolveE:  %f seconds to execute \n", timeReadImage); 
+			printf("\n\n TIME convolveE:  %e seconds to execute \n", timeReadImage); 
 			/*for(i=0,ishift=startShift;i<numl/2;i++,ishift++){
 				d_spectra[ishift+9*numl]=results[i];
 			}
