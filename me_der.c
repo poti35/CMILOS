@@ -456,14 +456,14 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 			}
 			printf("\n");
 			//convolve(spectra, nlambda, GMAC_DERIV, nlambda, d_spectra+(9*numl) , 1);
-			REAL results[numl];
-			convCircular(spectra, nlambda, GMAC_DERIV, nlambda, results);
-			for(i=0,ishift=startShift;i<numl/2;i++,ishift++){
+			//REAL results[numl];
+			convCircular(spectra, nlambda, GMAC_DERIV, nlambda, d_spectra+(9*numl));
+			/*for(i=0,ishift=startShift;i<numl/2;i++,ishift++){
 				d_spectra[ishift+9*numl]=results[i];
 			}
 			for(i=(numl/2),ishift=0;i<numl;i++,ishift++){
 				d_spectra[ishift+9*numl]=results[i];
-			}				
+			}	*/			
 			/*if(spectra[0]>spectra[nlambda - 1])
 				Ic = spectra[0];
 			else				

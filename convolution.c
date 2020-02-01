@@ -177,24 +177,30 @@ void convolve(REAL *Signal, size_t SignalLen, double *Kernel, size_t KernelLen, 
 
 void convCircular(REAL *x, int m, double *h, int n, REAL *result)
 {
-	int i,j, k;
-	//double y[m];
+	int i,j, k,ishift;
+	double aux;
 	double x2[m];
 	double a[m];
+	int odd=(m%2);		
+	int startShift = m/2;
+	if(odd) startShift+=1;	
+	ishift = startShift;
 
-	result[0]=0;
+	//result[0]=0;
     a[0]=h[0];
 
     for(j=1;j<n;j++)            /*folding h(n) to h(-n)*/
     	a[j]=h[n-j];
 
     /*Circular convolution*/
+	aux = 0;
 	for(i=0;i<n;i++)
-        result[0]+=x[i]*a[i];
-	
+        aux+=x[i]*a[i];
+	result[ishift++] = aux;
+
 	for(k=1;k<n;k++)
     {
-    	result[k]=0;
+    	aux=0;
         /*circular shift*/
 
         for(j=1;j<n;j++)
@@ -203,8 +209,20 @@ void convCircular(REAL *x, int m, double *h, int n, REAL *result)
         for(i=0;i<n;i++)
         {
         	a[i]=x2[i];
-            result[k]+=x[i]*x2[i];
+            aux+=x[i]*x2[i];
         }
+		if(k <m/2)
+			result[ishift++] = aux;
+		else
+			result[k-(n/2)] = aux;
+		
     }
+
+	/*for(i=0,ishift=startShift;i<numl/2;i++,ishift++){
+		d_spectra[ishift+9*numl]=results[i];
+	}
+	for(i=(numl/2),ishift=0;i<numl;i++,ishift++){
+		d_spectra[ishift+9*numl]=results[i];
+	}	*/
 
 }
