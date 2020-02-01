@@ -175,55 +175,37 @@ void convolve(REAL *Signal, size_t SignalLen, double *Kernel, size_t KernelLen, 
 	}
 }
 
-void conv(REAL *x, int xn, double *h, int nh, REAL *result, int delta)
+void convCircular(REAL *x, int m, double *h, int n, REAL *result, int delta)
 {
-	// --- REVERSE ---
+	int i,j, k;
+	double y[m];
+	double x2[m];
+	double a[m];
 
-	double *rev = calloc(nh, sizeof(double));
-	int front = 0;	 //front index
-	int back = nh - 1; //back index
+	y[0]=0;
+    a[0]=h[0];
 
-	while (back > -1)
-	{
-		rev[front] = h[back];
-		front++;
-		back--;
-	}
+    for(j=1;j<n;j++)            /*folding h(n) to h(-n)*/
+    	a[j]=h[n-j];
 
-	// --- ADDS ZEROES ---
-	int sizeNewA = (((nh * 2) + xn - 2));
-	double *NewA = calloc((((nh * 2) + xn - 2)), sizeof(double)); // size for additional zeroes
+    /*Circular convolution*/
+	for(i=0;i<n;i++)
+        y[0]+=x[i]*a[i];
+	
+	for(k=1;k<n;k++)
+    {
+    	y[k]=0;
+        /*circular shift*/
 
-	size_t j = (nh - 1); // determines where to start copying
-
-	for (size_t n = 0; xn != n; n++, j++)
-	{
-		NewA[j] = x[n];
-	}
-
-	// --- CONVULUTION ---
-	double *results = calloc((xn + nh - 1), sizeof(double));
-	int z = sizeNewA - nh + 1; // end size
-
-	for (size_t n = 0; n != z; n++) // moves Vector A
-	{
-		int total = 0;
-		size_t i = 0;
-		size_t begin = n;
-
-		while (i != nh) // multiply reversed vector w/ Vector A
-		{
-			total += (NewA[begin] * rev[i]);
-			i++;
-			begin++;
-		}
-
-		results[n] = total;
-	}
-	int i;
-	int mitad_nh = nh/2;
-	for (i = 0; i < nh; i++)
-	{
-		result[i] = results[i];
-	}
+        for(j=1;j<n;j++)
+        	x2[j]=a[j-1];
+        x2[0]=a[n-1];
+        for(i=0;i<n;i++)
+        {
+        	a[i]=x2[i];
+            y[k]+=x[i]*x2[i];
+        }
+    }
+	for(i=0;i<n;i++)
+		result[i] = y[i];
 }
