@@ -461,12 +461,7 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 			timeReadImage = ((PRECISION)t)/CLOCKS_PER_SEC; // in seconds 
 			
 			printf("\n\n TIME convolveE:  %e seconds to execute \n", timeReadImage); 
-			/*for(i=0,ishift=startShift;i<numl/2;i++,ishift++){
-				d_spectra[ishift+9*numl]=results[i];
-			}
-			for(i=(numl/2),ishift=0;i<numl;i++,ishift++){
-				d_spectra[ishift+9*numl]=results[i];
-			}	*/			
+	
 			/*if(spectra[0]>spectra[nlambda - 1])
 				Ic = spectra[0];
 			else				
@@ -482,24 +477,7 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 			for(il=1;il<4;il++){
 				direct_convolution2(spectra+nlambda*il, nlambda, GMAC_DERIV, nlambda,d_spectra+(9*numl)+(numl*nterms*il),1); 
 			}
-			/*fftw_execute(planFilterMAC_DERIV);
-			for(il=0;il<4;il++){
-				for(i=0;i<numl;i++){
-					inSpectraFwMAC[i] = spectra[numl*il+i] + 0 * _Complex_I;
-				} 
-				fftw_execute(planForwardMAC);
-				for(i=0;i<numl;i++){
-					inSpectraBwMAC[i]=(outSpectraFwMAC[i]/numl)*(outFilterMAC_DERIV[i]/numl);
-				}
-				fftw_execute(planBackwardMAC);
-				//shift: -numl/2
-				for(i=0,ishift=startShift;i<numl/2;i++,ishift++){
-					d_spectra[ishift+9*numl+numl*nterms*il]=creal(outSpectraBwMAC[i])*numl;
-				}
-				for(i=(numl/2),ishift=0;i<numl;i++,ishift++){
-					d_spectra[ishift+9*numl+numl*nterms*il]=creal(outSpectraBwMAC[i])*numl;
-				}  					 		
-			}*/			
+	
 			
 			int h;
 			for (i = 0; i < 9; i++)
