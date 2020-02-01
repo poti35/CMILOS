@@ -25,7 +25,7 @@
 
 	_juanp
 */
-extern PRECISION *dirConvPar;
+extern PRECISION *dirConvPar,*dirConvPar2;
 
 void direct_convolution_double(PRECISION *x, int nx, PRECISION *h, int nh)
 {
@@ -179,7 +179,7 @@ void convCircular(REAL *x, int m, double *h, int n, REAL *result)
 {
 	int i,j, k,ishift;
 	double aux;
-	double x2[m];
+	//double x2[m];
 	//double a[m];
 	int odd=(m%2);		
 	int startShift = m/2;
@@ -204,12 +204,12 @@ void convCircular(REAL *x, int m, double *h, int n, REAL *result)
         /*circular shift*/
 
         for(j=1;j<n;j++)
-        	x2[j]=dirConvPar[j-1];
-        x2[0]=dirConvPar[n-1];
+        	dirConvPar2[j]=dirConvPar[j-1];
+        dirConvPar2[0]=dirConvPar[n-1];
         for(i=0;i<n;i++)
         {
-        	dirConvPar[i]=x2[i];
-            aux+=x[i]*x2[i];
+        	dirConvPar[i]=dirConvPar2[i];
+            aux+=x[i]*dirConvPar2[i];
         }
 		if(k <m/2)
 			result[ishift++] = aux;
