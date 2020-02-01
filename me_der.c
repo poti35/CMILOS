@@ -441,7 +441,7 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 		else{ // USE DIRECT CONVOLUTION 
 			for(i=0;i<numl;i++){
 				GMAC_DERIV[i] = (GMAC[i] / MC * ((((lambda[i] - centro) / ild) * ((lambda[i] - centro) / ild)) - 1.0));
-				inFilterMAC_DERIV[i] = GMAC_DERIV[i];
+				//inFilterMAC_DERIV[i] = GMAC_DERIV[i];
 			}
 			if(filter){
 				// convolve both gaussians and use this to convolve this with spectra 
@@ -456,7 +456,14 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 			}
 			printf("\n");
 			//convolve(spectra, nlambda, GMAC_DERIV, nlambda, d_spectra+(9*numl) , 1);
-			convCircular(spectra, nlambda, GMAC_DERIV, nlambda, d_spectra+(9*numl) , 1);
+			double results[numl];
+			convCircular(spectra, nlambda, GMAC_DERIV, nlambda, results);
+			for(i=0,ishift=startShift;i<numl/2;i++,ishift++){
+				d_spectra[ishift+9*numl]=results[i];
+			}
+			for(i=(numl/2),ishift=0;i<numl;i++,ishift++){
+				d_spectra[ishift+9*numl]=results[i];
+			}				
 			/*if(spectra[0]>spectra[nlambda - 1])
 				Ic = spectra[0];
 			else				

@@ -175,7 +175,7 @@ void convolve(REAL *Signal, size_t SignalLen, double *Kernel, size_t KernelLen, 
 	}
 }
 
-void convCircular(REAL *x, int m, double *h, int n, REAL *result, int delta)
+void convCircular(REAL *x, int m, double *h, int n, REAL *result)
 {
 	int i,j, k;
 	double y[m];
