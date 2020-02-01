@@ -1,3 +1,4 @@
+#include <time.h>
 #include "defines.h"
 #include "lib.h"
 #include <string.h>
@@ -450,14 +451,16 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 			}
 
 			REAL Ic;
-			printf("\nvalores GMAC DERIV");
-			for(i=0;i<nlambda;i++){
-				printf("\nspectro: %e , gmac: %e , gmac deriv: %e",spectra[i],GMAC[i],GMAC_DERIV[i]);
-			}
-			printf("\n");
+			PRECISION timeReadImage;
+			clock_t t;
+			t = clock();
 			//convolve(spectra, nlambda, GMAC_DERIV, nlambda, d_spectra+(9*numl) , 1);
 			//REAL results[numl];
 			convCircular(spectra, nlambda, GMAC_DERIV, nlambda, d_spectra+(9*numl));
+			t = clock() - t;
+			timeReadImage = ((PRECISION)t)/CLOCKS_PER_SEC; // in seconds 
+			
+			printf("\n\n TIME convolveE:  %f seconds to execute \n", timeReadImage); 
 			/*for(i=0,ishift=startShift;i<numl/2;i++,ishift++){
 				d_spectra[ishift+9*numl]=results[i];
 			}
