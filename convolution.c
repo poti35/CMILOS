@@ -27,19 +27,16 @@
 */
 extern PRECISION *dirConvPar;
 
-
 void direct_convolution_double(PRECISION *x, int nx, PRECISION *h, int nh)
 {
 
-	
 	int nx_aux;
 	int k, j;
 
 	nx_aux = nx + nh - 1; // tamano de toda la convolucion
-	
 
 	int mitad_nh = nh / 2;
-   
+
 	// rellenamos el vector auxiliar
 	for (k = 0; k < nx_aux; k++)
 	{
@@ -52,106 +49,94 @@ void direct_convolution_double(PRECISION *x, int nx, PRECISION *h, int nh)
 	}
 
 	// vamos a tomar solo la convolucion central
-	
-	
+
 	for (k = 0; k < nx; k++)
 	{
 		//x[k] = 0;
-		double aux = 0;	
-		for (j = 0; j < nh; j++)
-		{
-			aux += h[j] * dirConvPar[j + k];
-			
-		}
-		x[k] = aux;
-	}
-
-}
-
-void direct_convolution(REAL *x, int nx, PRECISION *h, int nh)
-{
-
-	
-	int nx_aux;
-	int k, j;
-
-	nx_aux = nx + nh - 1; // tamano de toda la convolucion
-	
-
-	int mitad_nh = nh / 2;
-   
-	// rellenamos el vector auxiliar
-	for (k = 0; k < nx_aux; k++)
-	{
-		dirConvPar[k] = 0;
-	}
-
-	for (k = 0; k < nx; k++)
-	{
-		dirConvPar[k + mitad_nh] = x[k];
-	}
-
-	// vamos a tomar solo la convolucion central
-	
-	
-	for (k = 0; k < nx; k++)
-	{
-		//x[k] = 0;
-		double aux = 0;	
-		for (j = 0; j < nh; j++)
-		{
-			aux += h[j] * dirConvPar[j + k];
-			
-		}
-		x[k] = aux;
-	}
-
-}
-
-
-void direct_convolution2(REAL *x, int nx, PRECISION *h, int nh,REAL * result,int delta)
-{
-
-	
-	int nx_aux;
-	int k, j;
-
-	nx_aux = nx + nh - 1; // tamano de toda la convolucion
-	
-
-	int mitad_nh = nh / 2;
-   
-	// rellenamos el vector auxiliar
-	for (k = 0; k < nx_aux; k++)
-	{
-		dirConvPar[k] = 0;
-	}
-
-	for (k = 0; k < nx; k++)
-	{
-		dirConvPar[k + mitad_nh] = x[k];
-	}
-
-	// vamos a tomar solo la convolucion central
-	
-	for (k = 0; k < nx; k++)
-	{
-		
 		double aux = 0;
 		for (j = 0; j < nh; j++)
 		{
 			aux += h[j] * dirConvPar[j + k];
 		}
-		result[k] = aux*delta;
+		x[k] = aux;
 	}
-
 }
 
-void convolve(REAL * Signal, size_t SignalLen, double * Kernel, size_t KernelLen, REAL * Result , int delta)
+void direct_convolution(REAL *x, int nx, PRECISION *h, int nh)
 {
-  size_t n,i;
 
-  /*for (n = 0; n < SignalLen + KernelLen - 1; n++)
+	int nx_aux;
+	int k, j;
+
+	nx_aux = nx + nh - 1; // tamano de toda la convolucion
+
+	int mitad_nh = nh / 2;
+
+	// rellenamos el vector auxiliar
+	for (k = 0; k < nx_aux; k++)
+	{
+		dirConvPar[k] = 0;
+	}
+
+	for (k = 0; k < nx; k++)
+	{
+		dirConvPar[k + mitad_nh] = x[k];
+	}
+
+	// vamos a tomar solo la convolucion central
+
+	for (k = 0; k < nx; k++)
+	{
+		//x[k] = 0;
+		double aux = 0;
+		for (j = 0; j < nh; j++)
+		{
+			aux += h[j] * dirConvPar[j + k];
+		}
+		x[k] = aux;
+	}
+}
+
+void direct_convolution2(REAL *x, int nx, PRECISION *h, int nh, REAL *result, int delta)
+{
+
+	int nx_aux;
+	int k, j;
+
+	nx_aux = nx + nh - 1; // tamano de toda la convolucion
+
+	int mitad_nh = nh / 2;
+
+	// rellenamos el vector auxiliar
+	for (k = 0; k < nx_aux; k++)
+	{
+		dirConvPar[k] = 0;
+	}
+
+	for (k = 0; k < nx; k++)
+	{
+		dirConvPar[k + mitad_nh] = x[k];
+	}
+
+	// vamos a tomar solo la convolucion central
+
+	for (k = 0; k < nx; k++)
+	{
+
+		double aux = 0;
+		for (j = 0; j < nh; j++)
+		{
+			aux += h[j] * dirConvPar[j + k];
+		}
+		result[k] = aux * delta;
+	}
+}
+
+void convolve(REAL *Signal, size_t SignalLen, double *Kernel, size_t KernelLen, REAL *Result, int delta)
+{
+	size_t n, i;
+
+	/*for (n = 0; n < SignalLen + KernelLen - 1; n++)
   {
     size_t kmin, kmax, k;
 
@@ -167,23 +152,78 @@ void convolve(REAL * Signal, size_t SignalLen, double * Kernel, size_t KernelLen
 	dirConvPar[n] = aux;
   }
   */
-  REAL * signalAux = calloc(SignalLen+SignalLen-1,sizeof(REAL));
-  double * ketnelAux = calloc(KernelLen+KernelLen-1,sizeof(double));
-  int mitad_nh = SignalLen / 2;
-  for(n=mitad_nh;n<SignalLen+mitad_nh;n++){
-	  signalAux[n] = Signal[n];
-	  ketnelAux[n] = Kernel[n];
-  }
-  for(n = 0; n < SignalLen + KernelLen - 1; n++){
-	  dirConvPar[n] = 0;
-	  for(i=0;i<=n;i++){
-		  dirConvPar[n] = dirConvPar[n] + (signalAux[i]*ketnelAux[n-i]);
-	  }
-  }
-  
-  for(n=0;n<SignalLen;n++){
-	  Result[n] = dirConvPar[n+mitad_nh];
-  }
+	REAL *signalAux = calloc(SignalLen + SignalLen - 1, sizeof(REAL));
+	double *ketnelAux = calloc(KernelLen + KernelLen - 1, sizeof(double));
+	int mitad_nh = SignalLen / 2;
+	for (n = mitad_nh; n < SignalLen + mitad_nh; n++)
+	{
+		signalAux[n] = Signal[n];
+		ketnelAux[n] = Kernel[n];
+	}
+	for (n = 0; n < SignalLen + KernelLen - 1; n++)
+	{
+		dirConvPar[n] = 0;
+		for (i = 0; i <= n; i++)
+		{
+			dirConvPar[n] = dirConvPar[n] + (signalAux[i] * ketnelAux[n - i]);
+		}
+	}
+
+	for (n = 0; n < SignalLen; n++)
+	{
+		Result[n] = dirConvPar[n + mitad_nh];
+	}
 }
 
+void conv(REAL *x, int xn, double *h, int nh, REAL *result, int delta)
+{
+	// --- REVERSE ---
 
+	double *rev = calloc(nh, sizeof(double));
+	int front = 0;	 //front index
+	int back = nh - 1; //back index
+
+	while (back > -1)
+	{
+		rev[front] = h[back];
+		front++;
+		back--;
+	}
+
+	// --- ADDS ZEROES ---
+	int sizeNewA = (((nh * 2) + xn - 2));
+	double *NewA = calloc((((nh * 2) + xn - 2)), sizeof(double)); // size for additional zeroes
+
+	size_t j = (nh - 1); // determines where to start copying
+
+	for (size_t n = 0; xn != n; n++, j++)
+	{
+		NewA[j] = x[n];
+	}
+
+	// --- CONVULUTION ---
+	double *results = calloc((xn + nh - 1), sizeof(double));
+	int z = sizeNewA - nh + 1; // end size
+
+	for (size_t n = 0; n != z; n++) // moves Vector A
+	{
+		int total = 0;
+		size_t i = 0;
+		size_t begin = n;
+
+		while (i != nh) // multiply reversed vector w/ Vector A
+		{
+			total += (NewA[begin] * rev[i]);
+			i++;
+			begin++;
+		}
+
+		results[n] = total;
+	}
+	int i;
+	int mitad_nh = nh/2;
+	for (i = 0; i < nh; i++)
+	{
+		result[i] = results[i + mitad_nh];
+	}
+}
