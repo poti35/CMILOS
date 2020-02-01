@@ -455,8 +455,8 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 			clock_t t;
 			t = clock();
 			//convolve(spectra, nlambda, GMAC_DERIV, nlambda, d_spectra+(9*numl) , 1);
-			direct_convolution2(spectra, nlambda, GMAC_DERIV, nlambda,d_spectra+(9*numl),-1); 
-			//convCircular(spectra, nlambda, GMAC_DERIV, nlambda, d_spectra+(9*numl));
+			//direct_convolution2(spectra, nlambda, GMAC_DERIV, nlambda,d_spectra+(9*numl),-1); 
+			convCircular(spectra, nlambda, GMAC_DERIV, nlambda, d_spectra+(9*numl));
 			t = clock() - t;
 			timeReadImage = ((PRECISION)t)/CLOCKS_PER_SEC; // in seconds 
 			

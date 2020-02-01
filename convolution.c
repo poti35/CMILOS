@@ -180,22 +180,22 @@ void convCircular(REAL *x, int m, double *h, int n, REAL *result)
 	int i,j, k,ishift;
 	double aux;
 	double x2[m];
-	double a[m];
+	//double a[m];
 	int odd=(m%2);		
 	int startShift = m/2;
 	if(odd) startShift+=1;	
 	ishift = startShift;
 
 	//result[0]=0;
-    a[0]=h[0];
+    dirConvPar[0]=h[0];
 
     for(j=1;j<n;j++)            /*folding h(n) to h(-n)*/
-    	a[j]=h[n-j];
+    	dirConvPar[j]=h[n-j];
 
     /*Circular convolution*/
 	aux = 0;
 	for(i=0;i<n;i++)
-        aux+=x[i]*a[i];
+        aux+=x[i]*dirConvPar[i];
 	result[ishift++] = aux;
 
 	for(k=1;k<n;k++)
@@ -204,11 +204,11 @@ void convCircular(REAL *x, int m, double *h, int n, REAL *result)
         /*circular shift*/
 
         for(j=1;j<n;j++)
-        	x2[j]=a[j-1];
-        x2[0]=a[n-1];
+        	x2[j]=dirConvPar[j-1];
+        x2[0]=dirConvPar[n-1];
         for(i=0;i<n;i++)
         {
-        	a[i]=x2[i];
+        	dirConvPar[i]=x2[i];
             aux+=x[i]*x2[i];
         }
 		if(k <m/2)
