@@ -40,7 +40,7 @@
 
 #endif /* USE_DOUBLE_PRECISION */
 
-
+#define MOD(n, N) ((n<0)? N+n : n)
 
 
 #ifndef DEFINES_H_

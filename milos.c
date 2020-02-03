@@ -70,6 +70,7 @@ REAL **FGlobalInicial;
 //PRECISION *G, *GMAC;
 PRECISION *GMAC,* GMAC_DERIV;
 PRECISION * dirConvPar, *dirConvPar2;
+REAL *resultConv;
 PRECISION * G;
 //REAL * G;
 

@@ -59,8 +59,8 @@ REAL **FGlobalInicial;
 
 
 PRECISION *GMAC,*GMAC_DERIV, *G; // GAUSSIAN MUST BE IN DOUBLE PRECISION 
-PRECISION *dirConvPar,*dirConvPar2;
-
+PRECISION *dirConvPar,*dirConvPar2; // AUX GLOBAL VECTOR for calculate direct convolutions
+REAL *resultConv; // aux global vector for store direct convolution
 REAL AP[NTERMS*NTERMS*NPARMS],BT[NPARMS*NTERMS];
 REAL * opa;
 int FGlobal, HGlobal, uuGlobal;

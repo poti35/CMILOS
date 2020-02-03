@@ -29,6 +29,7 @@ extern Cuantic *cuantic;
 
 extern REAL * opa;
 extern PRECISION *dirConvPar,*dirConvPar2;
+extern REAL *resultConv;
 extern PRECISION _Complex  *z,* zden, * zdiv;
 
 
@@ -55,15 +56,11 @@ void AllocateMemoryDerivedSynthesis(int numl)
 	GMAC_DERIV = calloc(numl,sizeof(PRECISION));
 	dirConvPar = calloc((numl+numl)+1,sizeof(PRECISION));
 	dirConvPar2 = calloc(numl,sizeof(PRECISION));
+	resultConv = calloc(numl,sizeof(REAL));
 
 	spectra = calloc(numl * NPARMS, sizeof(REAL));
 	spectra_mac = calloc(numl * NPARMS, sizeof(REAL));
 	d_spectra = calloc(numl * NTERMS * NPARMS, sizeof(REAL));
-
-	/*spectra = calloc(numl * NPARMS, sizeof(PRECISION));
-	spectra_mac = calloc(numl * NPARMS, sizeof(PRECISION));
-	d_spectra = calloc(numl * NTERMS * NPARMS, sizeof(PRECISION));*/
-	
 	
 	opa = calloc(numl,sizeof(REAL));
 
@@ -202,6 +199,7 @@ void FreeMemoryDerivedSynthesis()
 	free(GMAC_DERIV);
 	free(dirConvPar);
 	free(dirConvPar2);
+	free(resultConv);
 
 	free(opa);
 	free(spectra);
