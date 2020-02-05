@@ -189,33 +189,72 @@ void convolve(REAL *Signal, size_t SignalLen, double *Kernel, size_t KernelLen, 
 	}
 }
 
-void convCircular(REAL *x, int m, double *h, int n, REAL *result)
+/**
+ * Method to do circular convolution over signal 'x'. We assume signal 'x' and 'h' has the same size. 
+ * The result is stored in array 'result'
+ * 
+ * 
+ * */
+
+void convCircular(REAL *x, double *h, int size, REAL *result)
 {
-	int i,j, k,ishift;
+	int i,j, k,ishift,mod;
 	double aux;
 
-	int odd=(m%2);		
-	int startShift = m/2;
+	int odd=(size%2);		
+	int startShift = size/2;
 	if(odd) startShift+=1;	
 	ishift = startShift;
 
-	for(i=0; i < m ; i++){
+	for(i=0; i < size ; i++){
 		aux = 0;
-    	for(j=0; j < n; j++){
-			int mod = i-j;
+    	for(j=0; j < size; j++){
+			mod = i-j;
 			if(mod<0)
-				mod = n+mod;
+				mod = size+mod;
 			aux += h[j] * x[mod];
     	}
 		//resultConv[i] = aux;
-		if(i < m/2)
+		if(i < size/2)
 			resultConv[ishift++] = aux;
 		else
-			resultConv[i-(n/2)] = aux;		
+			resultConv[i-(size/2)] = aux;		
 	}
-	for(i=0;i<n;i++){
+	for(i=0;i<size;i++){
 		result[i] = resultConv[i];
 	}
+
+}
+
+
+
+/*void convCircular(REAL *x, double *h, int size, REAL *result)
+{
+	int i,j, k,ishift,mod;
+	double aux;
+
+	int odd=(size%2);		
+	int startShift = size/2;
+	if(odd) startShift+=1;	
+	ishift = startShift;
+
+	for(i=0; i < size ; i++){
+		aux = 0;
+    	for(j=0; j < size; j++){
+			mod = i-j;
+			if(mod<0)
+				mod = size+mod;
+			aux += h[j] * x[mod];
+    	}
+		//resultConv[i] = aux;
+		if(i < size/2)
+			resultConv[ishift++] = aux;
+		else
+			resultConv[i-(size/2)] = aux;		
+	}
+	for(i=0;i<size;i++){
+		result[i] = resultConv[i];
+	}*/
 
 	/*for(i=0,ishift=startShift;i<n/2;i++,ishift++){
 		result[ishift]=resultConv[i];
@@ -263,4 +302,4 @@ void convCircular(REAL *x, int m, double *h, int n, REAL *result)
 	*/
 	
 
-}
+//}

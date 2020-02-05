@@ -449,42 +449,23 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 				direct_convolution_double(GMAC_DERIV, nlambda, G, nlambda); 
 				direct_convolution_double(GMAC, nlambda, G, nlambda); 
 			}
+			// DIS-COMMENT FOR CONVOLVE ONLY I WITH CIRCULAR CONVOLUTION AND Q,U,V WITH LINEAR CONVOLUTION 
+			/*convCircular(spectra, GMAC_DERIV, nlambda,d_spectra+(9*numl));
 
-			REAL Ic;
-			PRECISION timeReadImage;
-			clock_t t;
-			t = clock();
-			
-			//direct_convolution2(spectra, nlambda, GMAC_DERIV, nlambda,d_spectra+(9*numl),-1); 
-
-			/*t = clock() - t;
-			timeReadImage = ((PRECISION)t)/CLOCKS_PER_SEC; // in seconds 
-			
-			printf("\n\n TIME convolveE:  %e seconds to execute \n", timeReadImage); */
-	
-			/*if(spectra[0]>spectra[nlambda - 1])
-				Ic = spectra[0];
-			else				
-				Ic = spectra[nlambda - 1];
-
-			for (i = 0; i < nlambda; i++)
-				spectra[i] = Ic - spectra[i];
-			direct_convolution2(spectra, nlambda, GMAC_DERIV, nlambda,d_spectra+(9*numl), -1); 
-			//convolve(spectra, nlambda, GMAC_DERIV, nlambda, d_spectra+(9*numl) , -1);
-			for (i = 0; i < nlambda; i++){
-				spectra[i] = Ic - spectra[i];
-			}
-
-			
 			for(il=1;il<4;il++){
 				direct_convolution2(spectra+nlambda*il, nlambda, GMAC_DERIV, nlambda,d_spectra+(9*numl)+(numl*nterms*il),1);
+			}*/
+
+			for(il=0;il<4;il++){
+				convCircular(spectra+nlambda*il, GMAC_DERIV, nlambda,d_spectra+(9*numl)+(numl*nterms*il)); 
 			}
+
 			int h;
+			REAL Ic;
 			for (i = 0; i < 9; i++)
 			{
 				// invert continuous
 				if (i != 7){		
-					//Ic = d_spectra[(nlambda * i) + (nlambda - 1)];
 					if(d_spectra[(nlambda * i)]>d_spectra[(nlambda * i) + (nlambda - 1)])
 						Ic = d_spectra[(nlambda * i)];	
 					else
@@ -506,11 +487,11 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 					if (i != 7)																															 //no convolucionamos S0
 						direct_convolution(d_spectra + (nlambda * i) + (nlambda * NTERMS * j), nlambda, GMAC, nlambda); 
 				}
-			}	*/
+			}	
 
-
-			for(il=0;il<4;il++){
-				convCircular(spectra+nlambda*il, nlambda, GMAC_DERIV, nlambda,d_spectra+(9*numl)+(numl*nterms*il)); 
+			// DISCOMMENT FOR USE CIRCULAR CONVOLUTION ONLY 
+			/*for(il=0;il<4;il++){
+				convCircular(spectra+nlambda*il, GMAC_DERIV, nlambda,d_spectra+(9*numl)+(numl*nterms*il)); 
 			}
 
 			for (j = 0; j < NPARMS; j++)
@@ -518,9 +499,9 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 				for (i = 0; i < 9; i++)
 				{
 					if (i != 7)																															 //no convolucionamos S0
-						convCircular(d_spectra + (nlambda * i) + (nlambda * NTERMS * j), nlambda, GMAC, nlambda,d_spectra + (nlambda * i) + (nlambda * NTERMS * j)); 
+						convCircular(d_spectra + (nlambda * i) + (nlambda * NTERMS * j), GMAC, nlambda,d_spectra + (nlambda * i) + (nlambda * NTERMS * j)); 
 				}
-			}
+			}*/
 
 		}  // END DIRECT CONVOLUTION 
    
@@ -598,7 +579,6 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 						d_spectra[(nlambda * i) + h] = Ic - d_spectra[(nlambda * i) +h];
 					}																													
 					direct_convolution(d_spectra + (nlambda * i), nlambda, G, nlambda); 
-					//convolve(d_spectra + (nlambda * i), nlambda, G, nlambda, d_spectra + (nlambda * i) , 1);
 					for(h=0;h<nlambda;h++){
 						d_spectra[(nlambda * i) +h] = Ic - d_spectra[(nlambda * i) + h];
 					}
@@ -611,9 +591,10 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 				{
 					if (i != 7)																															 //no convolucionamos S0
 						direct_convolution(d_spectra + (nlambda * i) + (nlambda * NTERMS * j), nlambda, G, nlambda);
-						//convolve(d_spectra + (nlambda * i) + (nlambda * NTERMS * j), nlambda, G, nlambda,d_spectra + (nlambda * i) + (nlambda * NTERMS * j),1); 
 				}
 			}
+
+			// FOR USE CIRCULAR CONVOLUTION 
 			/*for (j = 0; j < NPARMS; j++)
 			{
 				for (i = 0; i < NTERMS; i++)

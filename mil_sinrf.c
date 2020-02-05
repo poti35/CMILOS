@@ -379,25 +379,24 @@ int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISIO
 			if(filter){
 				direct_convolution_double(GMAC, nlambda, G, nlambda);
 			}
-			/*REAL Ic;
+			REAL Ic;
 			if(spectra[0]>spectra[nlambda - 1])
 				Ic = spectra[0];
 			else				
 				Ic = spectra[nlambda - 1];
-
+			for (i = 0; i < nlambda; i++)
+				spectra[i] = Ic - spectra[i];
+			direct_convolution(spectra, nlambda, GMAC, nlambda); 
 			for (i = 0; i < nlambda; i++)
 				spectra[i] = Ic - spectra[i];
 			
-			direct_convolution(spectra, nlambda, GMAC, nlambda); 
-			//convCircular(spectra, nlambda, GMAC, nlambda,spectra);
-
-			for (i = 0; i < nlambda; i++)
-				spectra[i] = Ic - spectra[i];
-			*/
 			//convolucion QUV
-			for (i = 0; i < NPARMS; i++)
-				//direct_convolution(spectra + nlambda * i, nlambda, GMAC, nlambda); 		
-				convCircular(spectra + nlambda * i, nlambda, GMAC, nlambda,spectra + nlambda * i);
+			for (i = 1; i < NPARMS; i++)
+				direct_convolution(spectra + nlambda * i, nlambda, GMAC, nlambda); 		
+
+			// FOR USE CIRCULAR CONVOLUTION 
+			/*for (i = 0; i < NPARMS; i++)
+				convCircular(spectra + nlambda * i, GMAC, nlambda,spectra + nlambda * i);				*/
 		}
 
    }//end if(MC > 0.0001)
@@ -437,20 +436,6 @@ int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISIO
 		}
 		else{ // direct convolution
 			//convolucion de I
-/*			char nameAux [4096];
-			strcpy(nameAux,get_basefilename(configCrontrolFile.InitialGuessModel));
-			strcat(nameAux,"before_conv");
-			strcat(nameAux,PER_FILE);
-			FILE *fptr = fopen(nameAux, "w");
-			if(fptr!=NULL){
-				int kk;
-				for (kk = 0; kk < nlambda; kk++)
-				{
-					fprintf(fptr,"%d\t%f\t%le\t%le\t%le\t%le\n", 1, lambda[kk]-configCrontrolFile.CentralWaveLenght, spectra[kk], spectra[kk + nlambda], spectra[kk + nlambda * 2], spectra[kk + nlambda * 3]);
-				}
-				fclose(fptr);
-			}
-*/
 			REAL Ic;
 			if(spectra[0]>spectra[nlambda - 1])
 				Ic = spectra[0];
@@ -461,7 +446,6 @@ int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISIO
 				spectra[i] = Ic - spectra[i];
 
 			direct_convolution(spectra, nlambda, G, nlambda); 
-			//convolve(spectra,nlambda, G, nlambda,spectra,1);
 
 			for (i = 0; i < nlambda; i++)
 				spectra[i] = Ic - spectra[i];
@@ -472,6 +456,7 @@ int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISIO
 				//convolve(spectra + nlambda * i, nlambda, G, nlambda,spectra + nlambda * i,1); 
 			}
 
+			// FOR USE CIRCULAR CONVOLUTION 
 			/*for (i = 0; i < NPARMS; i++)
 				convCircular(spectra + nlambda * i, nlambda, G, nlambda,spectra + nlambda * i); */
 			
