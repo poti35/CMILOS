@@ -432,7 +432,7 @@ void estimacionesClasicas(PRECISION lambda_0, PRECISION *lambda, int nlambda, fl
 	}
 
 	//Para evitar nan
-	if (FABS(y) > 1e-15)
+	if (fabs(y) > 1e-15)
 		LM_lambda_plus = x / y;
 	else
 		LM_lambda_plus = 0;
@@ -446,7 +446,7 @@ void estimacionesClasicas(PRECISION lambda_0, PRECISION *lambda, int nlambda, fl
 		y = y + aux;
 	}
 
-	if (FABS(y) > 1e-15)
+	if (fabs(y) > 1e-15)
 		LM_lambda_minus = x / y;
 	else
 		LM_lambda_minus = 0;
@@ -477,18 +477,18 @@ void estimacionesClasicas(PRECISION lambda_0, PRECISION *lambda, int nlambda, fl
 	for (i = 0; i < nlambda - 1; i++)
 	{
 		L = FABS(SQRT(spectroQ[i] * spectroQ[i] + spectroU[i] * spectroU[i]));
-		m = FABS((4 * (lambda_aux[i] - lambda_0) * L)); // / (3*C*Blos) ); //2*3*C*Blos mod abril 2016 (en test!)
+		m = fabs((4 * (lambda_aux[i] - lambda_0) * L)); // / (3*C*Blos) ); //2*3*C*Blos mod abril 2016 (en test!)
 
 		x = x + FABS(spectroV[i]) * m;
 		y = y + FABS(spectroV[i]) * FABS(spectroV[i]);
 
 	}
 
-	y = y * FABS((3 * C * Blos));
+	y = y * fabs((3 * C * Blos));
 
-	tan_gamma = FABS(SQRT(x / y));
+	tan_gamma = fabs(sqrt(x / y));
 
-	gamma_rad = ATAN(tan_gamma); //gamma en radianes
+	gamma_rad = atan(tan_gamma); //gamma en radianes
 
 	gamma = gamma_rad * (180 / PI); //gamma en grados
 
@@ -509,11 +509,11 @@ void estimacionesClasicas(PRECISION lambda_0, PRECISION *lambda, int nlambda, fl
 	else
 		muestra = nlambda * 0.75;
 
-	tan2phi = spectroU[muestra] / spectroQ[muestra];
+	tan2phi = (spectroU[1] + spectroU[nlambda-1]) / (spectroQ[1] + spectroQ[nlambda-1]);
 
-	phi = (ATAN(tan2phi) * 180 / PI) / 2; //atan con paso a grados
+	phi = (atan(tan2phi) * 180 / PI) / 2; //atan con paso a grados
 
-	if (spectroU[muestra] > 0 && spectroQ[muestra] > 0)
+	/*if (spectroU[muestra] > 0 && spectroQ[muestra] > 0)
 		phi = phi;
 	else if (spectroU[muestra] < 0 && spectroQ[muestra] > 0)
 		phi = phi + 180;
@@ -521,10 +521,10 @@ void estimacionesClasicas(PRECISION lambda_0, PRECISION *lambda, int nlambda, fl
 		phi = phi + 90;
 	else if (spectroU[muestra] > 0 && spectroQ[muestra] < 0)
 		phi = phi + 90;
-
+	*/
 	PRECISION B_aux;
 
-	B_aux = FABS(Blos / COS(gamma_rad)) * 2; // 2 factor de corrección
+	B_aux = fabs(Blos / cos(gamma_rad)) * 2; // 2 factor de corrección
 
 	//Vlos = Vlos * 1.5;
 	if (Vlos < (-20))
