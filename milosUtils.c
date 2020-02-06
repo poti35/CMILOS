@@ -502,26 +502,26 @@ void estimacionesClasicas(PRECISION lambda_0, PRECISION *lambda, int nlambda, fl
 	//azimuth
 
 	PRECISION tan2phi, phi;
-	int muestra;
+	/*int muestra;
 
 	if (nlambda == 6)
 		muestra = CLASSICAL_ESTIMATES_SAMPLE_REF;
 	else
-		muestra = nlambda * 0.75;
+		muestra = nlambda * 0.75;*/
 
 	tan2phi = (spectroU[1] + spectroU[nlambda-1]) / (spectroQ[1] + spectroQ[nlambda-1]);
 
 	phi = (atan(tan2phi) * 180 / PI) / 2; //atan con paso a grados
 
-	/*if (spectroU[muestra] > 0 && spectroQ[muestra] > 0)
+	/*if ( (spectroU[1] + spectroU[nlambda-1]) > 0 && (spectroQ[1] + spectroQ[nlambda-1]) > 0 )
 		phi = phi;
-	else if (spectroU[muestra] < 0 && spectroQ[muestra] > 0)
+	else if ( (spectroU[1] + spectroU[nlambda-1]) < 0 && (spectroQ[1] + spectroQ[nlambda-1]) > 0 )
 		phi = phi + 180;
-	else if (spectroU[muestra] < 0 && spectroQ[muestra] < 0)
+	else if ( (spectroU[1] + spectroU[nlambda-1]) < 0 && (spectroQ[1] + spectroQ[nlambda-1]) < 0 )
 		phi = phi + 90;
-	else if (spectroU[muestra] > 0 && spectroQ[muestra] < 0)
-		phi = phi + 90;
-	*/
+	else if ( (spectroU[1] + spectroU[nlambda-1]) > 0 && (spectroQ[1] + spectroQ[nlambda-1]) < 0 )
+		phi = phi + 90;*/
+	
 	PRECISION B_aux;
 
 	B_aux = fabs(Blos / cos(gamma_rad)) * 2; // 2 factor de corrección
