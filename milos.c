@@ -518,7 +518,7 @@ int main(int argc, char **argv)
 			printf("\n ERROR !!! The output file can not be open: %s",nameAux);
 		}
 
-		int number_parametros = 0;
+		/*int number_parametros = 0;
 		for (number_parametros = 0; number_parametros < NTERMS; number_parametros++)
 		{
 			strcpy(nameAux,get_basefilename(configCrontrolFile.InitialGuessModel));
@@ -539,7 +539,7 @@ int main(int argc, char **argv)
 			}
 			fclose(fptr);
 		}
-		printf("\n");
+		printf("\n");*/
 
 	}
 	else{ // INVERT PIXEL FROM PER FILE OR IMAGE FROM FITS FILE 
