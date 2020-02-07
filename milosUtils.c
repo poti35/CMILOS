@@ -167,10 +167,10 @@ void AplicaDelta(Init_Model *model, PRECISION *delta, int *fixed, Init_Model *mo
 	if (fixed[3])
 	{
 
-		if (delta[3] > 1e-2)
+		/*if (delta[3] > 1e-2)
 			delta[3] = 1e-2;
 		else if (delta[3] < -1e-2)
-			delta[3] = -1e-2;
+			delta[3] = -1e-2;*/
 		modelout->dopp = model->dopp - delta[3];
 	}
 
@@ -188,15 +188,15 @@ void AplicaDelta(Init_Model *model, PRECISION *delta, int *fixed, Init_Model *mo
 	}
 	if (fixed[6])
 	{
-		if (delta[6] < -15)
+		/*if (delta[6] < -15)
 			delta[6] = -15;
 		else if (delta[6] > 15)
-			delta[6] = 15;
+			delta[6] = 15;*/
 
-		/*if (delta[6] < -30)
+		if (delta[6] < -30)
 			delta[6] = -30;
 		else if (delta[6] > 30)
-			delta[6] = 30;*/
+			delta[6] = 30;
 
 		modelout->az = model->az - delta[6];
 	}
@@ -410,11 +410,6 @@ void estimacionesClasicas(PRECISION lambda_0, PRECISION *lambda, int nlambda, fl
 	PRECISION L, m, gamma, gamma_rad, tan_gamma, C;
 	int i;
 
-	//Es necesario crear un lambda en FLOAT para probar como se hace en la FPGA
-	PRECISION *lambda_aux = lambda;
-	
-	
-
 	spectroI = spectro;
 	spectroQ = spectro + nlambda;
 	spectroU = spectro + nlambda * 2;
@@ -427,7 +422,7 @@ void estimacionesClasicas(PRECISION lambda_0, PRECISION *lambda, int nlambda, fl
 	for (i = 0; i < nlambda - 1; i++)
 	{
 		aux = (Ic - (spectroI[i] + spectroV[i]));
-		x = x + aux * (lambda_aux[i] - lambda_0);
+		x = x + aux * (lambda[i] - lambda_0);
 		y = y + aux;
 	}
 
@@ -442,7 +437,7 @@ void estimacionesClasicas(PRECISION lambda_0, PRECISION *lambda, int nlambda, fl
 	for (i = 0; i < nlambda - 1; i++)
 	{
 		aux = (Ic - (spectroI[i] - spectroV[i]));
-		x = x + aux * (lambda_aux[i] - lambda_0);
+		x = x + aux * (lambda[i] - lambda_0);
 		y = y + aux;
 	}
 
@@ -451,7 +446,7 @@ void estimacionesClasicas(PRECISION lambda_0, PRECISION *lambda, int nlambda, fl
 	else
 		LM_lambda_minus = 0;
 
-	C = (CTE4_6_13 * lambda_0 * lambda_0 * cuantic->GEFF);
+	C = (CTE4_6_13 * (lambda_0 * lambda_0) * (double)cuantic->GEFF);
 	beta_B = 1 / C;
 
 	Blos = beta_B * ((LM_lambda_plus - LM_lambda_minus) / 2);
@@ -468,8 +463,8 @@ void estimacionesClasicas(PRECISION lambda_0, PRECISION *lambda, int nlambda, fl
 
 	//------------------------------------------------------------------------------------------------------------
 
-	Blos = Blos * 1; //factor de correción x campo debil
-	Vlos = Vlos * 1; //factor de correción ...
+	//Blos = Blos * 1; //factor de correción x campo debil
+	//Vlos = Vlos * 1; //factor de correción ...
 
 	//inclinacion
 	x = 0;
@@ -477,7 +472,7 @@ void estimacionesClasicas(PRECISION lambda_0, PRECISION *lambda, int nlambda, fl
 	for (i = 0; i < nlambda - 1; i++)
 	{
 		L = FABS(SQRT(spectroQ[i] * spectroQ[i] + spectroU[i] * spectroU[i]));
-		m = fabs((4 * (lambda_aux[i] - lambda_0) * L)); // / (3*C*Blos) ); //2*3*C*Blos mod abril 2016 (en test!)
+		m = fabs((4 * (lambda[i] - lambda_0) * L)); // / (3*C*Blos) ); //2*3*C*Blos mod abril 2016 (en test!)
 
 		x = x + FABS(spectroV[i]) * m;
 		y = y + FABS(spectroV[i]) * FABS(spectroV[i]);
@@ -502,29 +497,24 @@ void estimacionesClasicas(PRECISION lambda_0, PRECISION *lambda, int nlambda, fl
 	//azimuth
 
 	PRECISION tan2phi, phi;
-	/*int muestra;
-
-	if (nlambda == 6)
-		muestra = CLASSICAL_ESTIMATES_SAMPLE_REF;
-	else
-		muestra = nlambda * 0.75;*/
 
 	tan2phi = (spectroU[1] + spectroU[nlambda-1]) / (spectroQ[1] + spectroQ[nlambda-1]);
 
 	phi = (atan(tan2phi) * 180 / PI) / 2; //atan con paso a grados
 
-	/*if ( (spectroU[1] + spectroU[nlambda-1]) > 0 && (spectroQ[1] + spectroQ[nlambda-1]) > 0 )
+	if ( (spectroU[1] + spectroU[nlambda-1]) > 0 && (spectroQ[1] + spectroQ[nlambda-1]) > 0 )
 		phi = phi;
 	else if ( (spectroU[1] + spectroU[nlambda-1]) < 0 && (spectroQ[1] + spectroQ[nlambda-1]) > 0 )
 		phi = phi + 180;
 	else if ( (spectroU[1] + spectroU[nlambda-1]) < 0 && (spectroQ[1] + spectroQ[nlambda-1]) < 0 )
 		phi = phi + 90;
 	else if ( (spectroU[1] + spectroU[nlambda-1]) > 0 && (spectroQ[1] + spectroQ[nlambda-1]) < 0 )
-		phi = phi + 90;*/
+		phi = phi + 90;
 	
 	PRECISION B_aux;
 
-	B_aux = fabs(Blos / cos(gamma_rad)) * 2; // 2 factor de corrección
+	//B_aux = fabs(Blos / cos(gamma_rad)) * 2; // 2 factor de corrección
+	B_aux = fabs(Blos / cos(gamma_rad)); // 
 
 	//Vlos = Vlos * 1.5;
 	if (Vlos < (-20))
@@ -533,14 +523,14 @@ void estimacionesClasicas(PRECISION lambda_0, PRECISION *lambda, int nlambda, fl
 		Vlos = (20);
 
 
-	initModel->B = (B_aux > 4000 ? 4000 : B_aux);
-	initModel->vlos = Vlos; //(Vlos*1.5);//1.5;
-	initModel->gm = gamma;
+	//initModel->B = (B_aux > 4000 ? 4000 : B_aux);
+	//initModel->vlos = Vlos; //(Vlos*1.5);//1.5;
+	//initModel->gm = gamma;
 	initModel->az = phi;
-	initModel->S0 = Blos;
+	//initModel->S0 = Blos;
 
 	//Liberar memoria del vector de lambda auxiliar
-	//free(lambda_aux);
+	
 }
 
 

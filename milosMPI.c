@@ -89,7 +89,7 @@ PRECISION FWHM = 0;
 
 ConfigControl configCrontrolFile;
 
-PRECISION _Complex  *z,* zden, * zdiv;
+_Complex double  *z,* zden, * zdiv;
 
 int main(int argc, char **argv)
 {
@@ -611,7 +611,7 @@ int main(int argc, char **argv)
 						else 
 							slightPixel = slight+nlambda*indexPixel;
 					}
-					lm_mils(cuantic, wlines, vGlobalLambda, nlambda, fitsImage->pixels[indexPixel].spectro, nlambda, &initModel, spectra, &vChisqrf[indexPixel], slightPixel, configCrontrolFile.toplim, configCrontrolFile.NumberOfCycles,
+										lm_mils(cuantic, wlines, vGlobalLambda, nlambda, fitsImage->pixels[indexPixel].spectro, nlambda, &initModel, spectra, &vChisqrf[indexPixel], slightPixel, configCrontrolFile.toplim, configCrontrolFile.NumberOfCycles,
 							configCrontrolFile.WeightForStokes, configCrontrolFile.fix, configCrontrolFile.sigma, configCrontrolFile.InitialDiagonalElement,&configCrontrolFile.ConvolveWithPSF,&vNumIter[indexPixel]);						
 
 					vModels[indexPixel] = initModel;
@@ -821,6 +821,32 @@ int main(int argc, char **argv)
 					else 
 						slightPixel = slight+nlambda*indexPixel;
 				}
+
+				//estimacionesClasicas(wlines[1], vGlobalLambda, nlambda, vSpectraSplit+(indexPixel*(nlambda*NPARMS)), &initModel);
+				//Check if the result was NAN in the classical estimates
+				/*if (isnan(initModel.B))
+					initModel.B = 1;**/
+				/*if (isnan(initModel.vlos))
+					initModel.vlos = 1e-3;*/
+				/*if (isnan(initModel.gm))
+					initModel.gm = 1;
+				if (isnan(initModel.az))
+					initModel.az = 1;*/
+				/*PRECISION tan2phi, phi;
+				
+				tan2phi = (vSpectraSplit[(indexPixel*(nlambda*NPARMS))+ (nlambda * 2) +1] + vSpectraSplit[(indexPixel*(nlambda*NPARMS))+ (nlambda * 2) + (nlambda-1)]) / (vSpectraSplit[(indexPixel*(nlambda*NPARMS))+ (nlambda) +1] + vSpectraSplit[(indexPixel*(nlambda*NPARMS))+ (nlambda) + (nlambda-1)]);
+				phi = (atan(tan2phi) * 180 / PI) / 2; //atan con paso a grados
+
+				if ( (vSpectraSplit[(indexPixel*(nlambda*NPARMS))+ (nlambda * 2) +1] + vSpectraSplit[(indexPixel*(nlambda*NPARMS))+ (nlambda * 2) + (nlambda-1)]) > 0 && (vSpectraSplit[(indexPixel*(nlambda*NPARMS))+ (nlambda) +1] + vSpectraSplit[(indexPixel*(nlambda*NPARMS))+ (nlambda) + (nlambda-1)]) > 0 )
+					phi = phi;
+				else if ( (vSpectraSplit[(indexPixel*(nlambda*NPARMS))+ (nlambda * 2) +1] + vSpectraSplit[(indexPixel*(nlambda*NPARMS))+ (nlambda * 2) + (nlambda-1)]) < 0 && (vSpectraSplit[(indexPixel*(nlambda*NPARMS))+ (nlambda) +1] + vSpectraSplit[(indexPixel*(nlambda*NPARMS))+ (nlambda) + (nlambda-1)]) > 0 )
+					phi = phi + 180;
+				else if ( (vSpectraSplit[(indexPixel*(nlambda*NPARMS))+ (nlambda * 2) +1] + vSpectraSplit[(indexPixel*(nlambda*NPARMS))+ (nlambda * 2) + (nlambda-1)]) < 0 && (vSpectraSplit[(indexPixel*(nlambda*NPARMS))+ (nlambda) +1] + vSpectraSplit[(indexPixel*(nlambda*NPARMS))+ (nlambda) + (nlambda-1)]) < 0 )
+					phi = phi + 90;
+				else if ( (vSpectraSplit[(indexPixel*(nlambda*NPARMS))+ (nlambda * 2) +1] + vSpectraSplit[(indexPixel*(nlambda*NPARMS))+ (nlambda * 2) + (nlambda-1)]) > 0 && (vSpectraSplit[(indexPixel*(nlambda*NPARMS))+ (nlambda) +1] + vSpectraSplit[(indexPixel*(nlambda*NPARMS))+ (nlambda) + (nlambda-1)]) < 0 )
+					phi = phi + 90;
+				initModel.az = phi;*/
+				
 				lm_mils(cuantic, wlines, vGlobalLambda, nlambda, vSpectraSplit+(indexPixel*(nlambda*NPARMS)), nlambda, &initModel, spectra, &vChisqrf[indexPixel], slightPixel, configCrontrolFile.toplim, configCrontrolFile.NumberOfCycles,
 					configCrontrolFile.WeightForStokes, configCrontrolFile.fix, configCrontrolFile.sigma, configCrontrolFile.InitialDiagonalElement,&configCrontrolFile.ConvolveWithPSF,&vNumIter[indexPixel]);																							
 				
