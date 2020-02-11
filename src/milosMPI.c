@@ -471,6 +471,7 @@ int main(int argc, char **argv)
 	
 	int numFilesPerProcess = numberOfFileSpectra / numProcs;
 	int numFilesPerProcessParallel = numberOfFileSpectra % numProcs;
+	int numFilesPer2ProcessParallel;
 	int sum = 0;                // Sum of counts. Used to calculate displacements
 
 	for ( i = 0; i < numProcs; i++) {
@@ -483,6 +484,10 @@ int main(int argc, char **argv)
 
 	
 	if(idProc == root && numFilesPerProcess>=1){
+		if((numFilesPerProcessParallel/numProcs)>=0.5){ // DIVIDE EACH FILE IN TWO PROCESS
+			
+		}
+
 		vInputFileSpectraParalell = (nameFile *)malloc(numFilesPerProcessParallel*sizeof(nameFile));
 		vOutputNameModelsParalell = (nameFile *)malloc(numFilesPerProcessParallel*sizeof(nameFile));
 		vOutputNameSynthesisAdjustedParallel = (nameFile *)malloc(numFilesPerProcessParallel*sizeof(nameFile));
@@ -511,7 +516,7 @@ int main(int argc, char **argv)
 
 	MPI_Barrier(MPI_COMM_WORLD);
 
-	if(numberOfFileSpectra>=numProcs){ // Scatter name of files 
+	if(numFilesPerProcess>=1){ // ONE IMAGE PER PROCESSOR
 		Init_Model *vModels;
 
 		vInputFileSpectraLocal = (nameFile *) malloc(sendcountsNameInputFiles[idProc]*sizeof(nameFile));
@@ -536,8 +541,9 @@ int main(int argc, char **argv)
 			/****************************************************************************************************/
 			// READ PIXELS FROM IMAGE 
 			PRECISION timeReadImage	;
-			clock_t t;
+			clock_t t, timeTotal;
 			t = clock();
+			timeTotal = clock();
 			fitsImage = readFitsSpectroImage(vInputFileSpectraLocal[indexInputFits].name,0);
 			t = clock() - t;
 			timeReadImage = ((PRECISION)t)/CLOCKS_PER_SEC; // in seconds 
@@ -578,7 +584,7 @@ int main(int argc, char **argv)
 				vModels = calloc (fitsImage->numPixels , sizeof(Init_Model));
 				vChisqrf = calloc (fitsImage->numPixels , sizeof(float));
 				vNumIter = calloc (fitsImage->numPixels, sizeof(int));
-				t = clock();
+				//t = clock();
 				
 				printf("\n************************************************************************************************************************\n");
 				printf("\nIDPROC: %d -->  DOING INVERSION: %s  \n",idProc,vInputFileSpectraLocal[indexInputFits].name);
@@ -625,13 +631,7 @@ int main(int argc, char **argv)
 					//vChisqrf[indexPixel] = chisqrf;
 					//printf ("\t\t %.2f seconds -- %.2f %%\r",  ((PRECISION)(clock() - t)/CLOCKS_PER_SEC) , ((indexPixel*100.)/fitsImage->numPixels));
 				}
-				t = clock() - t;
-				
-				timeReadImage = ((PRECISION)t)/CLOCKS_PER_SEC; // in seconds 
-				
-				printf("\n************************************************************************************************************************\n");
-				printf(" \n IDPROC: %d --> IMAGE INVERSION FOR IMAGE %s ¡¡¡DONE!!!. TIME: %f *********************\n", idProc, vInputFileSpectraLocal[indexInputFits].name,timeReadImage);
-				printf("\n************************************************************************************************************************\n");
+
 
 				clock_t t_write = clock();
 				if(!writeFitsImageModels(vOutputNameModelsLocal[indexInputFits].name,fitsImage->rows,fitsImage->cols,vModels,vChisqrf,vNumIter,configCrontrolFile.saveChisqr)){
@@ -646,11 +646,18 @@ int main(int argc, char **argv)
 						printf("\n ERROR WRITING FILE OF SINTHETIC PROFILES: %s",vOutputNameSynthesisAdjustedLocal[indexInputFits].name);
 					}
 				}
+				timeTotal = clock() - timeTotal;
 				t_write = clock() - t_write;
-				timeReadImage = ((PRECISION)t_write)/CLOCKS_PER_SEC; // in seconds 
+				PRECISION timeTotalExecution = ((PRECISION)timeTotal)/CLOCKS_PER_SEC; // in seconds 
 				
 				printf("\n************************************************************************************************************************\n");
-				printf(" \n IDPROC: %d --> TIME TO WRITE OUTPUT FILES %s . TIME: %f *********************\n", idProc, vInputFileSpectraLocal[indexInputFits].name,timeReadImage);
+				printf(" \n IDPROC: %d --> IMAGE INVERSION FOR IMAGE %s ¡¡¡DONE!!!. TIME: %f *********************\n", idProc, vInputFileSpectraLocal[indexInputFits].name,timeTotalExecution);
+				printf("\n************************************************************************************************************************\n");				
+				
+				PRECISION timeToWriteImage = ((PRECISION)t_write)/CLOCKS_PER_SEC; // in seconds 
+				
+				printf("\n************************************************************************************************************************\n");
+				printf(" \n IDPROC: %d --> TIME TO WRITE OUTPUT FILES %s . TIME: %f *********************\n", idProc, vInputFileSpectraLocal[indexInputFits].name,timeToWriteImage);
 				printf("\n************************************************************************************************************************\n");				
 				if(imageStokesAdjust!=NULL){
 					for( i=0;i<imageStokesAdjust->numPixels;i++){
@@ -705,19 +712,40 @@ int main(int argc, char **argv)
 		MPI_Bcast(&numFilesPerProcessParallel, 1, MPI_INT, root , MPI_COMM_WORLD);
 		MPI_Barrier(MPI_COMM_WORLD);		
 	}
-	
-	
 
 	MPI_Barrier(MPI_COMM_WORLD);
+
+	/*{ // CASE DIVIDE EACH IMAGE BETWEEN TWO PROCESS
+		// Get the group or processes of the default communicator
+    	MPI_Group world_group;
+    	MPI_Comm_group(MPI_COMM_WORLD, &world_group);
+		int numGroups = numProcs/2;
+		MPI_Group new_group [numProcs];
+		for(i=0;i<numProcs;i=i+2){
+			int ranks[2];
+			ranks[0] = i;
+			ranks[1] = i+1;
+    		MPI_Group_incl(world_group, 2, ranks, &new_group[i/2]);
+		}
+		// Create the new communicator from that group of processes.
+    	MPI_Comm new_communicator[numGroups];
+		for(i=0;i<numGroups;i++){
+			MPI_Comm_create(MPI_COMM_WORLD, new_group[i], &new_communicator[i]);
+		}
+	}*/
+
+
 	int indexInputFits;
 	for(indexInputFits=0;indexInputFits<numFilesPerProcessParallel;indexInputFits++){
 			//  IF NOT EMPTY READ stray light file
 		numPixels=0;
+		clock_t timeTotal;
 		if(idProc==root){
 
 			if((access(vInputFileSpectraParalell[indexInputFits].name,F_OK)!=-1)){
 				
 				clock_t t = clock();
+				timeTotal = clock();
 				fitsImage = readFitsSpectroImage(vInputFileSpectraParalell[indexInputFits].name,1);
 				t = clock() - t;
 				PRECISION timeReadImage = ((PRECISION)t)/CLOCKS_PER_SEC; // in seconds 
@@ -735,13 +763,16 @@ int main(int argc, char **argv)
 		// IF THE NUMBER OF PIXELS IS NOT GREATER THAN 0 WE DON'T CONITUNUE 
 
 		if(numPixels > 0){
-
+			
 			if(idProc == root){
 				printf("\n***********************  DOING INVERSION: %s *******************************\n\n",vInputFileSpectraParalell[indexInputFits].name );
 				resultsInitModelTotal = calloc (numPixels , sizeof(Init_Model));
 				chisqrfTotal = calloc (numPixels , sizeof(float));
 				vNumIterTotal = calloc (numPixels, sizeof(int));
-				vSpectraAjustedTotal = calloc (numPixels*nlambda*NPARMS,sizeof(float));
+				if(configCrontrolFile.SaveSynthesisAdjusted)
+					vSpectraAjustedTotal = calloc (numPixels*nlambda*NPARMS,sizeof(float));
+				
+				
 			}
 			// allocate memory in all processes 
 			
@@ -934,7 +965,8 @@ int main(int argc, char **argv)
 					free(fitsImage->pixels);
 					fitsImage->pixels = NULL;
 				}
-
+				timeTotal = clock() - timeTotal;
+				PRECISION timeTotalExecution = ((PRECISION)timeTotal)/CLOCKS_PER_SEC; // in seconds 
 				free(resultsInitModelTotal);		
 				free(chisqrfTotal);
 				free(vNumIterTotal);
@@ -942,8 +974,9 @@ int main(int argc, char **argv)
 					free(vSpectraAjustedTotal);
 				}
 				printf("\n************************************************************************************************************************\n");
-				printf("\n INVERSION OF IMAGE %s ¡¡¡DONE!!!\n", vInputFileSpectraParalell[indexInputFits].name);
+				printf("\n INVERSION OF IMAGE %s ¡¡¡DONE!!!. TIME: %f *********************\n", vInputFileSpectraParalell[indexInputFits].name,timeTotalExecution);
 				printf("\n************************************************************************************************************************\n");
+
 			}
 			else{
 				if(configCrontrolFile.SaveSynthesisAdjusted)
@@ -953,7 +986,7 @@ int main(int argc, char **argv)
 				free(vChisqrf);
 				free(vNumIter);
 			}
-			
+		
 			FreeMemoryDerivedSynthesis();
 			
 		}

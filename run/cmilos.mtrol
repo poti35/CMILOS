@@ -1,11 +1,11 @@
-Number of cycles          (*):0          		! 0 = synthesis, n= max num of iterations, -1 = use classical estimates
-Observed profiles         (*):/home/mcabrera/MILOS/COMPARE_CD_FFT/initModel_cd.per   !
+Number of cycles          (*):100          		! 0 = synthesis, n= max num of iterations, -1 = use classical estimates
+Observed profiles         (*):/home/mcabrera/MILOS/FINAL_TESTS_FEBRERO/INVERSION/PIXELS_REAL/penumbra_t10_599_318.per  !
 Stray light file             :    				! (none=no stray light contam)
 PSF file                     :    				! si fichero .psf leer la psf numerica, si es un numero será la FWHM del filtro gaussiano, si es vacio no se tiene en cuenta
 Wavelength grid file      (s):run/malla.grid 	! (automatic selection, grid, or wavelength file)
 Atomic parameters file       :run/LINES      	! 
 Abundances file		     : 					! not used
-Initial guess model 1     (*):/home/mcabrera/MILOS/FINAL_TESTS_FEBRERO/SYNTHESIS/synthesis_c_6173.mod    !
+Initial guess model 1     (*):/home/mcabrera/MILOS/FINAL_TESTS_FEBRERO/INVERSION/PIXELS_REAL/guess_599_318_macro_c.mod   !
 Initial guess model 2        :					! not used for the moment
 Weight for Stokes I          :1               	! (DEFAULT=1; 0=not inverted)
 Weight for Stokes Q          :1                 ! (DEFAULT=1; 0=not inverted)
@@ -23,7 +23,7 @@ Nodes for lambda_doppler 1   :1                 ! (0 or blank=no, 1=yes)
 Nodes for damping 1	         :1                 ! (0 or blank=no, 1=yes)
 Invert macroturbulence 1     :1                	! (0 or blank=no, 1=yes)
 Nodes for S_0 2     	     :0                 ! not used for the moment
-Nodes for S_1 2  	     :0                 ! not used for the moment                     
+Nodes for S_1 2  	         :0                 ! not used for the moment                     
 Nodes for eta0 2             :0                 ! not used for the moment
 Nodes for magnetic field 2   :0					! not used for the moment
 Nodes for LOS velocity 2     :0              	! not used for the moment
@@ -38,5 +38,5 @@ mu=cos (theta)               :1                 ! (DEFAULT: mu=1. mu<0 => West)
 Estimated S/N for I          :1000              ! 
 Continuum contrast           :1e-12             ! Not used for the moment
 Initial diagonal element     :0.1               ! (DEFAULT value: 1.e-1)
-Use FFT for convolutions     :1                       ! (0 or blank = use direct convolution, 1 = use FFT)
+Use FFT for convolutions     :0                       ! (0 or blank = use direct convolution, 1 = use FFT)
 
