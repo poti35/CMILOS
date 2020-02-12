@@ -291,6 +291,7 @@ FitsImage *  readFitsSpectroImage (const char * fitsFileSpectra, int forParallel
 			if(fits_read_key(fptr, TSTRING, CTYPE2, image->ctype_2, comment, &status)) return 0;
 			if(fits_read_key(fptr, TSTRING, CTYPE3, image->ctype_3, comment, &status)) return 0;
 			if(fits_read_key(fptr, TSTRING, CTYPE4, image->ctype_4, comment, &status)) return 0;
+
 			// ORDER MUST BE CTYPE1->'HPLN-TAN',CTYPE2->'HPLT-TAN',CTYPE3->'WAVE-GRI',CTYPE4->'STOKES'
 
 			/*if(strcmp(image->ctype_1,CTYPE_HPLN_TAN)!=0){
