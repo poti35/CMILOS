@@ -158,12 +158,15 @@ int main(int argc, char **argv)
 	int dimStrayLight;
 	int numberOfFileSpectra;
 
-   nameFile * vInputFileSpectra;
+    nameFile * vInputFileSpectra;
 	nameFile * vInputFileSpectraParalell = NULL;
+	nameFile * vInputFileSpectraDiv2Parallel = NULL;
 	nameFile * vOutputNameModels;
 	nameFile * vOutputNameModelsParalell = NULL;
+	nameFile * vOutputNameModelsDiv2Parallel = NULL;
 	nameFile * vOutputNameSynthesisAdjusted;
 	nameFile * vOutputNameSynthesisAdjustedParallel = NULL;
+	nameFile * vOutputNameSynthesisAdjustedDiv2Parallel = NULL;
 	nameFile * vInputFileSpectraLocal;
 	nameFile * vOutputNameModelsLocal;
 	nameFile * vOutputNameSynthesisAdjustedLocal;
@@ -171,7 +174,7 @@ int main(int argc, char **argv)
 	
 	const char	* nameInputFilePSF ;
 
-   FitsImage * fitsImage = NULL;
+    FitsImage * fitsImage = NULL;
 	PRECISION  dat[7];
 
 	double local_start, local_finish, local_elapsed, elapsed;
@@ -471,7 +474,7 @@ int main(int argc, char **argv)
 	
 	int numFilesPerProcess = numberOfFileSpectra / numProcs;
 	int numFilesPerProcessParallel = numberOfFileSpectra % numProcs;
-	int numFilesPer2ProcessParallel;
+	int numFilesPer2ProcessParallel=0;
 	int sum = 0;                // Sum of counts. Used to calculate displacements
 
 	for ( i = 0; i < numProcs; i++) {
@@ -484,19 +487,33 @@ int main(int argc, char **argv)
 
 	
 	if(idProc == root && numFilesPerProcess>=1){
-		if((numFilesPerProcessParallel/numProcs)>=0.5){ // DIVIDE EACH FILE IN TWO PROCESS
-			
+		if((numProcs/2)>=numFilesPerProcessParallel){ // DIVIDE EACH FILE IN TWO PROCESS
+			numFilesPer2ProcessParallel = numProcs/2;
+			numFilesPerProcessParallel = numFilesPerProcessParallel - (numProcs/2);
+		}
+		
+		vInputFileSpectraDiv2Parallel = (nameFile *)malloc(numFilesPer2ProcessParallel*sizeof(nameFile));
+		vOutputNameModelsDiv2Parallel = (nameFile *)malloc(numFilesPer2ProcessParallel*sizeof(nameFile));
+		vOutputNameSynthesisAdjustedDiv2Parallel = (nameFile *)malloc(numFilesPer2ProcessParallel*sizeof(nameFile));
+		
+		for(i=0;i<numFilesPer2ProcessParallel;i++){
+			strcpy(vInputFileSpectraDiv2Parallel[i].name,vInputFileSpectra[(numFilesPerProcess*numProcs)+i].name);
+			strcpy(vOutputNameModelsDiv2Parallel[i].name,vOutputNameModels[(numFilesPerProcess*numProcs)+i].name);
+			strcpy(vOutputNameSynthesisAdjustedDiv2Parallel[i].name,vOutputNameSynthesisAdjusted[(numFilesPerProcess*numProcs)+i].name);
 		}
 
-		vInputFileSpectraParalell = (nameFile *)malloc(numFilesPerProcessParallel*sizeof(nameFile));
-		vOutputNameModelsParalell = (nameFile *)malloc(numFilesPerProcessParallel*sizeof(nameFile));
-		vOutputNameSynthesisAdjustedParallel = (nameFile *)malloc(numFilesPerProcessParallel*sizeof(nameFile));
-		
-		for(i=0;i<numFilesPerProcessParallel;i++){
-			strcpy(vInputFileSpectraParalell[i].name,vInputFileSpectra[(numFilesPerProcess*numProcs)+i].name);
-			strcpy(vOutputNameModelsParalell[i].name,vOutputNameModels[(numFilesPerProcess*numProcs)+i].name);
-			strcpy(vOutputNameSynthesisAdjustedParallel[i].name,vOutputNameSynthesisAdjusted[(numFilesPerProcess*numProcs)+i].name);
+		if(numFilesPerProcessParallel>0){
+			vInputFileSpectraParalell = (nameFile *)malloc(numFilesPerProcessParallel*sizeof(nameFile));
+			vOutputNameModelsParalell = (nameFile *)malloc(numFilesPerProcessParallel*sizeof(nameFile));
+			vOutputNameSynthesisAdjustedParallel = (nameFile *)malloc(numFilesPerProcessParallel*sizeof(nameFile));
+			
+			for(i=0;i<numFilesPerProcessParallel;i++){
+				strcpy(vInputFileSpectraParalell[i].name,vInputFileSpectra[(numFilesPerProcess*numProcs)+numFilesPer2ProcessParallel+i].name);
+				strcpy(vOutputNameModelsParalell[i].name,vOutputNameModels[(numFilesPerProcess*numProcs)+numFilesPer2ProcessParallel+i].name);
+				strcpy(vOutputNameSynthesisAdjustedParallel[i].name,vOutputNameSynthesisAdjusted[(numFilesPerProcess*numProcs)+numFilesPer2ProcessParallel+i].name);
+			}
 		}
+
 		nameFile * auxInput  = (nameFile *)malloc((numFilesPerProcess*numProcs)*sizeof(nameFile));
 		nameFile * auxOutput = (nameFile *)malloc((numFilesPerProcess*numProcs)*sizeof(nameFile));
 		nameFile * auxOutputSynthesisAdjusted = (nameFile *)malloc((numFilesPerProcess*numProcs)*sizeof(nameFile));
@@ -687,6 +704,12 @@ int main(int argc, char **argv)
 	}
 	else{ // all files as parallel 
 		if(idProc==root){
+			if(vInputFileSpectraDiv2Parallel!=NULL)
+				free(vInputFileSpectraDiv2Parallel);
+			if(vOutputNameModelsDiv2Parallel!=NULL)
+				free(vOutputNameModelsDiv2Parallel);
+			if(vOutputNameSynthesisAdjustedDiv2Parallel!=NULL)
+				free(vOutputNameSynthesisAdjustedDiv2Parallel);			
 			if(vInputFileSpectraParalell!=NULL)
 				free(vInputFileSpectraParalell);
 			if(vOutputNameModelsParalell!=NULL)
@@ -694,28 +717,49 @@ int main(int argc, char **argv)
 			if(vOutputNameSynthesisAdjustedParallel!=NULL)
 				free(vOutputNameSynthesisAdjustedParallel);
 			
-			numFilesPerProcessParallel = numberOfFileSpectra;
+			if((numProcs/2)>=numFilesPerProcessParallel){ // DIVIDE EACH FILE IN TWO PROCESS
+				numFilesPer2ProcessParallel = numProcs/2;
+				numFilesPerProcessParallel = numFilesPerProcessParallel - (numProcs/2);
+			}
+			else
+			{
+				numFilesPer2ProcessParallel = 0;
+				numFilesPerProcessParallel = numberOfFileSpectra;
+			}
+			
+			if(numFilesPer2ProcessParallel>0){
+				vInputFileSpectraDiv2Parallel = (nameFile *)malloc(numFilesPer2ProcessParallel*sizeof(nameFile));
+				vOutputNameModelsDiv2Parallel = (nameFile *)malloc(numFilesPer2ProcessParallel*sizeof(nameFile));
+				vOutputNameSynthesisAdjustedDiv2Parallel = (nameFile *)malloc(numFilesPer2ProcessParallel*sizeof(nameFile));				
+				for(i=0;i<numFilesPer2ProcessParallel;i++){
+					strcpy(vInputFileSpectraDiv2Parallel[i].name,vInputFileSpectra[i].name);
+					strcpy(vOutputNameModelsDiv2Parallel[i].name,vOutputNameModels[i].name);
+					strcpy(vOutputNameSynthesisAdjustedDiv2Parallel[i].name,vOutputNameSynthesisAdjusted[i].name);
+				}
+			}
+			
 			vInputFileSpectraParalell = (nameFile *)malloc(numFilesPerProcessParallel*sizeof(nameFile));
 			vOutputNameModelsParalell = (nameFile *)malloc(numFilesPerProcessParallel*sizeof(nameFile));
 			vOutputNameSynthesisAdjustedParallel = (nameFile *)malloc(numFilesPerProcessParallel*sizeof(nameFile));
 
 			for(i=0;i<numFilesPerProcessParallel;i++){
-				strcpy(vInputFileSpectraParalell[i].name,vInputFileSpectra[i].name);
-				strcpy(vOutputNameModelsParalell[i].name,vOutputNameModels[i].name);
-				strcpy(vOutputNameSynthesisAdjustedParallel[i].name,vOutputNameSynthesisAdjusted[i].name);
+				strcpy(vInputFileSpectraParalell[i].name,vInputFileSpectra[numFilesPer2ProcessParallel+i].name);
+				strcpy(vOutputNameModelsParalell[i].name,vOutputNameModels[numFilesPer2ProcessParallel+i].name);
+				strcpy(vOutputNameSynthesisAdjustedParallel[i].name,vOutputNameSynthesisAdjusted[numFilesPer2ProcessParallel+i].name);
 			}
 			free(vInputFileSpectra);
 			free(vOutputNameModels);
 			free(vOutputNameSynthesisAdjusted);
 		}
 		MPI_Barrier(MPI_COMM_WORLD); // Wait UNTIL THE IMAGE HAS BEEN READED COMPLETELY
+		MPI_Bcast(&numFilesPer2ProcessParallel, 1, MPI_INT, root , MPI_COMM_WORLD);
 		MPI_Bcast(&numFilesPerProcessParallel, 1, MPI_INT, root , MPI_COMM_WORLD);
 		MPI_Barrier(MPI_COMM_WORLD);		
 	}
 
 	MPI_Barrier(MPI_COMM_WORLD);
 
-	/*{ // CASE DIVIDE EACH IMAGE BETWEEN TWO PROCESS
+	if(numFilesPer2ProcessParallel>0){ // CASE DIVIDE EACH IMAGE BETWEEN TWO PROCESS
 		// Get the group or processes of the default communicator
     	MPI_Group world_group;
     	MPI_Comm_group(MPI_COMM_WORLD, &world_group);
@@ -732,7 +776,10 @@ int main(int argc, char **argv)
 		for(i=0;i<numGroups;i++){
 			MPI_Comm_create(MPI_COMM_WORLD, new_group[i], &new_communicator[i]);
 		}
-	}*/
+
+		// EACH GROUP PROCESS ONE IMAGE
+		
+	}
 
 
 	int indexInputFits;
