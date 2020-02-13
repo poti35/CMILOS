@@ -72,7 +72,7 @@ void freeFitsImage(FitsImage * image);
  * 
  */
 int writeFitsImageModels(const char * fitsFile, int numRows, int numCols, Init_Model * vInitModel, float * vChisqrf, int * vNumIterPixel, int addChiqr);
-
+int writeFitsImageModelsSubSet(const char * fitsFile, int numRows, int numCols,int subx1, int subx2, int suby1, int suby2, Init_Model * vInitModel, float * vChisqrf, int * vNumIterPixel, int addChiqr);
 
 int writeFitsImageModelsWithArray(char * fitsFile, int numRows, int numCols, PRECISION * eta0, PRECISION * B, PRECISION * vlos, PRECISION * dopp, PRECISION * aa, PRECISION * gm, PRECISION * az, PRECISION * S0, PRECISION * S1, PRECISION * mac, PRECISION * alfa, PRECISION * vChisqrf);
 /**
