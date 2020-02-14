@@ -548,9 +548,6 @@ int main(int argc, char **argv)
 
 	//**************************************** END OF CREATE GROUPS FOR DIVIDE IMAGE IN 2 ********************************************/
 
-	//printf("\n IDPROC: %d NÚMERO DE FICHEROS POR PROCESO PARALELO %d , NUMERO DE FICHEROS POR PROCESO %d\n",idProc,numFilesPerProcessParallel,numFilesPerProcess);
-
-	
 	if(idProc == root){
 		if(numFilesPerProcess>=1){
 			vInputFileSpectraDiv2Parallel = (nameFile *)malloc(numFilesPer2ProcessParallel*sizeof(nameFile));
@@ -650,6 +647,18 @@ int main(int argc, char **argv)
 		MPI_Barrier(MPI_COMM_WORLD);	
 	}
 
+	if(numFilesPerProcessParallel>0){
+		if(idProc!=root){
+			vInputFileSpectraParalell = (nameFile *)malloc(numFilesPerProcessParallel*sizeof(nameFile));
+			vOutputNameModelsParalell = (nameFile *)malloc(numFilesPerProcessParallel*sizeof(nameFile));
+			vOutputNameSynthesisAdjustedParallel = (nameFile *)malloc(numFilesPerProcessParallel*sizeof(nameFile));		
+		}
+		MPI_Barrier(MPI_COMM_WORLD);
+		MPI_Bcast(vInputFileSpectraParalell, numFilesPerProcessParallel,mpiName , root , MPI_COMM_WORLD);
+		MPI_Bcast(vOutputNameModelsParalell, numFilesPerProcessParallel,mpiName , root , MPI_COMM_WORLD);
+		MPI_Bcast(vOutputNameSynthesisAdjustedParallel, numFilesPerProcessParallel,mpiName , root , MPI_COMM_WORLD);
+		MPI_Barrier(MPI_COMM_WORLD);		
+	}
 
 	
 
@@ -754,7 +763,7 @@ int main(int argc, char **argv)
 						else 
 							slightPixel = slight+nlambda*indexPixel;
 					}
-										lm_mils(cuantic, wlines, vGlobalLambda, nlambda, fitsImage->pixels[indexPixel].spectro, nlambda, &initModel, spectra, &vChisqrf[indexPixel], slightPixel, configCrontrolFile.toplim, configCrontrolFile.NumberOfCycles,
+					lm_mils(cuantic, wlines, vGlobalLambda, nlambda, fitsImage->pixels[indexPixel].spectro, nlambda, &initModel, spectra, &vChisqrf[indexPixel], slightPixel, configCrontrolFile.toplim, configCrontrolFile.NumberOfCycles,
 							configCrontrolFile.WeightForStokes, configCrontrolFile.fix, configCrontrolFile.sigma, configCrontrolFile.InitialDiagonalElement,&configCrontrolFile.ConvolveWithPSF,&vNumIter[indexPixel]);						
 
 					vModels[indexPixel] = initModel;
@@ -1048,99 +1057,142 @@ int main(int argc, char **argv)
 
 
 	if(numFilesPerProcessParallel){
-		MPI_Barrier(MPI_COMM_WORLD); // Wait UNTIL THE IMAGE HAS BEEN READED COMPLETELY
-		MPI_Ibarrier(MPI_COMM_WORLD,&mpiRequestAllParallel);
+		
 
 		int indexInputFits;
 		for(indexInputFits=0;indexInputFits<numFilesPerProcessParallel;indexInputFits++){
 			//  IF NOT EMPTY READ stray light file
-			numPixels=0;
+			
+			int numRowsImageCurrent;
+			int numColsImageCurrent;
 			clock_t timeTotal;
-			if(idProc==root){
-
-				if((access(vInputFileSpectraParalell[indexInputFits].name,F_OK)!=-1)){
-					
-					clock_t t = clock();
-					timeTotal = clock();
-					fitsImage = readFitsSpectroImage(vInputFileSpectraParalell[indexInputFits].name,1);
-					t = clock() - t;
-					PRECISION timeReadImage = ((PRECISION)t)/CLOCKS_PER_SEC; // in seconds 
-					printf("\n TIME TO READ FITS IMAGE %s:  %f seconds to execute . NUMBER OF PIXELS READ: %d \n",vInputFileSpectraParalell[indexInputFits].name, timeReadImage,fitsImage->numPixels); 
-					numPixels = fitsImage->numPixels;
+			FitsImage * myPieceOfImage;
+			int myBeginRow,myEndRow,myBeginCol,myEndCol;
+			//get size of image
+			readSizeImageSpectro(vInputFileSpectraParalell[indexInputFits].name,&numRowsImageCurrent,&numColsImageCurrent);
+			int numPixelsAllImage = (numRowsImageCurrent*numColsImageCurrent);
+			int numPixelsProceso = numPixelsAllImage/numProcs;
+			int resto = numPixelsAllImage % numProcs;
+			int sum = 0;                // Sum of counts. Used to calculate displacements
+			int sendcountsPixels [numProcs] ; // array describing how many elements to send to each process
+			int displsPixels [numProcs];
+			
+			for ( i = 0; i < numProcs; i++) {
+				sendcountsPixels[i] = numPixelsProceso;
+				if (resto > 0) {
+						sendcountsPixels[i]++;
+						resto--;
 				}
-				
+				displsPixels[i] = sum;
+				sum += sendcountsPixels[i];
 			}
 
-			//MPI_Barrier(MPI_COMM_WORLD); // Wait UNTIL THE IMAGE HAS BEEN READED COMPLETELY
-			MPI_Wait(&mpiRequestAllParallel,MPI_STATUS_IGNORE);
-			//  BROADCAST THE NUMBER OF PIXELS
-			MPI_Bcast(&numPixels, 1, MPI_INT, root , MPI_COMM_WORLD);
-			MPI_Barrier(MPI_COMM_WORLD); // WAIT UNTIL G HAS BEEN READ
-
-			// IF THE NUMBER OF PIXELS IS NOT GREATER THAN 0 WE DON'T CONITUNUE 
-			if(numPixels > 0){
-				
-				if(idProc == root){
-					printf("\n***********************  DOING INVERSION: %s *******************************\n\n",vInputFileSpectraParalell[indexInputFits].name );
-					resultsInitModelTotal = calloc (numPixels , sizeof(Init_Model));
-					chisqrfTotal = calloc (numPixels , sizeof(float));
-					vNumIterTotal = calloc (numPixels, sizeof(int));
-					if(configCrontrolFile.SaveSynthesisAdjusted)
-						vSpectraAjustedTotal = calloc (numPixels*nlambda*NPARMS,sizeof(float));
-					
-					
+			printf("\n IDPROC  %d  desplazadimiento %d , numero de pixels a leer %d ",idProc,displsPixels[idProc],sendcountsPixels[idProc] );
+			/*int numRowsProc = numRowsImageCurrent/numProcs;
+			int numColsProc = numColsImageCurrent/numProcs;
+			int restoRowsProc = numRowsImageCurrent % numProcs;
+			int restoColsProc = numColsImageCurrent % numProcs;
+			int sumRows = 0;                // Sum of counts. Used to calculate displacements
+			int sumCols = 0;
+			int displsRows[numProcs];
+			int displsCols[numProcs];
+			
+			for ( i = 0; i < numProcs; i++) {
+				int auxRow = numRowsProc;
+				int auxCol = numColsProc;
+				if(restoRowsProc>0){
+					auxRow++;
+					auxCol++;
+					restoRowsProc--;
+					restoColsProc--;
 				}
-				// allocate memory in all processes 
+				displsRows[i] = sumRows;
+				displsCols[i] = sumCols;
+				sumRows += auxRow;
+				sumCols += auxCol;
+			}				
+					
+			myBeginRow= displsRows[idProc];
+			myBeginCol = displsCols[idProc];
+			if(idProc<(numProcs-1)){ // not the last 
+				myEndRow = displsRows[idProc+1]-1;
+				myEndCol =  displsCols[idProc+1]-1;
+			}
+			else{
+				myEndRow = numRowsImageCurrent;
+				myEndCol = numColsImageCurrent;
+			}	
+			
+			if(myBeginRow==0) myBeginRow =1;
+			if(myBeginCol==0) myBeginCol =1;*/
+
+			if(idProc==0){
+				myBeginRow = 1;
+				myBeginCol = 1;
+			}
+			else{
+				myBeginRow = (displsPixels[idProc]/numColsImageCurrent);
+				myBeginCol = (displsPixels[idProc]%numColsImageCurrent)+1;
+			}
+			if(idProc==(numProcs-1)){
+				myEndRow=numRowsImageCurrent;
+				myEndCol=numColsImageCurrent;
+			}
+			else{
+				myEndRow=(displsPixels[idProc+1]/numColsImageCurrent);
+				myEndCol=(displsPixels[idProc+1]%numColsImageCurrent);				
+			}
+			
+			printf("\n ID PROC: %d SIZE OF IMAGE %d - %d ",idProc, numRowsImageCurrent, numColsImageCurrent);	
+			clock_t t = clock();
+			timeTotal = clock();
+			printf("\n id prod: %d, begin row %d begin col %d ", idProc, myBeginRow,myBeginCol);
+			printf("\n*******************\n");
+			MPI_Barrier(MPI_COMM_WORLD);
+			//myPieceOfImage = readFitsSpectroNPixels(vInputFileSpectraParalell[indexInputFits].name,myBeginRow,myBeginCol,myEndRow, myEndCol,sendcountsPixels[idProc],idProc+1);
+			myPieceOfImage = readFitsSpectroImage(vInputFileSpectraParalell[indexInputFits].name,1);
+			t = clock() - t;
+			PRECISION timeReadImage = ((PRECISION)t)/CLOCKS_PER_SEC; // in seconds 
+			printf("\n TIME TO READ FITS PIECE %d OF IMAGE %s:  %f seconds to execute . NUMBER OF PIXELS READ: %d \n",idProc,vInputFileSpectraParalell[indexInputFits].name, timeReadImage,myPieceOfImage->numPixels); 
+				
+			
+			
+			// IF THE NUMBER OF PIXELS IS NOT GREATER THAN 0 WE DON'T CONITUNUE 
+			if(myPieceOfImage!=NULL){
+				
+				FitsImage * imageStokesAdjust = NULL;
+				if(configCrontrolFile.SaveSynthesisAdjusted){
+					imageStokesAdjust = malloc(sizeof(FitsImage));
+					imageStokesAdjust->rows = myPieceOfImage->rows;
+					imageStokesAdjust->cols = myPieceOfImage->cols;
+					imageStokesAdjust->nLambdas = myPieceOfImage->nLambdas;
+					imageStokesAdjust->numStokes = myPieceOfImage->numStokes;
+					imageStokesAdjust->pos_col = myPieceOfImage->pos_col;
+					imageStokesAdjust->pos_row = myPieceOfImage->pos_row;
+					imageStokesAdjust->pos_lambda = myPieceOfImage->pos_lambda;
+					imageStokesAdjust->pos_stokes_parameters = myPieceOfImage->pos_stokes_parameters;
+					imageStokesAdjust->numPixels = myPieceOfImage->numPixels;
+					imageStokesAdjust->pixels = calloc(imageStokesAdjust->numPixels, sizeof(vpixels));
+					for( i=0;i<imageStokesAdjust->numPixels;i++){
+						imageStokesAdjust->pixels[i].spectro = calloc (nlambda*NPARMS,sizeof(float));
+					}
+				}				
+				
+				printf("\n***********************  DOING INVERSION: %s *******************************\n\n",vInputFileSpectraParalell[indexInputFits].name );
+
+
+
 				
 				AllocateMemoryDerivedSynthesis(nlambda);
 
-				int numPixelsProceso = numPixels/numProcs;
-				int resto = numPixels % numProcs;
-				int sum = 0;                // Sum of counts. Used to calculate displacements
-				int sumSpectro = 0;
-				int sumLambda = 0;
+				Init_Model *vModels = calloc (sendcountsPixels[idProc] , sizeof(Init_Model));
+				vChisqrf = calloc (sendcountsPixels[idProc] , sizeof(float));
+				vNumIter = calloc (sendcountsPixels[idProc], sizeof(int));
+
+				printf("\n************************************************************************************************************************\n");
+				printf("\nIDPROC: %d -->  DOING INVERSION: %s [%d,%d]  \n",idProc,vInputFileSpectraParalell[indexInputFits].name,myBeginRow,myBeginCol);
+				printf("\n************************************************************************************************************************");
 				
-
-				for ( i = 0; i < numProcs; i++) {
-					sendcountsPixels[i] = numPixelsProceso;
-					if (resto > 0) {
-							sendcountsPixels[i]++;
-							resto--;
-					}
-					sendcountsSpectro[i] = sendcountsPixels[i]*nlambda*NPARMS;
-					sendcountsLambda[i] = sendcountsPixels[i]*nlambda;
-					displsPixels[i] = sum;
-					displsSpectro[i] = sumSpectro;
-					//displsLambda[i] = sumLambda;
-					sum += sendcountsPixels[i];
-					sumSpectro += sendcountsSpectro[i];
-					sumLambda += sendcountsLambda[i];
-				}
-
-				MPI_Barrier(MPI_COMM_WORLD); // Wait until all processes have their vlambda
-				local_start = MPI_Wtime();
-
-				// SCATTER VPIXELS 
-				vSpectraSplit = calloc(sendcountsSpectro[idProc],sizeof(float));
-				if(configCrontrolFile.SaveSynthesisAdjusted)
-					vSpectraAdjustedSplit = calloc(sendcountsSpectro[idProc],sizeof(float));
-				
-				local_start_scatter = MPI_Wtime();
-				
-				if( root == idProc){
-					MPI_Scatterv(fitsImage->spectroImagen, sendcountsSpectro, displsSpectro, MPI_FLOAT, vSpectraSplit, sendcountsSpectro[idProc], MPI_FLOAT, root, MPI_COMM_WORLD);
-				}
-				else{
-					MPI_Scatterv(NULL, NULL,NULL, MPI_FLOAT, vSpectraSplit, sendcountsSpectro[idProc], MPI_FLOAT, root, MPI_COMM_WORLD);
-				}		
-				local_finish_scatter = MPI_Wtime();
-
-				resultsInitModel = calloc(sendcountsPixels[idProc], sizeof(Init_Model));
-				vChisqrf = calloc(sendcountsPixels[idProc], sizeof(float));
-				vNumIter = calloc(sendcountsPixels[idProc], sizeof(int));
-				
-
-				local_start_execution = MPI_Wtime();
 				for(indexPixel = 0; indexPixel < sendcountsPixels[idProc]; indexPixel++){
 					//Initial Model
 					Init_Model initModel;
@@ -1168,122 +1220,72 @@ int main(int argc, char **argv)
 							slightPixel = slight+nlambda*indexPixel;
 					}
 					
-					lm_mils(cuantic, wlines, vGlobalLambda, nlambda, vSpectraSplit+(indexPixel*(nlambda*NPARMS)), nlambda, &initModel, spectra, &vChisqrf[indexPixel], slightPixel, configCrontrolFile.toplim, configCrontrolFile.NumberOfCycles,
+					lm_mils(cuantic, wlines, vGlobalLambda, nlambda, myPieceOfImage->spectroImagen+displsPixels[idProc]+(indexPixel*(nlambda*NPARMS)), nlambda, &initModel, spectra, &vChisqrf[indexPixel], slightPixel, configCrontrolFile.toplim, configCrontrolFile.NumberOfCycles,
 						configCrontrolFile.WeightForStokes, configCrontrolFile.fix, configCrontrolFile.sigma, configCrontrolFile.InitialDiagonalElement,&configCrontrolFile.ConvolveWithPSF,&vNumIter[indexPixel]);																							
 					
-					resultsInitModel[indexPixel] = initModel;
+					vModels[indexPixel] = initModel;
 					if(configCrontrolFile.SaveSynthesisAdjusted){
 						int kk;
 						for (kk = 0; kk < (nlambda * NPARMS); kk++)
 						{
-							vSpectraAdjustedSplit[ (indexPixel*(nlambda * NPARMS))+kk] = spectra[kk] ;
+							imageStokesAdjust->pixels[indexPixel].spectro[kk] = spectra[kk] ;
 						}						
 					}
 					
 				}
-				local_finish_execution = MPI_Wtime();
-				local_start_gather = MPI_Wtime();
-				MPI_Gatherv(resultsInitModel, sendcountsPixels[idProc], mpiInitModel, resultsInitModelTotal, sendcountsPixels, displsPixels, mpiInitModel, root, MPI_COMM_WORLD);
-				MPI_Gatherv(vChisqrf, sendcountsPixels[idProc], MPI_FLOAT, chisqrfTotal, sendcountsPixels, displsPixels, MPI_FLOAT, root, MPI_COMM_WORLD);		
-				MPI_Gatherv(vNumIter, sendcountsPixels[idProc], MPI_INT, vNumIterTotal, sendcountsPixels, displsPixels, MPI_INT, root, MPI_COMM_WORLD);		
-				
-				if(configCrontrolFile.SaveSynthesisAdjusted)
-					MPI_Gatherv(vSpectraAdjustedSplit, sendcountsSpectro[idProc], MPI_FLOAT, vSpectraAjustedTotal, sendcountsSpectro, displsSpectro, MPI_FLOAT, root, MPI_COMM_WORLD);		
 							
+				double timeWriteImage;
+				clock_t t;
+				t = clock();
+
+				if(!writeFitsImageModelsSubSet(vOutputNameModelsParalell[indexInputFits].name,numRowsImageCurrent,numColsImageCurrent,myBeginRow,myBeginCol,sendcountsPixels[idProc],displsPixels[idProc],vModels,vChisqrf,vNumIter,configCrontrolFile.saveChisqr)){
+					printf("\n ERROR WRITING FILE OF MODELS: %s",vOutputNameModelsParalell[indexInputFits].name);
+				}
+				t = clock() - t;
+				timeWriteImage = ((double)t)/CLOCKS_PER_SEC; // in seconds 
+				printf("\n TIME TO WRITE FITS IMAGE:  %f seconds to execute \n", timeWriteImage); 
+				// PROCESS FILE OF SYNTETIC PROFILES
+				if(configCrontrolFile.SaveSynthesisAdjusted){
+					// WRITE SINTHETIC PROFILES TO FITS FILE
+					if(!writeFitsImageProfiles(vOutputNameSynthesisAdjustedParallel[indexInputFits].name,vInputFileSpectraParalell[indexInputFits].name,imageStokesAdjust)){
+						printf("\n ERROR WRITING FILE OF SINTHETIC PROFILES: %s",vOutputNameSynthesisAdjustedParallel[indexInputFits].name);
+					}
+				}				
+				timeTotal = clock() - timeTotal;
+				clock_t t_write = clock() - t_write;
+				PRECISION timeTotalExecution = ((PRECISION)timeTotal)/CLOCKS_PER_SEC; // in seconds 
+				printf("\n************************************************************************************************************************\n");
+				printf(" \n IDPROC: %d --> IMAGE INVERSION FOR IMAGE %s [%d,%d][%d,%d] ¡¡¡DONE!!!. TIME: %f *********************\n", idProc, vInputFileSpectraParalell[indexInputFits].name,myBeginRow,myBeginCol,myEndRow,myEndCol,timeTotalExecution);
+				printf("\n************************************************************************************************************************\n");			
+
+				PRECISION timeToWriteImage = ((PRECISION)t_write)/CLOCKS_PER_SEC; // in seconds 
 				
-				local_finish_gather = MPI_Wtime();
-				local_finish = MPI_Wtime();
-				local_elapsed = local_finish - local_start;
-				local_elapsed_execution = local_finish_execution - local_start_execution;
-				local_elapsed_scatter = local_finish_scatter - local_start_scatter;
-				local_elapsed_gather = local_finish_gather - local_start_gather;
-				MPI_Reduce(&local_elapsed, &elapsed, 1, MPI_DOUBLE, MPI_MAX, root, MPI_COMM_WORLD);
-				MPI_Reduce(&local_elapsed_execution, &elapsed_execution, 1, MPI_DOUBLE, MPI_MAX, root, MPI_COMM_WORLD);
-				MPI_Reduce(&local_elapsed_scatter, &elapsed_scatter, 1, MPI_DOUBLE, MPI_MAX, root, MPI_COMM_WORLD);
-				MPI_Reduce(&local_elapsed_gather, &elapsed_gather, 1, MPI_DOUBLE, MPI_MAX, root, MPI_COMM_WORLD);
-
-				if(idProc==root){		 
-					printf("\n Elapsed SCATTER time = %lf seconds\n", elapsed_scatter);
-					printf("\n***********************************\n");
-					printf("\n Elapsed GATHER time = %lf seconds\n", elapsed_gather);
-					printf("\n***********************************\n");			
-					printf("\n Elapsed EXECUTION time = %lf seconds\n", elapsed_execution);
-					printf("\n***********************************\n");
-					printf("\n Elapsed TOTAL time = %lf seconds\n", elapsed);
-					printf("\n***********************************\n");
-					double timeWriteImage;
-					clock_t t;
-					t = clock();
-
-					if(!writeFitsImageModels(vOutputNameModelsParalell[indexInputFits].name,fitsImage->rows,fitsImage->cols,resultsInitModelTotal,chisqrfTotal,vNumIterTotal,configCrontrolFile.saveChisqr)){
-							printf("\n ERROR WRITING FILE OF MODELS: %s",vOutputNameModelsParalell[indexInputFits].name);
+				printf("\n************************************************************************************************************************\n");
+				printf(" \n IDPROC: %d --> TIME TO WRITE OUTPUT FILES %s [%d,%d][%d,%d]. TIME: %f *********************\n", idProc, vInputFileSpectraParalell[indexInputFits].name,myBeginRow,myBeginCol,myEndRow,myEndCol,timeToWriteImage);
+				printf("\n************************************************************************************************************************\n");				
+				if(imageStokesAdjust!=NULL){
+					for( i=0;i<imageStokesAdjust->numPixels;i++){
+						free(imageStokesAdjust->pixels[i].spectro);
 					}
-					t = clock() - t;
-					timeWriteImage = ((double)t)/CLOCKS_PER_SEC; // in seconds 
-					printf("\n TIME TO WRITE FITS IMAGE:  %f seconds to execute \n", timeWriteImage); 
-					// PROCESS FILE OF SYNTETIC PROFILES
-					if(configCrontrolFile.SaveSynthesisAdjusted){
-						fitsImage->pixels = calloc(fitsImage->numPixels, sizeof(vpixels));
-						for( i=0;i<fitsImage->numPixels;i++){
-							fitsImage->pixels[i].spectro = calloc ((fitsImage->numStokes*fitsImage->nLambdas),sizeof(float));
-							//image->pixels[i].vLambda = calloc (image->nLambdas, sizeof(float));
-						}		
-						for(indexPixel=0;indexPixel<numPixels;indexPixel++)
-						{	
-							int kk;
-							for (kk = 0; kk < (nlambda * NPARMS); kk++)
-							{
-								fitsImage->pixels[indexPixel].spectro[kk] = vSpectraAjustedTotal[kk+(indexPixel*(nlambda * NPARMS))] ;
-							}
-						}					
-						// WRITE SINTHETIC PROFILES TO FITS FILE
-						if(!writeFitsImageProfiles(vOutputNameSynthesisAdjustedParallel[indexInputFits].name,vInputFileSpectraParalell[indexInputFits].name,fitsImage)){
-							printf("\n ERROR WRITING FILE OF SINTHETIC PROFILES: %s",vOutputNameSynthesisAdjustedParallel[indexInputFits].name);
-						}
-											
-
-						
-						for( i=0;i<fitsImage->numPixels;i++){
-							free(fitsImage->pixels[i].spectro);
-							fitsImage->pixels[i].spectro = NULL;
-							//image->pixels[i].vLambda = calloc (image->nLambdas, sizeof(float));
-						}							
-						free(fitsImage->pixels);
-						fitsImage->pixels = NULL;
-					}
-					timeTotal = clock() - timeTotal;
-					PRECISION timeTotalExecution = ((PRECISION)timeTotal)/CLOCKS_PER_SEC; // in seconds 
-					free(resultsInitModelTotal);		
-					free(chisqrfTotal);
-					free(vNumIterTotal);
-					if(configCrontrolFile.SaveSynthesisAdjusted){
-						free(vSpectraAjustedTotal);
-					}
-					printf("\n************************************************************************************************************************\n");
-					printf("\n INVERSION OF IMAGE %s ¡¡¡DONE!!!. TIME: %f *********************\n", vInputFileSpectraParalell[indexInputFits].name,timeTotalExecution);
-					printf("\n************************************************************************************************************************\n\n");
-
+					free(imageStokesAdjust->pixels);
+					free(imageStokesAdjust);
 				}
-				else{
-					if(configCrontrolFile.SaveSynthesisAdjusted)
-						free(vSpectraAdjustedSplit);
-					free(vSpectraSplit);
-					free(resultsInitModel);				
-					free(vChisqrf);
-					free(vNumIter);
-				}
+				free(vModels);
+				free(vChisqrf);
+				free(vNumIter);
+
+
 			
 				FreeMemoryDerivedSynthesis();
 				
 			}
 			else{
-				if(idProc==root){
-					printf("\n\n ***************************** FITS FILE CAN NOT BE READ IT %s ******************************",vInputFileSpectraParalell[indexInputFits].name);
-				}
+				printf("\n\n IDPROC: %d --> FITS FILE: %s WITH THE SPECTRO IMAGE CAN NOT BE READ IT ******************************\n",idProc, vInputFileSpectraParalell[indexInputFits].name);
+				//slog_error(0,"\n\n ***************************** FITS FILE WITH THE SPECTRO IMAGE CAN NOT BE READ IT ******************************\n");
 			}
-			if(idProc==root){
-				freeFitsImage(fitsImage);
-			}
+			
+			freeFitsImage(myPieceOfImage);
+			
 		}		
 	}
 
