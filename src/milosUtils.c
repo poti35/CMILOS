@@ -523,11 +523,11 @@ void estimacionesClasicas(PRECISION lambda_0, PRECISION *lambda, int nlambda, fl
 		Vlos = (20);
 
 
-	//initModel->B = (B_aux > 4000 ? 4000 : B_aux);
-	//initModel->vlos = Vlos; //(Vlos*1.5);//1.5;
-	//initModel->gm = gamma;
+	initModel->B = (B_aux > 4000 ? 4000 : B_aux);
+	initModel->vlos = Vlos; //(Vlos*1.5);//1.5;
+	initModel->gm = gamma;
 	initModel->az = phi;
-	//initModel->S0 = Blos;
+	initModel->S0 = Blos;
 
 	//Liberar memoria del vector de lambda auxiliar
 	

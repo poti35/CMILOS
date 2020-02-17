@@ -160,8 +160,9 @@ int main(int argc, char **argv)
 
 
 	/***************** READ INIT MODEL ********************************/
-
-	if(!readInitialModel(&INITIAL_MODEL,configCrontrolFile.InitialGuessModel)){
+	printf("\n***%s***",configCrontrolFile.InitialGuessModel);
+	if(configCrontrolFile.InitialGuessModel[0]!='\0' && !readInitialModel(&INITIAL_MODEL,configCrontrolFile.InitialGuessModel)){
+		
 		exit(EXIT_FAILURE);
 	}
 	
@@ -359,23 +360,21 @@ int main(int argc, char **argv)
       	
 
 			Init_Model initModel;
-			initModel.eta0 = INITIAL_MODEL.eta0;
-			initModel.B = INITIAL_MODEL.B; //200 700
-			initModel.gm = INITIAL_MODEL.gm;
-			initModel.az = INITIAL_MODEL.az;
-			initModel.vlos = INITIAL_MODEL.vlos; //km/s 0
-			initModel.mac = INITIAL_MODEL.mac;
-			initModel.dopp = INITIAL_MODEL.dopp;
-			initModel.aa = INITIAL_MODEL.aa;
-			initModel.alfa = INITIAL_MODEL.alfa; //0.38; //stray light factor
-			initModel.S0 = INITIAL_MODEL.S0;
-			initModel.S1 = INITIAL_MODEL.S1;
+			initModel.eta0 = 0;
+			initModel.mac = 0;
+			initModel.dopp = 0;
+			initModel.aa = 0;
+			initModel.alfa = 0; //0.38; //stray light factor
+			initModel.S1 = 0;
 			//invert with classical estimates
 			estimacionesClasicas(wlines[1], vLambda, nlambda, spectroPER, &initModel);
 			// save model to file
 			char nameAuxOutputModel [4096];
-			//strcpy(nameAuxOutputModel,get_basefilename(configCrontrolFile.ObservedProfiles));
-			strcpy(nameAuxOutputModel,get_basefilename(configCrontrolFile.InitialGuessModel));
+			if(configCrontrolFile.InitialGuessModel[0]!='\0')
+				strcpy(nameAuxOutputModel,get_basefilename(configCrontrolFile.InitialGuessModel));
+			else
+				strcpy(nameAuxOutputModel,get_basefilename(configCrontrolFile.ObservedProfiles));
+
 			strcat(nameAuxOutputModel,"_model");
 			strcat(nameAuxOutputModel,MOD_FILE);
 			FILE * fptr = fopen(nameAuxOutputModel, "w");
