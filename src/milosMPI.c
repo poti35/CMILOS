@@ -1393,13 +1393,13 @@ int main(int argc, char **argv)
 			//if(configCrontrolFile.SaveSynthesisAdjusted)
 				//MPI_Wait(&vMpiRequestSpectraAd[indexInputFits],MPI_STATUS_IGNORE);
 			//MPI_Wait(&vMpiRequestReduceExecution[indexInputFits],MPI_STATUS_IGNORE);
-			//int readyInitModel,readyChisqr,readyIter,readySpectraAd,readyElapsedExecution;
-			//do{
-				//MPI_Test(&vMpiRequestInitModel[indexInputFits], &readyInitModel, MPI_STATUS_IGNORE);
+			int readyInitModel,readyChisqr,readyIter,readySpectraAd,readyElapsedExecution;
+			do{
+				MPI_Test(&vMpiRequestInitModel[indexInputFits], &readyInitModel, MPI_STATUS_IGNORE);
 				//MPI_Test(&vMpiRequestChisqr[indexInputFits], &readyChisqr, MPI_STATUS_IGNORE);
 				/*MPI_Test(&vMpiRequestIter[indexInputFits], &readyIter, MPI_STATUS_IGNORE);
 				MPI_Test(&vMpiRequestReduceExecution[indexInputFits], &readyElapsedExecution, MPI_STATUS_IGNORE);*/
-			//}while (!readyInitModel);
+			}while (!readyInitModel);
 			//do{
 				//MPI_Test(&vMpiRequestChisqr[indexInputFits], &readyChisqr, MPI_STATUS_IGNORE);
 			//}while (!readyChisqr);
@@ -1411,9 +1411,9 @@ int main(int argc, char **argv)
 			}*/
 
 			if(idProc==root){	// save images 
-				MPI_Wait(&vMpiRequestInitModel[indexInputFits],MPI_STATUS_IGNORE);
+				/*MPI_Wait(&vMpiRequestInitModel[indexInputFits],MPI_STATUS_IGNORE);
 				MPI_Wait(&vMpiRequestChisqr[indexInputFits],MPI_STATUS_IGNORE);
-				MPI_Wait(&vMpiRequestIter[indexInputFits],MPI_STATUS_IGNORE);
+				MPI_Wait(&vMpiRequestIter[indexInputFits],MPI_STATUS_IGNORE);*/
 				double timeWriteImage;
 				clock_t t;
 				t = clock();
