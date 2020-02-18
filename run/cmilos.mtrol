@@ -1,11 +1,11 @@
 Number of cycles          (*):-1         		! 0 = synthesis, n= max num of iterations, -1 = use classical estimates
-Observed profiles         (*):/home/mcabrera/MILOS/FINAL_TESTS_FEBRERO/INVERSION/PIXELS_REAL/penumbra_t10_599_318.per  !
+Observed profiles         (*):/home/mcabrera/MILOS/CMILOS/data/2014.09.28_09_18_00_t020.fits !
 Stray light file             :    				! (none=no stray light contam)
 PSF file                     :    				! si fichero .psf leer la psf numerica, si es un numero será la FWHM del filtro gaussiano, si es vacio no se tiene en cuenta
 Wavelength grid file      (s):run/malla.grid 	! (automatic selection, grid, or wavelength file)
 Atomic parameters file       :run/LINES      	! 
 Abundances file		     : 					! not used
-Initial guess model 1     (*):                  
+Initial guess model 1     (*):run/initModel.mod !                  
 Initial guess model 2        :					! not used for the moment
 Weight for Stokes I          :1               	! (DEFAULT=1; 0=not inverted)
 Weight for Stokes Q          :1                 ! (DEFAULT=1; 0=not inverted)
