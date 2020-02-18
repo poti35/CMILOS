@@ -442,7 +442,7 @@ int main(int argc, char **argv)
 			else
 				strcpy(nameAuxOutputModel,get_basefilename(configCrontrolFile.InitialGuessModel));
 			strcat(nameAuxOutputModel,"_model");
-			strcat(nameAuxOutputModel,MOD_FILE);			
+			strcat(nameAuxOutputModel,FITS_FILE);			
 			if(!writeFitsImageModels(nameAuxOutputModel,fitsImage->rows,fitsImage->cols,vModels,vChisqrf,vNumIter,configCrontrolFile.saveChisqr)){
 					printf("\n ERROR WRITING FILE OF MODELS: %s",nameAuxOutputModel);
 					//slog_error(0,"\n ERROR WRITING FILE OF MODELS: %s",nameOutputFileModels);
