@@ -69,9 +69,9 @@ REAL **FGlobalInicial;
 
 //PRECISION *G, *GMAC;
 PRECISION *GMAC,* GMAC_DERIV;
-PRECISION * dirConvPar, *dirConvPar2;
-REAL *resultConv;
-PRECISION * G;
+PRECISION * dirConvPar;
+//REAL *resultConv;
+PRECISION * G = NULL;
 //REAL * G;
 
 REAL AP[NTERMS*NTERMS*NPARMS],BT[NPARMS*NTERMS];
@@ -138,7 +138,7 @@ int main(int argc, char **argv)
 	
 	const char	* nameInputFilePSF ;	
 
-    FitsImage * fitsImage;
+   FitsImage * fitsImage;
 	PRECISION  dat[7];
 
 	/********************* Read data input from file ******************************/
@@ -150,10 +150,6 @@ int main(int argc, char **argv)
 
 	nameInputFileSpectra = configCrontrolFile.ObservedProfiles;
 	nameInputFileLines = configCrontrolFile.AtomicParametersFile;
-	
-	
-	
-	
 	
 	nameInputFilePSF = configCrontrolFile.PSFFile;
 	FWHM = configCrontrolFile.FWHM;
@@ -480,15 +476,15 @@ int main(int argc, char **argv)
       printf("\n MODEL ATMOSPHERE: \n");
       printf("\n ETA0: %lf",initModel.eta0);
       printf("\n B: %lf",initModel.B);
+		printf("\n vlos: %lf",initModel.vlos);
+		printf("\n dopp: %lf",initModel.dopp);
+		printf("\n aa: %lf",initModel.aa);
       printf("\n gm: %lf",initModel.gm);
       printf("\n az: %lf",initModel.az);
-      printf("\n vlos: %lf",initModel.vlos);
-      printf("\n mac: %lf",initModel.mac);
-      printf("\n dopp: %lf",initModel.dopp);
-      printf("\n aa: %lf",initModel.aa);
-      printf("\n alfa: %lf",initModel.alfa);
       printf("\n S0: %lf",initModel.S0);
-      printf("\n S1: %lf",initModel.S1);
+      printf("\n S1: %lf",initModel.S1);      
+      printf("\n mac: %lf",initModel.mac);
+      printf("\n alfa: %lf",initModel.alfa);
 		printf("\n");    
 
       
@@ -846,7 +842,7 @@ int main(int argc, char **argv)
 	free(cuantic);
 	free(wlines);
 	FreeMemoryDerivedSynthesis();
-	free(G);
+	if(G!=NULL) free(G);
 
 	return 0;
 }

@@ -7,5 +7,5 @@ INITIAL_MODEL_GM            :120
 INITIAL_MODEL_AZI           :150
 INITIAL_MODEL_S0            :0.35
 INITIAL_MODEL_S1            :0.5
-INITIAL_MODEL_MAC           :2
+INITIAL_MODEL_MAC           :0
 INITIAL_MODEL_ALFA          :1

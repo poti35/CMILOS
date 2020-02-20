@@ -59,8 +59,8 @@ REAL **FGlobalInicial;
 
 
 PRECISION *GMAC,*GMAC_DERIV, *G; // GAUSSIAN MUST BE IN DOUBLE PRECISION 
-PRECISION *dirConvPar,*dirConvPar2; // AUX GLOBAL VECTOR for calculate direct convolutions
-REAL *resultConv; // aux global vector for store direct convolution
+PRECISION *dirConvPar; // AUX GLOBAL VECTOR for calculate direct convolutions
+//REAL *resultConv; // aux global vector for store direct convolution
 REAL AP[NTERMS*NTERMS*NPARMS],BT[NPARMS*NTERMS];
 REAL * opa;
 int FGlobal, HGlobal, uuGlobal;
@@ -689,6 +689,7 @@ int main(int argc, char **argv)
 	int indexInputFits;
 	if(numFilesPerProcessParallel){
 		// FIRST SCATTER ALL PIXELS BETWEEN ALL PROCESS
+		clock_t t = clock();
 		for(indexInputFits=0;indexInputFits<numFilesPerProcessParallel;indexInputFits++){
 			if(idProc==root){
 
@@ -761,7 +762,6 @@ int main(int argc, char **argv)
 				if( root == idProc){
 					//MPI_Scatterv(fitsImages[indexInputFits]->spectroImagen, sendcountsSpectro_L[indexInputFits], displsSpectro_L[indexInputFits], MPI_FLOAT, vSpectraSplit_L[indexInputFits], sendcountsSpectro_L[indexInputFits][idProc], MPI_FLOAT, root, MPI_COMM_WORLD);
 					MPI_Iscatterv(fitsImages[indexInputFits]->spectroImagen, sendcountsSpectro_L[indexInputFits], displsSpectro_L[indexInputFits], MPI_FLOAT, vSpectraSplit_L[indexInputFits], sendcountsSpectro_L[indexInputFits][idProc], MPI_FLOAT, root, MPI_COMM_WORLD,&vMpiRequestScatter[indexInputFits]);
-					
 				}
 				else{
 					//MPI_Scatterv(NULL, NULL,NULL, MPI_FLOAT, vSpectraSplit_L[indexInputFits], sendcountsSpectro_L[indexInputFits][idProc], MPI_FLOAT, root, MPI_COMM_WORLD);
@@ -778,6 +778,11 @@ int main(int argc, char **argv)
 			}
 		}
 		MPI_Waitall(numFilesPerProcessParallel,vMpiRequestScatter,MPI_STATUSES_IGNORE);
+		if(idProc==root){
+			t = clock() - t;
+			PRECISION timeTotalExecution = ((PRECISION)t)/CLOCKS_PER_SEC; // in seconds 
+			printf("\n TOTAL TIME TO READ AND SCATTER IMAGES: %f",timeTotalExecution);
+		}
 	}
 
 	AllocateMemoryDerivedSynthesis(nlambda);
@@ -1099,14 +1104,14 @@ int main(int argc, char **argv)
 			MPI_Reduce(&local_elapsed_gather, &elapsed_gather, 1, MPI_DOUBLE, MPI_MAX, groupRoot, vCommunicators[myGroup]);
 
 			if(myGroupRank==groupRoot){
-				printf("\n Elapsed SCATTER time = %lf seconds\n", elapsed_scatter);
+				/*printf("\n Elapsed SCATTER time = %lf seconds\n", elapsed_scatter);
 				printf("\n***********************************\n");
 				printf("\n Elapsed GATHER time = %lf seconds\n", elapsed_gather);
-				printf("\n***********************************\n");			
-				printf("\n Elapsed EXECUTION time = %lf seconds\n", elapsed_execution);
+				printf("\n***********************************\n");			*/
+				printf("\n MAX EXECUTION time = %lf seconds\n", elapsed_execution);
 				printf("\n***********************************\n");
-				printf("\n Elapsed TOTAL time = %lf seconds\n", elapsed);
-				printf("\n***********************************\n");
+				/*printf("\n Elapsed TOTAL time = %lf seconds\n", elapsed);
+				printf("\n***********************************\n");*/
 				double timeWriteImage;
 				clock_t t;
 				t = clock();	
@@ -1306,7 +1311,7 @@ int main(int argc, char **argv)
 			}
 		}*/
 
-		
+		//clock_t t = clock();
 		// EACH PROC PROCESS THER PIXELS 
 		for(indexInputFits=0;indexInputFits<numFilesPerProcessParallel;indexInputFits++){
 			if(vNumPixelsImage[indexInputFits] > 0){
@@ -1373,7 +1378,10 @@ int main(int argc, char **argv)
 				//FreeMemoryDerivedSynthesis();
 			}
 		}
-		
+		//t = clock() - t;
+		//PRECISION timeTotalExecution = ((PRECISION)t)/CLOCKS_PER_SEC; // in seconds 
+
+		//printf("\n IDPROC: %d . I HAVE FINISHED ALL MY PIXELS WITH TIME: %f",idProc, timeTotalExecution);
 
 		if(idProc==root){
 			int indexInputFits = 0;
@@ -1385,8 +1393,8 @@ int main(int argc, char **argv)
 				if(configCrontrolFile.SaveSynthesisAdjusted)
 					MPI_Wait(&vMpiRequestSpectraAd[indexInputFits],MPI_STATUS_IGNORE);
 				//if(idProc==root){
-					printf("\nWAITING ROOT index %d",indexInputFits);
-					printf("\n****************");
+					//printf("\nWAITING ROOT index %d",indexInputFits);
+					//printf("\n****************");
 					double timeWriteImage;
 					clock_t t;
 					t = clock();
@@ -1435,8 +1443,8 @@ int main(int argc, char **argv)
 					}
 					
 					printf("\n************************************************************************************************************************\n");
-					printf("\n INVERSION OF IMAGE %s ¡¡¡DONE!!!. TIME:  *********************\n", vInputFileSpectraParalell[indexInputFits].name);
-					printf("\n Elapsed EXECUTION time = %lf seconds\n", vElapsed_execution[indexInputFits]);
+					printf("\n INVERSION OF IMAGE %s ¡¡¡DONE!!!. TIME MAX EXECUTION: %f *********************\n", vInputFileSpectraParalell[indexInputFits].name,vElapsed_execution[indexInputFits]);
+					//printf("\n MAX EXECUTION time = %lf seconds\n", vElapsed_execution[indexInputFits]);
 					printf("\n TIME TO WRITE FITS IMAGE:  %f seconds to execute \n", timeWriteImage);
 					printf("\n************************************************************************************************************************\n\n");
 					freeFitsImage(fitsImages[indexInputFits]);

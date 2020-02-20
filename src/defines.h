@@ -128,7 +128,6 @@ struct CUANTIC{
 	REAL GU;
 	REAL GEFF;
 	REAL FO;	
-	
 
 };
 
