@@ -136,7 +136,7 @@ void direct_convolution2(REAL *x, int nx, PRECISION *h, int nh, REAL *result, in
 
 void convolve(REAL *Signal, size_t SignalLen, double *Kernel, size_t KernelLen, REAL *Result, int delta)
 {
-	size_t n, i;
+	size_t n;
 	size_t kmin, kmax, k;
 	double aux;
 	size_t SignalLen_Aux = SignalLen + SignalLen;
@@ -198,7 +198,7 @@ void convolve(REAL *Signal, size_t SignalLen, double *Kernel, size_t KernelLen, 
 
 void convCircular(REAL *x, double *h, int size, REAL *result)
 {
-	int i,j, k,ishift,mod;
+	int i,j,ishift,mod;
 	double aux;
 
 	int odd=(size%2);		
