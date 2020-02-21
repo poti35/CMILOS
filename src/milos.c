@@ -476,9 +476,9 @@ int main(int argc, char **argv)
       printf("\n MODEL ATMOSPHERE: \n");
       printf("\n ETA0: %lf",initModel.eta0);
       printf("\n B: %lf",initModel.B);
-		printf("\n vlos: %lf",initModel.vlos);
-		printf("\n dopp: %lf",initModel.dopp);
-		printf("\n aa: %lf",initModel.aa);
+      printf("\n vlos: %lf",initModel.vlos);
+      printf("\n dopp: %lf",initModel.dopp);
+      printf("\n aa: %lf",initModel.aa);
       printf("\n gm: %lf",initModel.gm);
       printf("\n az: %lf",initModel.az);
       printf("\n S0: %lf",initModel.S0);

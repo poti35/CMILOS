@@ -156,7 +156,7 @@ int main(int argc, char **argv)
 	int dimStrayLight;
 	int numberOfFileSpectra;
 
-   nameFile * vInputFileSpectra = NULL;
+   	nameFile * vInputFileSpectra = NULL;
 	nameFile * vInputFileSpectraParalell = NULL;
 	nameFile * vInputFileSpectraDiv2Parallel = NULL;
 	nameFile * vOutputNameModels = NULL;

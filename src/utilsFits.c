@@ -334,6 +334,15 @@ FitsImage *  readFitsSpectroImage (const char * fitsFileSpectra, int forParallel
 			// READ IMAGE AND STORAGE IN STRUCTURE IMAGE 
 			if (!fits_get_img_param(fptr, 4, &bitpix, &naxis, naxes, &status) ){
 
+				if(bitpix != FLOAT_IMG){
+					printf("\n ERROR: the datatype of FITS spectro image must be FLOAT\n");
+					printf("\n EXITING THE PROGRAM");
+					fits_close_file(fptr, &status);
+					exit(EXIT_FAILURE);
+				}
+
+
+
 				image->rows=naxes[pos_row];
 				image->cols=naxes[pos_col];
 				image->nLambdas=naxes[pos_lambda];
