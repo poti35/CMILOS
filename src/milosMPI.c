@@ -1187,6 +1187,7 @@ int main(int argc, char **argv)
 			if(vNumPixelsImage[indexInputFits] > 0){
 				local_start_execution = MPI_Wtime();
 				for(indexPixel = 0; indexPixel < sendcountsPixels_L[indexInputFits][idProc]; indexPixel++){
+					float * vAuxSpectraSplit = vSpectraSplit_L[indexInputFits];
 					//Initial Model
 					Init_Model initModel;
 					initModel.eta0 = INITIAL_MODEL.eta0;
@@ -1201,6 +1202,20 @@ int main(int argc, char **argv)
 					initModel.S0 = INITIAL_MODEL.S0;
 					initModel.S1 = INITIAL_MODEL.S1;
 
+					// CLASSICAL ESTIMATES TO GET B, GAMMA
+					estimacionesClasicas(wlines[1], vGlobalLambda, nlambda, vAuxSpectraSplit+(indexPixel*(nlambda*NPARMS)), &initModel);
+					/*if (isnan(initModel.B))
+						initModel.B = 1;
+					if (isnan(initModel.gm))
+						initModel.gm = 1;
+					if (isnan(initModel.vlos))
+						initModel.vlos = INITIAL_MODEL.vlos;*/
+					if (isnan(initModel.B))
+						initModel.B = 1;
+					if (isnan(initModel.gm))
+						initModel.gm = 1;						
+					if (isnan(initModel.az))
+						initModel.az = 1;
 					// INVERSION RTE
 					
 					PRECISION * slightPixel;
@@ -1213,7 +1228,7 @@ int main(int argc, char **argv)
 							slightPixel = slight+nlambda*indexPixel;
 					}
 					
-					float * vAuxSpectraSplit = vSpectraSplit_L[indexInputFits];
+					
 					lm_mils(cuantic, wlines, vGlobalLambda, nlambda, vAuxSpectraSplit+(indexPixel*(nlambda*NPARMS)), nlambda, &initModel, spectra, &(vChisqrf_L[indexInputFits][indexPixel]), slightPixel, configCrontrolFile.toplim, configCrontrolFile.NumberOfCycles,
 						configCrontrolFile.WeightForStokes, configCrontrolFile.fix, configCrontrolFile.sigma, configCrontrolFile.InitialDiagonalElement,&configCrontrolFile.ConvolveWithPSF,&(vNumIter_L[indexInputFits][indexPixel]));																		
 					
