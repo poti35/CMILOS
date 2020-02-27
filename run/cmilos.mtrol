@@ -20,8 +20,8 @@ Nodes for LOS velocity 1     :1                 ! (0 or blank=no, 1=yes)
 Nodes for gamma 1            :1                 ! (0 or blank=no, 1=yes)
 Nodes for phi 1              :1                 ! (0 or blank=no, 1=yes)
 Nodes for lambda_doppler 1   :1                 ! (0 or blank=no, 1=yes)
-Nodes for damping 1	         :1                 ! (0 or blank=no, 1=yes)
-Invert macroturbulence 1     :1                	! (0 or blank=no, 1=yes)
+Nodes for damping 1	      :1                 ! (0 or blank=no, 1=yes)
+Invert macroturbulence 1     :0                	! (0 or blank=no, 1=yes)
 Nodes for S_0 2     	     :0                 ! not used for the moment
 Nodes for S_1 2  	         :0                 ! not used for the moment                     
 Nodes for eta0 2             :0                 ! not used for the moment

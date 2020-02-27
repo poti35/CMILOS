@@ -505,10 +505,10 @@ void estimacionesClasicas(PRECISION lambda_0, PRECISION *lambda, int nlambda, fl
 	gamma_rad = atan(tan_gamma); //gamma en radianes
 	gamma = gamma_rad * (180 / PI); //gamma en grados
 
-	if(gamma>=85 && gamma <=90){ // put gamma_rad in 70 
+	if(gamma>=85 && gamma <=90){  
 		gamma_rad = 85 *(PI/180);
 	}
-	if(gamma>90 && gamma <=95){ // fix gamma_rad to 110 
+	if(gamma>90 && gamma <=95){ 
 		gamma_rad = 95 *(PI/180);
 	}
 	//correccion

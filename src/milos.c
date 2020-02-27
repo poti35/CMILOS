@@ -734,6 +734,8 @@ int main(int argc, char **argv)
 						initModel.B = 1;
 					if (isnan(initModel.gm))
 						initModel.gm = 1;*/
+					if (isnan(initModel.B))
+						initModel.B = 1;
 					if (isnan(initModel.vlos))
 						initModel.vlos = INITIAL_MODEL.vlos;
 					if (isnan(initModel.az))
