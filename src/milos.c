@@ -730,16 +730,14 @@ int main(int argc, char **argv)
 					
 					// CLASSICAL ESTIMATES TO GET B, GAMMA
 					estimacionesClasicas(wlines[1], vLambda, nlambda, fitsImage->pixels[indexPixel].spectro, &initModel);
-					/*if (isnan(initModel.B))
-						initModel.B = 1;
-					if (isnan(initModel.gm))
-						initModel.gm = 1;*/
 					if (isnan(initModel.B))
 						initModel.B = 1;
 					if (isnan(initModel.vlos))
-						initModel.vlos = INITIAL_MODEL.vlos;
+						initModel.vlos = 1e-3;
+					if (isnan(initModel.gm))
+						initModel.gm = 1;						
 					if (isnan(initModel.az))
-						initModel.az = INITIAL_MODEL.az;
+						initModel.az = 1;
 					// INVERSION RTE
 
 					PRECISION * slightPixel;

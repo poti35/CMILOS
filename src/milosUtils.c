@@ -617,7 +617,7 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 	
 
 	REAL PARBETA_better = 5.0;
-   REAL PARBETA_worst = 10.0;
+   	REAL PARBETA_worst = 10.0;
   	REAL PARBETA_FACTOR = 1.0;
 
 	//int iter;

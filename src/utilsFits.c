@@ -322,8 +322,8 @@ FitsImage *  readFitsSpectroImage (const char * fitsFileSpectra, int forParallel
 
 			
 			
-			//if(pos_row==0 && pos_col ==1 && pos_lambda == 2 && pos_stokes_parameters == 3)
-			if(pos_row==2 && pos_col ==3 && pos_lambda == 0 && pos_stokes_parameters == 1)
+			if(pos_row==0 && pos_col ==1 && pos_lambda == 2 && pos_stokes_parameters == 3)
+			//if(pos_row==2 && pos_col ==3 && pos_lambda == 0 && pos_stokes_parameters == 1)
 				correctOrder = 1;
 			// GET THE CURRENT POSITION OF EVERY PARAMETER
 			/*int pos_row = 2;
