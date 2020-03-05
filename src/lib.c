@@ -297,3 +297,37 @@ void strip_ext(char *fname)
         *end = '\0';
     }  
 }
+
+
+
+/**
+ *
+ * @param src caller supplied array with data
+ * @param src_len len of src
+ * @param steps to interpolate
+ * @param dst output param needs to be of size src_len * steps
+ */
+PRECISION * linearInterpolation(PRECISION* src, size_t src_len, size_t steps, PRECISION* dst)
+{
+	PRECISION * dst_ptr = dst;
+	PRECISION * src_ptr = src;
+	PRECISION stepIncrement = 1.0f / steps;
+	PRECISION temp1 = 0.0f;
+	PRECISION temp2 = 0.0f;
+	PRECISION hold;
+	size_t idx_src, idx_steps;
+	for(idx_src = 0; idx_src < src_len; ++idx_src)
+	{
+		hold = *src_ptr - temp1;
+		temp1 = *src_ptr;
+		++src_ptr;
+		for(idx_steps = 0; idx_steps < steps; ++idx_steps)
+		{
+			temp2 += hold;
+			*dst_ptr = temp2 * stepIncrement;
+			++dst_ptr;
+		}
+	}
+}
+
+

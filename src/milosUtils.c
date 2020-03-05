@@ -749,19 +749,16 @@ int interpolationSplinePSF(PRECISION *deltaLambda, PRECISION * PSF, PRECISION * 
  * Make the interpolation between deltaLambda and PSF where deltaLambda es x and PSF f(x)
  *  Return the array with the interpolation. 
  * */
-int interpolationLinearPSF(PRECISION *deltaLambda, PRECISION * PSF, PRECISION * lambdasSamples, PRECISION centralLambda, size_t N_PSF, PRECISION * fInterpolated, size_t NSamples){
+int interpolationLinearPSF(PRECISION *deltaLambda, PRECISION * PSF, PRECISION * lambdasSamples, size_t N_PSF, PRECISION * fInterpolated, size_t NSamples){
 
 	size_t i;
 	gsl_interp *interpolation = gsl_interp_alloc (gsl_interp_linear,N_PSF);
    gsl_interp_init(interpolation, deltaLambda, PSF, N_PSF);
    gsl_interp_accel * accelerator =  gsl_interp_accel_alloc();
 
-
 	for (i = 0; i < NSamples; ++i){
-   	PRECISION xi = lambdasSamples[i]-centralLambda;
-      fInterpolated[i] = gsl_interp_eval(interpolation, deltaLambda, PSF, xi, accelerator);
-    }
-
+      fInterpolated[i] = gsl_interp_eval(interpolation, deltaLambda, PSF, lambdasSamples[i], accelerator);
+   }
   
   gsl_interp_free(interpolation);
   gsl_interp_accel_free(accelerator);

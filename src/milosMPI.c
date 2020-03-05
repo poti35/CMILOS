@@ -342,9 +342,10 @@ int main(int argc, char **argv)
 				if(N_SAMPLES_PSF>0){
 					deltaLambda = calloc(N_SAMPLES_PSF,sizeof(PRECISION));
 					PSF = calloc(N_SAMPLES_PSF,sizeof(PRECISION));
-					readPSFFile(deltaLambda,PSF,nameInputFilePSF);
-					PRECISION * fInterpolated = calloc(nlambda,sizeof(PRECISION));
-					interpolationLinearPSF(deltaLambda,  PSF, vGlobalLambda ,configCrontrolFile.CentralWaveLenght, N_SAMPLES_PSF,fInterpolated, nlambda);						
+					readPSFFile(deltaLambda,PSF,nameInputFilePSF,configCrontrolFile.CentralWaveLenght);
+					G = calloc(nlambda,sizeof(PRECISION));
+					interpolationLinearPSF(deltaLambda,  PSF, vGlobalLambda , N_SAMPLES_PSF, G, nlambda);		
+					sizeG=nlambda;				
 				}
 				else{
 					G = fgauss_WL(FWHM,vGlobalLambda[1]-vGlobalLambda[0],vGlobalLambda[0],vGlobalLambda[nlambda/2],nlambda,&sizeG);

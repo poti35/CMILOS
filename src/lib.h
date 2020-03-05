@@ -68,3 +68,7 @@ void myMemCpy(PRECISION *dest, PRECISION *src, size_t n) ;
 
 
 void strip_ext(char *fname);
+
+
+PRECISION * linearInterpolation(PRECISION* src, size_t src_len, size_t steps, PRECISION* dst);
+
