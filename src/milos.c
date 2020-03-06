@@ -233,7 +233,7 @@ int main(int argc, char **argv)
 		if(configCrontrolFile.FWHM > 0){
 			//G = vgauss(FWHM, NMUESTRAS_G, DELTA);
 			G = fgauss_WL(FWHM,vLambda[1]-vLambda[0],vLambda[0],vLambda[nlambda/2],nlambda,&sizeG);
-			FILE * fptr = fopen("run/gauss.psf", "w");
+			FILE * fptr = fopen("run/gauss_.psf", "w");
 			if(fptr!=NULL){
 				for(i=0;i<nlambda;i++){
 					printf("\t%lf\t%le\n",(vLambda[i]-configCrontrolFile.CentralWaveLenght)*1000,G[i]);
@@ -262,17 +262,22 @@ int main(int argc, char **argv)
 				if(ch=='\n')
 					N_SAMPLES_PSF++;
 			}
-			printf("\nN_SAMPLES %d\n",N_SAMPLES_PSF);
+			
 			//close the file
 			fclose(fp);
 			if(N_SAMPLES_PSF>0){
 				deltaLambda = calloc(N_SAMPLES_PSF,sizeof(PRECISION));
 				PSF = calloc(N_SAMPLES_PSF,sizeof(PRECISION));
 				readPSFFile(deltaLambda,PSF,nameInputFilePSF,configCrontrolFile.CentralWaveLenght);
+				// CHECK if values of deltaLambda are in the same range of vLambda
+				if( vLambda[0]< (deltaLambda[0]+1e-4)  || vLambda[nlambda-1]> (deltaLambda[N_SAMPLES_PSF-1]+1e-4) ){
+					printf("\n\n ERROR: The wavelength range given in the PSF file is smaller than the range in the mesh file \n\n");
+					exit(EXIT_FAILURE);
+				}
 				G = calloc(nlambda,sizeof(PRECISION));
-				interpolationLinearPSF(deltaLambda,  PSF, vLambda , N_SAMPLES_PSF, G, nlambda);		
+				interpolationLinearPSF(deltaLambda,  PSF, vLambda ,N_SAMPLES_PSF, G, nlambda);		
 				sizeG = nlambda;
-				/*PRECISION * G_AUX = fgauss_WL(49.2,vLambda[1]-vLambda[0],vLambda[0],vLambda[nlambda/2],nlambda,&sizeG);				
+				PRECISION * G_AUX = fgauss_WL(49.2,vLambda[1]-vLambda[0],vLambda[0],vLambda[nlambda/2],nlambda,&sizeG);				
 				printf("\n[");
 				for(i=0;i<nlambda;i++){
 					printf("\t%lf,",vLambda[i]);
@@ -286,12 +291,14 @@ int main(int argc, char **argv)
 					printf("\t%le,",G_AUX[i]);
 				}				
 				printf("]\n");
-				exit(EXIT_FAILURE);*/
+				exit(EXIT_FAILURE);
 			}
 			else{
 				//G = vgauss(FWHM, NMUESTRAS_G, DELTA);
 				//PRECISION * fgauss_WL(PRECISION FWHM, PRECISION step_between_lw, PRECISION lambda0, PRECISION lambdaCentral, int nLambda, int * sizeG)
-				G = fgauss_WL(FWHM,vLambda[1]-vLambda[0],vLambda[0],vLambda[nlambda/2],nlambda,&sizeG);
+				//G = fgauss_WL(0.75,vLambda[1]-vLambda[0],vLambda[0],vLambda[nlambda/2],nlambda,&sizeG);
+				printf("\n****************** ERROR THE PSF FILE is empty or damaged.******************\n");
+				exit(EXIT_FAILURE);
 			}
 
 		}
