@@ -232,7 +232,9 @@ int main(int argc, char **argv)
 		
 		if(configCrontrolFile.FWHM > 0){
 			//G = vgauss(FWHM, NMUESTRAS_G, DELTA);
+			//G = fgauss_WL(FWHM,vLambda[1]-vLambda[0],vLambda[0],vLambda[nlambda/2],nlambda,&sizeG);
 			G = fgauss_WL(FWHM,vLambda[1]-vLambda[0],vLambda[0],vLambda[nlambda/2],nlambda,&sizeG);
+			
 			/*FILE * fptr = fopen("run/gauss_.psf", "w");
 			if(fptr!=NULL){
 				for(i=0;i<nlambda;i++){
@@ -277,10 +279,10 @@ int main(int argc, char **argv)
 				G = calloc(nlambda,sizeof(PRECISION));
 				interpolationLinearPSF(deltaLambda,  PSF, vLambda ,N_SAMPLES_PSF, G, nlambda);		
 				sizeG = nlambda;
-				/*PRECISION * G_AUX = fgauss_WL(49.2,vLambda[1]-vLambda[0],vLambda[0],vLambda[nlambda/2],nlambda,&sizeG);				
+				PRECISION * G_AUX = fgauss_WL(49.2,vLambda[1]-vLambda[0],vLambda[0],vLambda[nlambda/2],nlambda,&sizeG);				
 				printf("\n[");
 				for(i=0;i<nlambda;i++){
-					printf("\t%lf,",vLambda[i]);
+					printf("\t%lf,",vLambda[i]-configCrontrolFile.CentralWaveLenght);
 				}
 				printf("]\n[");
 				for(i=0;i<nlambda;i++){
@@ -291,7 +293,17 @@ int main(int argc, char **argv)
 					printf("\t%le,",G_AUX[i]);
 				}				
 				printf("]\n");
-				exit(EXIT_FAILURE);*/
+
+				printf("\n psf interpolada\n");
+				for(i=0;i<nlambda;i++){
+					printf("\t%lf\t%e\n",vLambda[i]-configCrontrolFile.CentralWaveLenght,G[i]);
+				}
+				printf("\n GAUSSIANA CENTRADA\n");
+				for(i=0;i<nlambda;i++){
+					printf("\t%lf\t%e\n",vLambda[i]-configCrontrolFile.CentralWaveLenght,G_AUX[i]);
+				}
+
+				exit(EXIT_FAILURE);
 			}
 			else{
 				//G = vgauss(FWHM, NMUESTRAS_G, DELTA);
