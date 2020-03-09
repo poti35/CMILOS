@@ -233,7 +233,7 @@ int main(int argc, char **argv)
 		if(configCrontrolFile.FWHM > 0){
 			//G = vgauss(FWHM, NMUESTRAS_G, DELTA);
 			G = fgauss_WL(FWHM,vLambda[1]-vLambda[0],vLambda[0],vLambda[nlambda/2],nlambda,&sizeG);
-			FILE * fptr = fopen("run/gauss_.psf", "w");
+			/*FILE * fptr = fopen("run/gauss_.psf", "w");
 			if(fptr!=NULL){
 				for(i=0;i<nlambda;i++){
 					printf("\t%lf\t%le\n",(vLambda[i]-configCrontrolFile.CentralWaveLenght)*1000,G[i]);
@@ -241,7 +241,7 @@ int main(int argc, char **argv)
 				}
 			}
 			fclose(fptr);
-			exit(0);
+			exit(0);*/
 		}else{
 			// read the number of lines 
 			FILE *fp;
@@ -277,7 +277,7 @@ int main(int argc, char **argv)
 				G = calloc(nlambda,sizeof(PRECISION));
 				interpolationLinearPSF(deltaLambda,  PSF, vLambda ,N_SAMPLES_PSF, G, nlambda);		
 				sizeG = nlambda;
-				PRECISION * G_AUX = fgauss_WL(49.2,vLambda[1]-vLambda[0],vLambda[0],vLambda[nlambda/2],nlambda,&sizeG);				
+				/*PRECISION * G_AUX = fgauss_WL(49.2,vLambda[1]-vLambda[0],vLambda[0],vLambda[nlambda/2],nlambda,&sizeG);				
 				printf("\n[");
 				for(i=0;i<nlambda;i++){
 					printf("\t%lf,",vLambda[i]);
@@ -291,7 +291,7 @@ int main(int argc, char **argv)
 					printf("\t%le,",G_AUX[i]);
 				}				
 				printf("]\n");
-				exit(EXIT_FAILURE);
+				exit(EXIT_FAILURE);*/
 			}
 			else{
 				//G = vgauss(FWHM, NMUESTRAS_G, DELTA);
