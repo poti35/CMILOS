@@ -27,7 +27,6 @@
 	_juanp
 */
 extern PRECISION *dirConvPar;
-//extern REAL *dirConvPar;
 //extern REAL *resultConv;
 
 void direct_convolution_double(PRECISION *x, int nx, PRECISION *h, int nh)
@@ -87,11 +86,11 @@ void direct_convolution(REAL *x, int nx, PRECISION *h, int nh)
 	}
 
 	// vamos a tomar solo la convolucion central
-	//double aux;
+	double aux;
 	for (k = 0; k < nx; k++)
 	{
 		//x[k] = 0;
-		double aux = 0;
+		aux = 0;
 		for (j = 0; j < nh; j++)
 		{
 			aux += h[j] * dirConvPar[j + k];

@@ -70,10 +70,8 @@ REAL **FGlobalInicial;
 
 PRECISION *GMAC,* GMAC_DERIV;
 PRECISION * dirConvPar;
-//REAL * dirConvPar;
 //REAL *resultConv;
 PRECISION * G = NULL;
-
 //REAL * G;
 
 REAL AP[NTERMS*NTERMS*NPARMS],BT[NPARMS*NTERMS];
@@ -179,7 +177,6 @@ int main(int argc, char **argv)
       step = step/1000.0;
       finalLambda = finalLambda/1000.0;
 	   vLambda = calloc(nlambda,sizeof(PRECISION));
-
 		configCrontrolFile.CentralWaveLenght = readFileCuanticLines(nameInputFileLines,dat,indexLine,1);
 		if(configCrontrolFile.CentralWaveLenght==0){
 			printf("\n QUANTUM LINE NOT FOUND, REVIEW IT. INPUT CENTRAL WAVE LENGHT: %f",configCrontrolFile.CentralWaveLenght);
