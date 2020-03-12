@@ -67,11 +67,13 @@ REAL **uuGlobalInicial;
 REAL **HGlobalInicial;
 REAL **FGlobalInicial;
 
-//PRECISION *G, *GMAC;
+
 PRECISION *GMAC,* GMAC_DERIV;
 PRECISION * dirConvPar;
+//REAL * dirConvPar;
 //REAL *resultConv;
 PRECISION * G = NULL;
+
 //REAL * G;
 
 REAL AP[NTERMS*NTERMS*NPARMS],BT[NPARMS*NTERMS];
@@ -123,7 +125,7 @@ int main(int argc, char **argv)
 	PRECISION * deltaLambda, * PSF;
 	PRECISION initialLambda, step, finalLambda;
 	int N_SAMPLES_PSF;
-	
+	int posWL=0;
 	//----------------------------------------------
 
 	PRECISION * slight = NULL;
@@ -162,16 +164,22 @@ int main(int argc, char **argv)
 	}
 	
 	/***************** READ WAVELENGHT FROM GRID OR FITS ********************************/
-	PRECISION * vLambda;
+	PRECISION * vLambda, *vOffsetsLambda;
 
 	if(configCrontrolFile.useMallaGrid){ // read lambda from grid file
       indexLine = readMallaGrid(configCrontrolFile.MallaGrid, &initialLambda, &step, &finalLambda, 1);      
       nlambda = ((finalLambda-initialLambda)/step)+1;
+		vOffsetsLambda = calloc(nlambda,sizeof(PRECISION));
+		vOffsetsLambda[0] = initialLambda;
+		for(i=1;i<nlambda;i++){
+			vOffsetsLambda[i] = vOffsetsLambda[i-1]+step;
+		}
       // pass to armstrong 
       initialLambda = initialLambda/1000.0;
       step = step/1000.0;
       finalLambda = finalLambda/1000.0;
 	   vLambda = calloc(nlambda,sizeof(PRECISION));
+
 		configCrontrolFile.CentralWaveLenght = readFileCuanticLines(nameInputFileLines,dat,indexLine,1);
 		if(configCrontrolFile.CentralWaveLenght==0){
 			printf("\n QUANTUM LINE NOT FOUND, REVIEW IT. INPUT CENTRAL WAVE LENGHT: %f",configCrontrolFile.CentralWaveLenght);
@@ -231,8 +239,6 @@ int main(int argc, char **argv)
 	if(configCrontrolFile.ConvolveWithPSF){
 		
 		if(configCrontrolFile.FWHM > 0){
-			//G = vgauss(FWHM, NMUESTRAS_G, DELTA);
-			//G = fgauss_WL(FWHM,vLambda[1]-vLambda[0],vLambda[0],vLambda[nlambda/2],nlambda,&sizeG);
 			G = fgauss_WL(FWHM,vLambda[1]-vLambda[0],vLambda[0],vLambda[nlambda/2],nlambda,&sizeG);
 			
 			/*FILE * fptr = fopen("run/gauss_.psf", "w");
@@ -272,14 +278,27 @@ int main(int argc, char **argv)
 				PSF = calloc(N_SAMPLES_PSF,sizeof(PRECISION));
 				readPSFFile(deltaLambda,PSF,nameInputFilePSF,configCrontrolFile.CentralWaveLenght);
 				// CHECK if values of deltaLambda are in the same range of vLambda. For do that we truncate to 4 decimal places 
-				if( (trunc(vLambda[0]*1000)/1000) < (trunc(deltaLambda[0]*1000)/1000)  || (trunc(vLambda[nlambda-1]*1000)/1000) > (trunc(deltaLambda[N_SAMPLES_PSF-1]*1000)/1000) ){
-					printf("\n\n ERROR: The wavelength range given in the PSF file is smaller than the range in the mesh file \n\n");
+				if( (trunc(vOffsetsLambda[0])) < (trunc(deltaLambda[0]))  || (trunc(vOffsetsLambda[nlambda-1])) > (trunc(deltaLambda[N_SAMPLES_PSF-1])) ){
+					printf("\n\n ERROR: The wavelength range given in the PSF file is smaller than the range in the mesh file [%lf,%lf] [%lf,%lf]  \n\n",deltaLambda[0],vOffsetsLambda[0],deltaLambda[N_SAMPLES_PSF-1],vOffsetsLambda[nlambda-1]);
 					exit(EXIT_FAILURE);
 				}
 				G = calloc(nlambda,sizeof(PRECISION));
-				interpolationLinearPSF(deltaLambda,  PSF, vLambda ,N_SAMPLES_PSF, G, nlambda);		
+				
+				double offset;
+				for(i=0;i<nlambda && !posWL;i++){
+					if( (trunc(vLambda[i]*1000)/1000)== (trunc(configCrontrolFile.CentralWaveLenght*1000)/1000))
+						posWL = i;
+				}
+				if(posWL!= (nlambda/2)){ // move center to the middle of samples
+					//printf("\nPOS CENTRAL WL %i",posWL);
+					offset = (((nlambda/2)-posWL)*step)*1000;
+					//printf ("\n OFFSET IS %f\n",offset);
+				}
+				
+				interpolationLinearPSF(deltaLambda,  PSF, vOffsetsLambda ,N_SAMPLES_PSF, G, nlambda,offset);
+
 				sizeG = nlambda;
-				PRECISION * G_AUX = fgauss_WL(49.2,vLambda[1]-vLambda[0],vLambda[0],vLambda[nlambda/2],nlambda,&sizeG);				
+				/*PRECISION * G_AUX = fgauss_WL(49.2,vLambda[1]-vLambda[0],vLambda[0],vLambda[nlambda/2],nlambda,&sizeG);				
 				printf("\n[");
 				for(i=0;i<nlambda;i++){
 					printf("\t%lf,",vLambda[i]-configCrontrolFile.CentralWaveLenght);
@@ -303,7 +322,7 @@ int main(int argc, char **argv)
 					printf("\t%lf\t%e\n",vLambda[i]-configCrontrolFile.CentralWaveLenght,G_AUX[i]);
 				}
 
-				exit(EXIT_FAILURE);
+				exit(EXIT_FAILURE);*/
 			}
 			else{
 				//G = vgauss(FWHM, NMUESTRAS_G, DELTA);

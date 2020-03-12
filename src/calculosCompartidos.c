@@ -29,6 +29,7 @@ extern Cuantic *cuantic;
 
 extern REAL * opa;
 extern PRECISION *dirConvPar;
+//extern REAL *dirConvPar;
 //extern REAL *resultConv;
 extern _Complex double *z,* zden, * zdiv;
 
@@ -55,6 +56,7 @@ void AllocateMemoryDerivedSynthesis(int numl)
 	GMAC = calloc(numl, sizeof(PRECISION));
 	GMAC_DERIV = calloc(numl,sizeof(PRECISION));
 	dirConvPar = calloc((numl+numl)+1,sizeof(PRECISION));
+	//dirConvPar = calloc((numl+numl)+1,sizeof(REAL));
 	
 	//resultConv = calloc(numl,sizeof(REAL));
 
