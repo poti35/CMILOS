@@ -762,8 +762,8 @@ int interpolationLinearPSF(PRECISION *deltaLambda, PRECISION * PSF, PRECISION * 
 
 	size_t i;
 	gsl_interp *interpolation = gsl_interp_alloc (gsl_interp_linear,N_PSF);
-   gsl_interp_init(interpolation, deltaLambda, PSF, N_PSF);
-   gsl_interp_accel * accelerator =  gsl_interp_accel_alloc();
+   	gsl_interp_init(interpolation, deltaLambda, PSF, N_PSF);
+   	gsl_interp_accel * accelerator =  gsl_interp_accel_alloc();
 
 	for (i = 0; i < NSamples; ++i){
 		//printf("\n VALOR A INERPOLAR EN X %f, iteration %i\n",lambdasSamples[i],i);
@@ -797,9 +797,6 @@ int interpolationLinearPSF(PRECISION *deltaLambda, PRECISION * PSF, PRECISION * 
 			}			
 		}
    }
-  
-  	gsl_interp_free(interpolation);
-  	gsl_interp_accel_free(accelerator);
 
   	// normalizations 
 	double cte = 0;
@@ -809,7 +806,9 @@ int interpolationLinearPSF(PRECISION *deltaLambda, PRECISION * PSF, PRECISION * 
 	for(i=0; i< NSamples; i++){
 		fInterpolated[i] /= cte;
 	}
-
+  	gsl_interp_accel_free(accelerator);
+	gsl_interp_free(interpolation);
+  	
 	/*for(i=0; i< NSamples; i++){
 		if(fInterpolated[i]<1e-3)
 			fInterpolated[i] =0;

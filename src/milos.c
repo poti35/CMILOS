@@ -279,11 +279,12 @@ int main(int argc, char **argv)
 					printf("\n\n ERROR: The wavelength range given in the PSF file is smaller than the range in the mesh file [%lf,%lf] [%lf,%lf]  \n\n",deltaLambda[0],vOffsetsLambda[0],deltaLambda[N_SAMPLES_PSF-1],vOffsetsLambda[nlambda-1]);
 					exit(EXIT_FAILURE);
 				}
-				G = calloc(nlambda,sizeof(PRECISION));
+				G = malloc(nlambda * sizeof(PRECISION));
 				
-				double offset;
+				double offset=0;
 				for(i=0;i<nlambda && !posWL;i++){
-					if( (trunc(vLambda[i]*1000)/1000)== (trunc(configCrontrolFile.CentralWaveLenght*1000)/1000))
+					//if( (trunc(vLambda[i]*1000)/1000)== (trunc(configCrontrolFile.CentralWaveLenght*1000)/1000))
+					if( fabs(trunc(vOffsetsLambda[i]))==0) 
 						posWL = i;
 				}
 				if(posWL!= (nlambda/2)){ // move center to the middle of samples
@@ -295,6 +296,8 @@ int main(int argc, char **argv)
 				interpolationLinearPSF(deltaLambda,  PSF, vOffsetsLambda ,N_SAMPLES_PSF, G, nlambda,offset);
 
 				sizeG = nlambda;
+				free(deltaLambda);
+				free(PSF);
 				/*PRECISION * G_AUX = fgauss_WL(49.2,vLambda[1]-vLambda[0],vLambda[0],vLambda[nlambda/2],nlambda,&sizeG);				
 				printf("\n[");
 				for(i=0;i<nlambda;i++){

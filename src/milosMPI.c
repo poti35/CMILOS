@@ -356,10 +356,11 @@ int main(int argc, char **argv)
 						exit(EXIT_FAILURE);
 					}
 					G = calloc(nlambda,sizeof(PRECISION));
-					double offset;
+					double offset =0;
 					int posWL = 0;
 					for(i=0;i<nlambda && !posWL;i++){
-						if( (trunc(vGlobalLambda[i]*1000)/1000)== (trunc(configCrontrolFile.CentralWaveLenght*1000)/1000))
+						//if( (trunc(vGlobalLambda[i]*1000)/1000)== (trunc(configCrontrolFile.CentralWaveLenght*1000)/1000))
+						if( fabs(trunc(vOffsetsLambda[i]))==0)
 							posWL = i;
 					}
 					if(posWL!= (nlambda/2)){ // move center to the middle of samples
