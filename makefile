@@ -4,14 +4,14 @@ CC=mpicc
 
 CFLAGS=
 ifeq ($(compiler),icc)
-	CFLAGS+=-ipo -xHost -prof-gen-sampling
+	CFLAGS+=-ipo -xHost
 endif
 CFLAGS+=-O3
 
 ifdef develop
 	ifeq ($(develop),yes)
-		CFLAGS+=-g 
-		CFLAGS+=-Wall -Wextra		
+		CFLAGS+=-g -shared-intel -shared-libgcc
+		#CFLAGS+=-Wall -Wextra		
 	endif
 endif
 ifdef use_double

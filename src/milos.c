@@ -41,7 +41,9 @@
 #include <unistd.h>
 #include <complex.h>
 #include <fftw3.h> //siempre a continuacion de complex.h
-
+#include <gsl/gsl_spline.h>
+#include <gsl/gsl_math.h>
+#include <gsl/gsl_eigen.h>
 
 Cuantic *cuantic; // Variable global, está hecho así, de momento,para parecerse al original
 
@@ -108,6 +110,12 @@ ConfigControl configCrontrolFile;
 // fvoigt memory consuption
  _Complex double *z,* zden, * zdiv;
 
+
+// 
+gsl_vector *eval;
+gsl_matrix *evec;
+gsl_eigen_symmv_workspace * workspace;
+
 int main(int argc, char **argv)
 {
 	int i; // for indexes
@@ -119,6 +127,12 @@ int main(int argc, char **argv)
 	int indexLine; // index to identify central line to read it 
 
 	
+	// allocate memory for eigen values
+	eval = gsl_vector_alloc (NTERMS);
+  	evec = gsl_matrix_alloc (NTERMS, NTERMS);
+	workspace = gsl_eigen_symmv_alloc (NTERMS);
+
+	//*****
 	Init_Model INITIAL_MODEL;
 	PRECISION * deltaLambda, * PSF;
 	PRECISION initialLambda, step, finalLambda;
@@ -909,6 +923,9 @@ int main(int argc, char **argv)
 	free(wlines);
 	FreeMemoryDerivedSynthesis();
 	if(G!=NULL) free(G);
+	gsl_eigen_symmv_free (workspace);
+	gsl_vector_free(eval);
+	gsl_matrix_free(evec);
 
 	return 0;
 }

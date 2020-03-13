@@ -32,7 +32,9 @@
 #include <sys/types.h>
 #include <dirent.h>
 #include <sys/stat.h>
-
+#include <gsl/gsl_spline.h>
+#include <gsl/gsl_math.h>
+#include <gsl/gsl_eigen.h>
 
 
 // ***************************** FUNCTIONS TO READ FITS FILE *********************************************************
@@ -91,6 +93,10 @@ ConfigControl configCrontrolFile;
 
 _Complex double  *z,* zden, * zdiv;
 
+gsl_vector *eval;
+gsl_matrix *evec;
+gsl_eigen_symmv_workspace * workspace;
+
 int main(int argc, char **argv)
 {
 	int i;  // indexes 
@@ -141,7 +147,12 @@ int main(int argc, char **argv)
 	PRECISION *wlines;
 	int nlambda, numPixels, indexPixel;
 	
-	
+	// allocate memory for eigen values
+	eval = gsl_vector_alloc (NTERMS);
+  	evec = gsl_matrix_alloc (NTERMS, NTERMS);
+	workspace = gsl_eigen_symmv_alloc (NTERMS);
+
+	//*****
 	Init_Model INITIAL_MODEL;
 	PRECISION * deltaLambda, * PSF;
 	int N_SAMPLES_PSF;
@@ -1464,6 +1475,10 @@ int main(int argc, char **argv)
 	MPI_Type_free(&mpiInitModel);
 	MPI_Finalize() ;
 	free(G);
+	gsl_eigen_symmv_free (workspace);
+	gsl_vector_free(eval);
+	gsl_matrix_free(evec);
+	
 	return 0;
 }
 
