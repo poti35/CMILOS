@@ -1,0 +1,1 @@
+void jacobi(double **a, int n, double d[], double **v, int *nrot);

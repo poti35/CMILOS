@@ -5,7 +5,8 @@
       "fftw3.h": "c",
       "cmath": "cpp",
       "complex": "cpp",
-      "gsl_spline.h": "c"
+      "gsl_spline.h": "c",
+      "vector": "c"
    },
    "workbench.colorCustomizations": {
       "activityBar.background": "#113513",

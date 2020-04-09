@@ -12,8 +12,9 @@
 #include <complex.h>
 #include <fftw3.h> //siempre a continuacion de complex.h
 #include "convolution.h"
-
-
+//#include "jacobi.h"
+//#include "eigen.h"
+#include "svdcmp.h"
 
 extern PRECISION **PUNTEROS_CALCULOS_COMPARTIDOS;
 extern int POSW_PUNTERO_CALCULOS_COMPARTIDOS;
@@ -322,12 +323,13 @@ int mil_svd(PRECISION *h, PRECISION *beta, PRECISION *delta)
 {
 
 	PRECISION epsilon;
-	
 	static PRECISION h1[NTERMS * NTERMS];
-	
+	static PRECISION h2[NTERMS * NTERMS];
 	PRECISION *v, *w;
+	static PRECISION v2[NTERMS*NTERMS], beta_aux[NTERMS*NTERMS],w2[NTERMS];
 	int i, j;
-	static PRECISION aux2[NTERMS];
+	//static PRECISION aux2[NTERMS];
+	static PRECISION aux2[NTERMS], delta_aux [NTERMS];
 	int aux_nf, aux_nc;
 	
 	epsilon = 1e-12;
@@ -335,12 +337,92 @@ int mil_svd(PRECISION *h, PRECISION *beta, PRECISION *delta)
 	for (j = 0; j < NTERMS * NTERMS; j++)
 	{
 		h1[j] = h[j];
-	}
-
+		//h2[j] = h[j];
+ 	}
+	
+	//clock_t t = clock();
 	gsl_matrix_view gsl_h1 = gsl_matrix_view_array (h1, NTERMS, NTERMS);
 	gsl_eigen_symmv(&gsl_h1.matrix, eval, evec, workspace);
 	w = gsl_vector_ptr(eval,0);
 	v = gsl_matrix_ptr(evec,0,0);
+	//svdcmp(h2,NTERMS,NTERMS,w2,v2);
+
+	/*double cpu_time_used = ((double) (clock() - t)) / CLOCKS_PER_SEC;
+    printf("\n AUTOVECTORES GSL V, tiempo empleado %.80lf\n", cpu_time_used);
+    for(i=0;i<NTERMS;i++){
+        for(j=0;j<NTERMS;j++){
+            printf("%f\t",v[j+ (NTERMS*i)]);
+        }   
+        printf("\n");
+    }
+    printf("\n");
+
+    printf("\n AUTOVALORES GSL W \n");
+    for(i=0;i<NTERMS;i++){
+        printf("%f\n",w[i]);
+    }
+    printf("\n");   */
+
+	//t=clock();
+	
+	
+	/*cpu_time_used = ((double) (clock() - t)) / CLOCKS_PER_SEC;
+    printf("\n AUTOVECTORES SVDCMP V, tiempo invertido %.80lf\n",cpu_time_used);
+    for(i=0;i<NTERMS;i++){
+        for(j=0;j<NTERMS;j++){
+            printf("%f\t",v2[j+ (NTERMS*i)]);
+        }   
+        printf("\n");
+    }
+    printf("\n");
+
+    printf("\n AUTOVALORES SVDCMP W \n");
+    for(i=0;i<NTERMS;i++){
+        printf("%f\n",w2[i]);
+    }
+    printf("\n");   */
+
+	/*int * cnt;
+	PRECISION **h3;
+	PRECISION **v3, w3[NTERMS];
+	h3 = (double **)malloc(NTERMS*sizeof(double*));
+	v3 = (double **)malloc(NTERMS*sizeof(double*));
+
+	for(i=0;i<NTERMS;i++){
+		h3[i] = (double*)malloc(NTERMS*sizeof(double)); 
+		v3[i] = (double*)malloc(NTERMS*sizeof(double)); 
+	}
+
+	for(i=0;i<NTERMS;i++){
+		for (j = 0; j < NTERMS; j++)
+		{
+			h3[i][j] = h[j+ (NTERMS*i)];
+ 		}
+	}
+
+
+	printf("\n LLAMADA AL METODO DE JACOBI \n");
+	int nrot;
+	jacobi(h3, NTERMS, w3, v3, &nrot);
+	//eigen( 1, 0, 0, NTERMS, h2, v2, wr, wi, cnt);
+
+    printf("\n AUTOVECTORES JACOBI V2  \n");
+    for(i=0;i<NTERMS;i++){
+        for(j=0;j<NTERMS;j++){
+            //printf("%f\t",v2[j+ (NTERMS*i)]);
+			printf("%f\t",v3[i][j]);
+        }   
+        printf("\n");
+    }
+    printf("\n");
+
+    printf("\n AUTOVALORES JACOBI W2 \n");
+    for(i=0;i<NTERMS;i++){
+        printf("%f\n",w3[i]);
+    }
+    printf("\n");   
+	exit(1);*/
+	
 
 	multmatrix(beta, 1, NTERMS, v, NTERMS, NTERMS, aux2, &aux_nf, &aux_nc);
 
