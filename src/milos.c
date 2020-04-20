@@ -658,7 +658,7 @@ int main(int argc, char **argv)
 
       	int numIter;
       	lm_mils(cuantic, wlines, vLambda, nlambda, spectroPER, nlambda, &initModel, spectra, &chisqrf, slight, configCrontrolFile.toplim, configCrontrolFile.NumberOfCycles,
-               configCrontrolFile.WeightForStokes, configCrontrolFile.fix, configCrontrolFile.sigma, configCrontrolFile.InitialDiagonalElement,&configCrontrolFile.ConvolveWithPSF,&numIter);
+               configCrontrolFile.WeightForStokes, configCrontrolFile.fix, configCrontrolFile.sigma, configCrontrolFile.InitialDiagonalElement,&configCrontrolFile.ConvolveWithPSF,&numIter,configCrontrolFile.mu);
 
 			// SAVE OUTPUT MODEL 
 			char nameAuxOutputModel [4096];
@@ -818,7 +818,7 @@ int main(int argc, char **argv)
 							slightPixel = slight+nlambda*indexPixel;
 					}
 					lm_mils(cuantic, wlines, vLambda, nlambda, fitsImage->pixels[indexPixel].spectro, nlambda, &initModel, spectra, &vChisqrf[indexPixel], slightPixel, configCrontrolFile.toplim, configCrontrolFile.NumberOfCycles,
-							configCrontrolFile.WeightForStokes, configCrontrolFile.fix, configCrontrolFile.sigma, configCrontrolFile.InitialDiagonalElement,&configCrontrolFile.ConvolveWithPSF,&vNumIter[indexPixel]);						
+							configCrontrolFile.WeightForStokes, configCrontrolFile.fix, configCrontrolFile.sigma, configCrontrolFile.InitialDiagonalElement,&configCrontrolFile.ConvolveWithPSF,&vNumIter[indexPixel],configCrontrolFile.mu);						
 					
 					vModels[indexPixel] = initModel;
 					if(configCrontrolFile.SaveSynthesisAdjusted){
