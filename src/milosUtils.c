@@ -658,6 +658,7 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 {
 
 	
+	
 
 	REAL PARBETA_better = 5.0;
    	REAL PARBETA_worst = 10.0;
@@ -667,6 +668,9 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 	int i, *fixed, nfree;
 	static PRECISION delta[NTERMS];
 	
+	for(i=0;i<nlambda*NPARMS;i++){
+		if(spectro[i]<-1) sigma[i]=1e10;
+	}
 	
 	REAL flambda;
 	static REAL beta[NTERMS], alpha[NTERMS * NTERMS];
