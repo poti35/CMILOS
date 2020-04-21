@@ -15,6 +15,7 @@
 //#include "jacobi.h"
 //#include "eigen.h"
 #include "svdcmp.h"
+#include <stdint.h>
 
 extern PRECISION **PUNTEROS_CALCULOS_COMPARTIDOS;
 extern int POSW_PUNTERO_CALCULOS_COMPARTIDOS;
@@ -671,7 +672,8 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 	for(i=0;i<nlambda*NPARMS;i++){
 		if(spectro[i]<-1){ 
 			//printf("\n sigma %i cambiada",i);
-			vSigma[i]= 100000000000000000000;
+			//vSigma[i]= 100000000000000000000;
+			vSigma[i]= FLT_MAX;
 			n_ghots++;
 		}
 	}
