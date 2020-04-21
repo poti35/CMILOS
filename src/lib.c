@@ -85,7 +85,7 @@ REAL fchisqr(REAL * spectra,int nspectro,float *spectro,REAL *w,REAL *sig,REAL n
 		for(i=0;i<nspectro;i++){
 			dif=spectra[i+nspectro*j]-spectro[i+nspectro*j];
 			//printf("\n DIF SPECTRA: %f ; sigma %f ; value opa %f", dif,sig[i+nspectro*j] , (((dif*dif)*w[j])/(sig[i+nspectro*j])));
-			if(sig[i+nspectro*j]!=FLT_MAX)
+			if(sig[i+nspectro*j]!=-1)
 				opa+= (((dif*dif)*w[j])/(sig[i+nspectro*j]));
 		}
 		TOT+= opa;
@@ -150,7 +150,7 @@ int multmatrixIDLValueSigma(REAL *a,int naf,int nac,REAL *b,int nbf,int nbc,REAL
 				sum=0;
 				for ( k = 0;  k < naf; k++){
 					//printf("i: %d,j:%d,k=%d .. a[%d][%d]:%f  .. b[%d][%d]:%f\n",i,j,k,k,j,a[k*nac+j],i,k,b[i*nbc+k]);
-					if(sigma[k]!=FLT_MAX)
+					if(sigma[k]!=-1)
 						sum += (((a[k*nac+j] * b[i*nbc+k])))/sigma[k];
 				}
 				//printf("Sum, result[%d][%d] : %f \n",i,j,sum);
@@ -280,7 +280,7 @@ int multmatrix_transpose_sigma(REAL *a,int naf,int nac, REAL *b,int nbf,int nbc,
 		    for ( j = 0; j < nbf; j++){
 				sum=0;
 				for ( k = 0;  k < nbc; k++){
-					if(sigma[k]!=FLT_MAX)
+					if(sigma[k]!=-1)
 						sum += (a[i*nac+k] * b[j*nbc+k]) * (weigth/sigma[k]);
 				}
 
