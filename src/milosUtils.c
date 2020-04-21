@@ -727,7 +727,7 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 
 
 	ochisqr = fchisqr(spectra, nspectro, spectro, weight, vSigma, nfree);
-	exit(1);
+	
 	chisqr0 = ochisqr;
 
 	model = *initModel;
@@ -755,8 +755,8 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 		//printf("\n CHISQR EN LA ITERACION %d,: %e",*iter,chisqr);
 		
 		/**************************************************************************/
-		/*if ((FABS((ochisqr-chisqr)*100/chisqr) < toplim) || (chisqr < 0.0001)) // condition to exit of the loop 
-			clanda = 1;		*/
+		if ((FABS((ochisqr-chisqr)*100/chisqr) < toplim) || (chisqr < 0.0001)) // condition to exit of the loop 
+			clanda = 1;		
 		if (chisqr - ochisqr < 0.)
 		{
 
@@ -786,7 +786,7 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 			clanda=1 ; // condition to exit of the loop 		
 
 		(*iter)++;
-		//PARBETA_FACTOR = log10f(chisqr)/log10f(chisqr0);
+		PARBETA_FACTOR = log10f(chisqr)/log10f(chisqr0);
 
 	} while (*iter < miter && !clanda);
 

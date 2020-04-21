@@ -41,13 +41,14 @@ int covarm(REAL *w,REAL *sig,float *spectro,int nspectro,REAL *spectra,REAL  *d_
 
 	for(j=0;j<NPARMS;j++){
 		for(i=0;i<nspectro;i++){
-			opa[i]=w[j]*(spectra[i+nspectro*j]-spectro[i+nspectro*j]);
+			opa[i]= (w[j]*(spectra[i+nspectro*j]-spectro[i+nspectro*j]))/sig[i];
 		}
 
 		BTaux=BT+(j*NTERMS);
 		APaux=AP+(j*NTERMS*NTERMS);
 		
-		multmatrixIDLValue(opa,nspectro,1,d_spectra+j*nspectro*NTERMS,NTERMS,nspectro,BTaux,&bt_nf,&bt_nc,sig[j]); //bt de tam NTERMS x 1
+		//multmatrixIDLValue(opa,nspectro,1,d_spectra+j*nspectro*NTERMS,NTERMS,nspectro,BTaux,&bt_nf,&bt_nc,sig[j]); //bt de tam NTERMS x 1
+		multmatrixIDLValueSigma(opa,nspectro,1,d_spectra+j*nspectro*NTERMS,NTERMS,nspectro,BTaux,&bt_nf,&bt_nc); //bt de tam NTERMS x 1
 		multmatrix_transpose(d_spectra+j*nspectro*NTERMS,NTERMS,nspectro,d_spectra+j*nspectro*NTERMS,NTERMS,nspectro,APaux,&aux_nf,&aux_nc,w[j]/sig[j]);//ap de tam NTERMS x NTERMS
 	}
 
@@ -80,7 +81,7 @@ REAL fchisqr(REAL * spectra,int nspectro,float *spectro,REAL *w,REAL *sig,REAL n
 		opa=0;
 		for(i=0;i<nspectro;i++){
 			dif=spectra[i+nspectro*j]-spectro[i+nspectro*j];
-			printf("\n DIF SPECTRA: %f ; sigma %f ; value opa %f", dif,sig[i+nspectro*j] , (((dif*dif)*w[j])/(sig[i+nspectro*j])));
+			//printf("\n DIF SPECTRA: %f ; sigma %f ; value opa %f", dif,sig[i+nspectro*j] , (((dif*dif)*w[j])/(sig[i+nspectro*j])));
 			opa+= (((dif*dif)*w[j])/(sig[i+nspectro*j]));
 		}
 		TOT+= opa;
@@ -131,6 +132,32 @@ int multmatrixIDLValue(REAL *a,int naf,int nac,REAL *b,int nbf,int nbc,REAL *res
 	return 0;
 }
 
+int multmatrixIDLValueSigma(REAL *a,int naf,int nac,REAL *b,int nbf,int nbc,REAL *result,int *fil,int *col){
+    
+   int i,j,k;
+   REAL sum;
+	
+	if(naf==nbc){
+		(*fil)=nbf;
+		(*col)=nac;
+
+		for ( i = 0; i < nbf; i++){
+		    for ( j = 0; j < nac; j++){
+				sum=0;
+				for ( k = 0;  k < naf; k++){
+					//printf("i: %d,j:%d,k=%d .. a[%d][%d]:%f  .. b[%d][%d]:%f\n",i,j,k,k,j,a[k*nac+j],i,k,b[i*nbc+k]);
+					sum += ((a[k*nac+j] * b[i*nbc+k]));
+				}
+				//printf("Sum, result[%d][%d] : %f \n",i,j,sum);
+				result[((nac)*i)+j] = sum;
+      		} 
+		}
+		return 1;
+	}
+	else
+		printf("\n \n Error en multmatrixIDLValue no coinciden nac y nbf!!!! ..\n\n");
+	return 0;
+}
 
 void totalParcialf(REAL * A, int f,int c,REAL * result){
 
