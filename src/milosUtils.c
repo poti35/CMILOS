@@ -671,7 +671,7 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 	for(i=0;i<nlambda*NPARMS;i++){
 		if(spectro[i]<-1){ 
 			printf("\n sigma %i cambiada",i);
-			vSigma[i]=1e100*1e100;
+			vSigma[i]=NOISE_GHOST*NOISE_GHOST;
 		}
 	}
 	

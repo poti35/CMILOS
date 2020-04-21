@@ -82,6 +82,7 @@
 #define TOPLIM 1e-12 
 #define SLIGHT 0
 #define NOISE 1e-10 //0.001
+#define NOISE_GHOST 1e100
 
 #define RR  0.5641895836
 
