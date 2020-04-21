@@ -671,7 +671,7 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 	for(i=0;i<nlambda*NPARMS;i++){
 		if(spectro[i]<-1){ 
 			//printf("\n sigma %i cambiada",i);
-			vSigma[i]= 1000000000000000000000000;
+			vSigma[i]= 100000000000000000000;
 		}
 	}
 	
@@ -754,8 +754,8 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 		//printf("\n CHISQR EN LA ITERACION %d,: %e",*iter,chisqr);
 		
 		/**************************************************************************/
-		if ((FABS((ochisqr-chisqr)*100/chisqr) < toplim) || (chisqr < 0.0001)) // condition to exit of the loop 
-			clanda = 1;		
+		/*if ((FABS((ochisqr-chisqr)*100/chisqr) < toplim) || (chisqr < 0.0001)) // condition to exit of the loop 
+			clanda = 1;		*/
 		if (chisqr - ochisqr < 0.)
 		{
 
