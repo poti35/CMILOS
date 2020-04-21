@@ -38,7 +38,7 @@ void totalParcialf(REAL * A, int f,int c,REAL * result);
  */
 int multmatrix_transpose(REAL *a,int naf,int nac, REAL *b,int nbf,int nbc,REAL *result,int *fil,int *col,REAL value);
 
-
+int multmatrix_transpose_sigma(REAL *a,int naf,int nac, REAL *b,int nbf,int nbc,REAL *result,int *fil,int *col,REAL weigth, REAL * sigma);
 /**
  * 
  */

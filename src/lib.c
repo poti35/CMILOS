@@ -49,7 +49,8 @@ int covarm(REAL *w,REAL *sig,float *spectro,int nspectro,REAL *spectra,REAL  *d_
 		
 		//multmatrixIDLValue(opa,nspectro,1,d_spectra+j*nspectro*NTERMS,NTERMS,nspectro,BTaux,&bt_nf,&bt_nc,sig[j]); //bt de tam NTERMS x 1
 		multmatrixIDLValueSigma(opa,nspectro,1,d_spectra+j*nspectro*NTERMS,NTERMS,nspectro,BTaux,&bt_nf,&bt_nc); //bt de tam NTERMS x 1
-		multmatrix_transpose(d_spectra+j*nspectro*NTERMS,NTERMS,nspectro,d_spectra+j*nspectro*NTERMS,NTERMS,nspectro,APaux,&aux_nf,&aux_nc,w[j]/sig[j]);//ap de tam NTERMS x NTERMS
+		//multmatrix_transpose(d_spectra+j*nspectro*NTERMS,NTERMS,nspectro,d_spectra+j*nspectro*NTERMS,NTERMS,nspectro,APaux,&aux_nf,&aux_nc,w[j]/sig[j]);//ap de tam NTERMS x NTERMS
+		multmatrix_transpose_sigma(d_spectra+j*nspectro*NTERMS,NTERMS,nspectro,d_spectra+j*nspectro*NTERMS,NTERMS,nspectro,APaux,&aux_nf,&aux_nc,w[j],sig);//ap de tam NTERMS x NTERMS
 	}
 
 	totalParcialf(BT,NPARMS,NTERMS,beta); //beta de tam 1 x NTERMS
@@ -261,6 +262,34 @@ int multmatrix_transpose(REAL *a,int naf,int nac, REAL *b,int nbf,int nbc,REAL *
 	return 0;
 }
 
+
+int multmatrix_transpose_sigma(REAL *a,int naf,int nac, REAL *b,int nbf,int nbc,REAL *result,int *fil,int *col,REAL weigth, REAL * sigma){
+    
+    int i,j,k;
+    REAL sum;
+    
+	if(nac==nbc){
+		(*fil)=naf;
+		(*col)=nbf;
+		
+		for ( i = 0; i < naf; i++){
+		    for ( j = 0; j < nbf; j++){
+				sum=0;
+				for ( k = 0;  k < nbc; k++){
+					sum += (a[i*nac+k] * b[j*nbc+k]) * (weigth/sigma[k]);
+				}
+
+				result[(*col)*i+j] = sum;
+     		} 
+		
+		}
+		return 1;
+	}else{
+		printf("\n \n Error en multmatrix_transpose no coinciden nac y nbc!!!! ..\n\n");
+	}
+
+	return 0;
+}
 
 //Media de un vector de longitud numl
 PRECISION mean(PRECISION *dat, int numl){
