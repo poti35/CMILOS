@@ -80,7 +80,8 @@ REAL fchisqr(REAL * spectra,int nspectro,float *spectro,REAL *w,REAL *sig,REAL n
 		opa=0;
 		for(i=0;i<nspectro;i++){
 			dif=spectra[i+nspectro*j]-spectro[i+nspectro*j];
-			opa+= ((dif*dif)*w[j])/(sig[i+nspectro*j]);
+			printf("\n DIF SPECTRA: %f ; sigma %f", dif,sig[i+nspectro*j] );
+			opa+= (((dif*dif)*w[j])/(sig[i+nspectro*j]));
 		}
 		TOT+= opa;
 	}

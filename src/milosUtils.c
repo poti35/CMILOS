@@ -727,6 +727,7 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 
 
 	ochisqr = fchisqr(spectra, nspectro, spectro, weight, vSigma, nfree);
+	exit(1);
 	chisqr0 = ochisqr;
 
 	model = *initModel;
