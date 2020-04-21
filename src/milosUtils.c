@@ -669,7 +669,7 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 	static PRECISION delta[NTERMS];
 	
 	for(i=0;i<nlambda*NPARMS;i++){
-		if(spectro[i]<-1) vSigma[i]=1e10;
+		if(spectro[i]<-1) vSigma[i]=1e10*1e10;
 	}
 	
 	REAL flambda;
