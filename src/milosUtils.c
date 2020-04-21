@@ -665,13 +665,14 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
   	REAL PARBETA_FACTOR = 1.0;
 
 	//int iter;
-	int i, *fixed, nfree;
+	int i, *fixed, nfree, n_ghots=0;
 	static PRECISION delta[NTERMS];
 	
 	for(i=0;i<nlambda*NPARMS;i++){
 		if(spectro[i]<-1){ 
 			//printf("\n sigma %i cambiada",i);
 			vSigma[i]= 100000000000000000000;
+			n_ghots++;
 		}
 	}
 	
@@ -682,11 +683,13 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 	Init_Model model;	
 	
 	nfree = CalculaNfree(nspectro);
-
+	nfree = nfree - n_ghots;	
 	if (nfree == 0)
 	{
 		return -1; //'NOT ENOUGH POINTS'
 	}
+
+
 
 	flambda = ilambda;
 
