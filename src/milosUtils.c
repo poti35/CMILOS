@@ -716,7 +716,7 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 	me_der(cuantic, initModel, wlines, lambda, nlambda, d_spectra, spectra_mac, spectra,ah, slight, *INSTRUMENTAL_CONVOLUTION);
 
 	FijaACeroDerivadasNoNecesarias(d_spectra,fixed,nlambda);
-	covarm(weight, sigma, spectro, nlambda, spectra, d_spectra, beta, alpha);
+	covarm(weight, vSigma, spectro, nlambda, spectra, d_spectra, beta, alpha);
 
 	for (i = 0; i < NTERMS; i++)
 		betad[i] = beta[i];
@@ -765,7 +765,7 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 			*initModel = model;
 			me_der(cuantic, initModel, wlines, lambda, nlambda, d_spectra, spectra_mac,spectra, ah, slight,*INSTRUMENTAL_CONVOLUTION);
 			FijaACeroDerivadasNoNecesarias(d_spectra,fixed,nlambda);	
-			covarm(weight, sigma, spectro, nlambda, spectra, d_spectra, beta, alpha);
+			covarm(weight, vSigma, spectro, nlambda, spectra, d_spectra, beta, alpha);
 			
 			for (i = 0; i < NTERMS; i++)
 				betad[i] = beta[i];
