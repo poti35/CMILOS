@@ -41,16 +41,18 @@ int covarm(REAL *w,REAL *sig,float *spectro,int nspectro,REAL *spectra,REAL  *d_
 
 	for(j=0;j<NPARMS;j++){
 		for(i=0;i<nspectro;i++){
-			opa[i]= (w[j]*(spectra[i+nspectro*j]-spectro[i+nspectro*j]))/sig[i];
+			opa[i]= w[j]*(spectra[i+nspectro*j]-spectro[i+nspectro*j]);
 		}
 
 		BTaux=BT+(j*NTERMS);
 		APaux=AP+(j*NTERMS*NTERMS);
 		
 		//multmatrixIDLValue(opa,nspectro,1,d_spectra+j*nspectro*NTERMS,NTERMS,nspectro,BTaux,&bt_nf,&bt_nc,sig[j]); //bt de tam NTERMS x 1
-		multmatrixIDLValueSigma(opa,nspectro,1,d_spectra+j*nspectro*NTERMS,NTERMS,nspectro,BTaux,&bt_nf,&bt_nc); //bt de tam NTERMS x 1
+		multmatrixIDLValueSigma(opa,nspectro,1,d_spectra+j*nspectro*NTERMS,NTERMS,nspectro,BTaux,&bt_nf,&bt_nc,sig+(nspectro*j)); //bt de tam NTERMS x 1
+		printf("\n DESPUES DE MULMATRIX ID VALUE SIGMA\n");
 		//multmatrix_transpose(d_spectra+j*nspectro*NTERMS,NTERMS,nspectro,d_spectra+j*nspectro*NTERMS,NTERMS,nspectro,APaux,&aux_nf,&aux_nc,w[j]/sig[j]);//ap de tam NTERMS x NTERMS
-		multmatrix_transpose_sigma(d_spectra+j*nspectro*NTERMS,NTERMS,nspectro,d_spectra+j*nspectro*NTERMS,NTERMS,nspectro,APaux,&aux_nf,&aux_nc,w[j],sig);//ap de tam NTERMS x NTERMS
+		multmatrix_transpose_sigma(d_spectra+j*nspectro*NTERMS,NTERMS,nspectro,d_spectra+j*nspectro*NTERMS,NTERMS,nspectro,APaux,&aux_nf,&aux_nc,w[j], sig+(nspectro*j));//ap de tam NTERMS x NTERMS
+		printf("\n DESPUES DE MULMATRIX TRANSPOSE SIGMA\n");
 	}
 
 	totalParcialf(BT,NPARMS,NTERMS,beta); //beta de tam 1 x NTERMS
@@ -133,7 +135,7 @@ int multmatrixIDLValue(REAL *a,int naf,int nac,REAL *b,int nbf,int nbc,REAL *res
 	return 0;
 }
 
-int multmatrixIDLValueSigma(REAL *a,int naf,int nac,REAL *b,int nbf,int nbc,REAL *result,int *fil,int *col){
+int multmatrixIDLValueSigma(REAL *a,int naf,int nac,REAL *b,int nbf,int nbc,REAL *result,int *fil,int *col, REAL * sigma){
     
    int i,j,k;
    REAL sum;
@@ -147,7 +149,7 @@ int multmatrixIDLValueSigma(REAL *a,int naf,int nac,REAL *b,int nbf,int nbc,REAL
 				sum=0;
 				for ( k = 0;  k < naf; k++){
 					//printf("i: %d,j:%d,k=%d .. a[%d][%d]:%f  .. b[%d][%d]:%f\n",i,j,k,k,j,a[k*nac+j],i,k,b[i*nbc+k]);
-					sum += ((a[k*nac+j] * b[i*nbc+k]));
+					sum += (((a[k*nac+j] * b[i*nbc+k])))/sigma[k];
 				}
 				//printf("Sum, result[%d][%d] : %f \n",i,j,sum);
 				result[((nac)*i)+j] = sum;
