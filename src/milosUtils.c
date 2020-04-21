@@ -670,7 +670,7 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 	
 	for(i=0;i<nlambda*NPARMS;i++){
 		if(spectro[i]<-1){ 
-			printf("\n sigma %i cambiada",i);
+			//printf("\n sigma %i cambiada",i);
 			vSigma[i]= 100.0*100.0;
 		}
 	}
@@ -794,7 +794,7 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 	if (fix == NULL)
 		free(fixed);
 
-	exit(1);
+	//exit(1);
 	return 1;
 }
 
