@@ -669,7 +669,10 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 	static PRECISION delta[NTERMS];
 	
 	for(i=0;i<nlambda*NPARMS;i++){
-		if(spectro[i]<-1) vSigma[i]=1e10*1e10;
+		if(spectro[i]<-1){ 
+			printf("\n sigma %i cambiada",i);
+			vSigma[i]=1e100*1e100;
+		}
 	}
 	
 	REAL flambda;
@@ -791,6 +794,7 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 	if (fix == NULL)
 		free(fixed);
 
+	exit(1);
 	return 1;
 }
 
