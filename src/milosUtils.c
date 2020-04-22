@@ -673,8 +673,8 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 		if(spectro[i]<-1){ 
 			//printf("\n sigma %i cambiada",i);
 			//vSigma[i]= 100000000000000000000;
-			//vSigma[i]= FLT_MAX;
-			vSigma[i]= -1;
+			vSigma[i]= FLT_MAX;
+			//vSigma[i]= -1;
 			n_ghots++;
 		}
 	}
@@ -734,6 +734,7 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 
 	ochisqr = fchisqr(spectra, nspectro, spectro, weight, vSigma, nfree);
 	
+
 	chisqr0 = ochisqr;
 
 	model = *initModel;
