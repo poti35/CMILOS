@@ -784,19 +784,19 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 	FijaACeroDerivadasNoNecesarias(d_spectra,fixed,nlambda);
 	covarm(weight, vSigma, spectro, nlambda, spectra, d_spectra, beta, alpha);
 
-	printf("\n BETA INICIAL: ");
+	//printf("\n BETA INICIAL: ");
 	for (i = 0; i < NTERMS; i++){
 		betad[i] = beta[i];
-		printf(" %e ",beta[i]);
+		//printf(" %e ",beta[i]);
 	}
 	printf("\n");
 
-	printf("\n ALPHA INICIAL: ");
+	//printf("\n ALPHA INICIAL: ");
 	for (i = 0; i < NTERMS * NTERMS; i++){
 		covar[i] = alpha[i];
-		printf(" %e ",alpha[i]);
+		//printf(" %e ",alpha[i]);
 	}
-	printf("\n");
+	//printf("\n");
 	
 	ochisqr = fchisqr(spectra, nspectro, spectro, weight, vSigma, nfree);
 	
@@ -825,7 +825,7 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 		
 		/**************************************************************************/
 
-		printf("\n CHISQR EN LA ITERACION %d,: %e",*iter,chisqr);
+		//printf("\n CHISQR EN LA ITERACION %d,: %e",*iter,chisqr);
 		
 		/**************************************************************************/
 		if ((FABS((ochisqr-chisqr)*100/chisqr) < toplim) || (chisqr < 0.0001)) // condition to exit of the loop 
