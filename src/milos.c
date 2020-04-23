@@ -293,10 +293,10 @@ int main(int argc, char **argv)
 				PSF = calloc(N_SAMPLES_PSF,sizeof(PRECISION));
 				readPSFFile(deltaLambda,PSF,nameInputFilePSF,configCrontrolFile.CentralWaveLenght);
 				// CHECK if values of deltaLambda are in the same range of vLambda. For do that we truncate to 4 decimal places 
-				if( (trunc(vOffsetsLambda[0])) < (trunc(deltaLambda[0]))  || (trunc(vOffsetsLambda[nlambda-1])) > (trunc(deltaLambda[N_SAMPLES_PSF-1])) ){
+				/*if( (trunc(vOffsetsLambda[0])) < (trunc(deltaLambda[0]))  || (trunc(vOffsetsLambda[nlambda-1])) > (trunc(deltaLambda[N_SAMPLES_PSF-1])) ){
 					printf("\n\n ERROR: The wavelength range given in the PSF file is smaller than the range in the mesh file [%lf,%lf] [%lf,%lf]  \n\n",deltaLambda[0],vOffsetsLambda[0],deltaLambda[N_SAMPLES_PSF-1],vOffsetsLambda[nlambda-1]);
 					exit(EXIT_FAILURE);
-				}
+				}*/
 				G = malloc(nlambda * sizeof(PRECISION));
 				
 				double offset=0;

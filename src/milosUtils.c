@@ -16,6 +16,8 @@
 //#include "eigen.h"
 #include "svdcmp.h"
 #include <stdint.h>
+#include <stdio.h>
+#include <string.h>
 
 extern PRECISION **PUNTEROS_CALCULOS_COMPARTIDOS;
 extern int POSW_PUNTERO_CALCULOS_COMPARTIDOS;
@@ -499,7 +501,7 @@ void estimacionesClasicas(PRECISION lambda_0, PRECISION *lambda, int nlambda, fl
 
 	Ic = spectro[nlambda - 1]; // Continuo ultimo valor de I
 
-	/*Icmax = spectro[0];
+	Icmax = spectro[0];
 	int index =0;
 	for (i = 0; i < nlambda; i++)
 	{
@@ -507,7 +509,9 @@ void estimacionesClasicas(PRECISION lambda_0, PRECISION *lambda, int nlambda, fl
 			Icmax = spectroI[i];
 			index = i;
 		}
-	}*/
+	}
+
+	Ic = Icmax;
 
 	x = 0;
 	y = 0;
@@ -515,12 +519,14 @@ void estimacionesClasicas(PRECISION lambda_0, PRECISION *lambda, int nlambda, fl
 	y_vlos = 0;
 	for (i = 0; i < nlambda-1 ; i++)
 	{
-		aux = (Ic - (spectroI[i] + spectroV[i]));
-		aux_vlos = (Ic - spectroI[i]);
-		x += (aux * (lambda[i] - lambda_0));
-		x_vlos += (aux_vlos * (lambda[i] - lambda_0));
-		y += aux;
-		y_vlos += aux_vlos;
+		if(spectroI[i]>-1 && spectroV[i]>-1){
+			aux = (Ic - (spectroI[i] + spectroV[i]));
+			aux_vlos = (Ic - spectroI[i]);
+			x += (aux * (lambda[i] - lambda_0));
+			x_vlos += (aux_vlos * (lambda[i] - lambda_0));
+			y += aux;
+			y_vlos += aux_vlos;
+		}
 	}
 
 	//Para evitar nan
@@ -533,9 +539,11 @@ void estimacionesClasicas(PRECISION lambda_0, PRECISION *lambda, int nlambda, fl
 	y = 0;
 	for (i = 0; i < nlambda-1 ; i++)
 	{
-		aux = (Ic - (spectroI[i] - spectroV[i]));
-		x += (aux * (lambda[i] - lambda_0));
-		y += aux;
+		if(spectroI[i]>-1 && spectroV[i]>-1){
+			aux = (Ic - (spectroI[i] - spectroV[i]));
+			x += (aux * (lambda[i] - lambda_0));
+			y += aux;
+		}
 	}
 
 	if (fabs(y) > 1e-15)
@@ -566,12 +574,13 @@ void estimacionesClasicas(PRECISION lambda_0, PRECISION *lambda, int nlambda, fl
 	y = 0;
 	for (i = 0; i < nlambda - 1; i++)
 	{
-		L = FABS(SQRT(spectroQ[i] * spectroQ[i] + spectroU[i] * spectroU[i]));
-		m = fabs((4 * (lambda[i] - lambda_0) * L)); // / (3*C*Blos) ); //2*3*C*Blos mod abril 2016 (en test!)
+		if(spectroQ[i]>-1 && spectroU[i]>-1 && spectroV[i]>-1){
+			L = FABS(SQRT(spectroQ[i] * spectroQ[i] + spectroU[i] * spectroU[i]));
+			m = fabs((4 * (lambda[i] - lambda_0) * L)); // / (3*C*Blos) ); //2*3*C*Blos mod abril 2016 (en test!)
 
-		x = x + FABS(spectroV[i]) * m;
-		y = y + FABS(spectroV[i]) * FABS(spectroV[i]);
-
+			x = x + FABS(spectroV[i]) * m;
+			y = y + FABS(spectroV[i]) * FABS(spectroV[i]);
+		}
 	}
 
 	y = y * fabs((3 * C * Blos));
@@ -600,9 +609,11 @@ void estimacionesClasicas(PRECISION lambda_0, PRECISION *lambda, int nlambda, fl
 
 	double sum_u =0.0, sum_q = 0.0;
 	for(i=0;i<nlambda;i++){
-		if( fabs(spectroU[i]>0.0001 || fabs(spectroQ[i])>0.0001  )){
-			sum_u += spectroU[i];
-			sum_q += spectroQ[i];
+		if(spectroU[i]>-1 && spectroQ[i]>-1){
+			if( fabs(spectroU[i]>0.0001 || fabs(spectroQ[i])>0.0001  )){
+				sum_u += spectroU[i];
+				sum_q += spectroQ[i];
+			}
 		}
 	}
 	tan2phi = sum_u/sum_q;
@@ -719,19 +730,74 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 	
 
 	mil_sinrf(cuantic, initModel, wlines, lambda, nlambda, spectra, ah,slight,spectra_mac, *INSTRUMENTAL_CONVOLUTION);
+
+	// in this case basenamefile is from initmodel
+	char nameAux [4096];
+	strcpy(nameAux,"/mnt/d/IAA/dataTest/synthesis_inicial");
+	char extension[20];
+	sprintf(extension, "-%d", nlambda);
+	strcat(nameAux,extension);
+	strcat(nameAux,PER_FILE);
+	FILE *fptr = fopen(nameAux, "w");
+	if(fptr!=NULL){
+		int kk;
+		for (kk = 0; kk < nlambda; kk++)
+		{
+			fprintf(fptr,"%d\t%f\t%e\t%e\t%e\t%e\n", 1, lambda[kk], spectra[kk], spectra[kk + nlambda], spectra[kk + nlambda * 2], spectra[kk + nlambda * 3]);
+		}
+		fclose(fptr);
+		printf("\n*******************************************************************************************");
+		printf("\n******************SYNTHESIS DONE: %s",nameAux);
+		printf("\n*******************************************************************************************\n");
+	}
+	else{
+		printf("\n ERROR !!! The output file can not be open: %s",nameAux);
+	}
+
+
 	me_der(cuantic, initModel, wlines, lambda, nlambda, d_spectra, spectra_mac, spectra,ah, slight, *INSTRUMENTAL_CONVOLUTION);
+
+	int number_parametros = 0;
+	
+	for (number_parametros = 0; number_parametros < NTERMS; number_parametros++)
+	{
+		strcpy(nameAux,"/mnt/d/IAA/dataTest/");
+		strcat(nameAux,"FR_C_");
+		extension[20];
+		sprintf(extension, "-%d-%d%s", nlambda, number_parametros,".per");
+		strcat(nameAux,extension);
+		FILE *fptr = fopen(nameAux, "w");
+		//printf("\n FUNCION RESPUESTA: %d \n",number_parametros);
+		int kk;
+		for (kk = 0; kk < nlambda; kk++)
+		{
+			fprintf(fptr,"1\t%lf\t%le\t%le\t%le\t%le\n", lambda[kk],
+			d_spectra[kk + nlambda * number_parametros],
+			d_spectra[kk + nlambda * number_parametros + nlambda * NTERMS],
+			d_spectra[kk + nlambda * number_parametros + nlambda * NTERMS * 2],
+			d_spectra[kk + nlambda * number_parametros + nlambda * NTERMS * 3]);
+		}
+		fclose(fptr);
+	}
+	printf("\n");
 
 	FijaACeroDerivadasNoNecesarias(d_spectra,fixed,nlambda);
 	covarm(weight, vSigma, spectro, nlambda, spectra, d_spectra, beta, alpha);
 
-	for (i = 0; i < NTERMS; i++)
+	printf("\n BETA INICIAL: ");
+	for (i = 0; i < NTERMS; i++){
 		betad[i] = beta[i];
+		printf(" %e ",beta[i]);
+	}
+	printf("\n");
 
+	printf("\n ALPHA INICIAL: ");
 	for (i = 0; i < NTERMS * NTERMS; i++){
 		covar[i] = alpha[i];
+		printf(" %e ",alpha[i]);
 	}
-
-
+	printf("\n");
+	
 	ochisqr = fchisqr(spectra, nspectro, spectro, weight, vSigma, nfree);
 	
 
@@ -759,7 +825,7 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 		
 		/**************************************************************************/
 
-		//printf("\n CHISQR EN LA ITERACION %d,: %e",*iter,chisqr);
+		printf("\n CHISQR EN LA ITERACION %d,: %e",*iter,chisqr);
 		
 		/**************************************************************************/
 		if ((FABS((ochisqr-chisqr)*100/chisqr) < toplim) || (chisqr < 0.0001)) // condition to exit of the loop 
@@ -774,11 +840,17 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 			FijaACeroDerivadasNoNecesarias(d_spectra,fixed,nlambda);	
 			covarm(weight, vSigma, spectro, nlambda, spectra, d_spectra, beta, alpha);
 			
-			for (i = 0; i < NTERMS; i++)
+			//printf("\n BETA ITER %i INICIAL: ", (*iter));
+			for (i = 0; i < NTERMS; i++){
 				betad[i] = beta[i];
+				//printf(" %e ",beta[i]);
+			}
 
-			for (i = 0; i < NTERMS * NTERMS; i++)
+			//printf("\n ALPHA ITER %i INICIAL: ", (*iter));
+			for (i = 0; i < NTERMS * NTERMS; i++){
 				covar[i] = alpha[i];
+				//printf(" %e ",alpha[i]);
+			}
 
 			ochisqr = chisqr;
 			
