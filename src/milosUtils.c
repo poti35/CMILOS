@@ -789,7 +789,7 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 		betad[i] = beta[i];
 		//printf(" %e ",beta[i]);
 	}
-	printf("\n");
+	//printf("\n");
 
 	//printf("\n ALPHA INICIAL: ");
 	for (i = 0; i < NTERMS * NTERMS; i++){
