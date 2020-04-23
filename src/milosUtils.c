@@ -732,7 +732,7 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 	mil_sinrf(cuantic, initModel, wlines, lambda, nlambda, spectra, ah,slight,spectra_mac, *INSTRUMENTAL_CONVOLUTION);
 
 	// in this case basenamefile is from initmodel
-	char nameAux [4096];
+	/*char nameAux [4096];
 	strcpy(nameAux,"/mnt/d/IAA/dataTest/synthesis_inicial");
 	char extension[20];
 	sprintf(extension, "-%d", nlambda);
@@ -752,12 +752,12 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 	}
 	else{
 		printf("\n ERROR !!! The output file can not be open: %s",nameAux);
-	}
+	}*/
 
 
 	me_der(cuantic, initModel, wlines, lambda, nlambda, d_spectra, spectra_mac, spectra,ah, slight, *INSTRUMENTAL_CONVOLUTION);
 
-	int number_parametros = 0;
+	/*int number_parametros = 0;
 	
 	for (number_parametros = 0; number_parametros < NTERMS; number_parametros++)
 	{
@@ -779,7 +779,7 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 		}
 		fclose(fptr);
 	}
-	printf("\n");
+	printf("\n");*/
 
 	FijaACeroDerivadasNoNecesarias(d_spectra,fixed,nlambda);
 	covarm(weight, vSigma, spectro, nlambda, spectra, d_spectra, beta, alpha);
