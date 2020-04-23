@@ -256,15 +256,15 @@ int main(int argc, char **argv)
 		if(configCrontrolFile.FWHM > 0){
 			G = fgauss_WL(FWHM,vLambda[1]-vLambda[0],vLambda[0],vLambda[nlambda/2],nlambda,&sizeG);
 			
-			/*FILE * fptr = fopen("run/gauss_.psf", "w");
+			/*FILE * fptr = fopen("run/gauss_35.psf", "w");
 			if(fptr!=NULL){
 				for(i=0;i<nlambda;i++){
 					printf("\t%lf\t%le\n",(vLambda[i]-configCrontrolFile.CentralWaveLenght)*1000,G[i]);
 					fprintf(fptr,"\t%lf\t%le\n",(vLambda[i]-configCrontrolFile.CentralWaveLenght)*1000,G[i]);
 				}
 			}
-			fclose(fptr);
-			exit(0);*/
+			fclose(fptr);*/
+
 		}else{
 			// read the number of lines 
 			FILE *fp;
@@ -293,10 +293,10 @@ int main(int argc, char **argv)
 				PSF = calloc(N_SAMPLES_PSF,sizeof(PRECISION));
 				readPSFFile(deltaLambda,PSF,nameInputFilePSF,configCrontrolFile.CentralWaveLenght);
 				// CHECK if values of deltaLambda are in the same range of vLambda. For do that we truncate to 4 decimal places 
-				/*if( (trunc(vOffsetsLambda[0])) < (trunc(deltaLambda[0]))  || (trunc(vOffsetsLambda[nlambda-1])) > (trunc(deltaLambda[N_SAMPLES_PSF-1])) ){
+				if( (trunc(vOffsetsLambda[0])) < (trunc(deltaLambda[0]))  || (trunc(vOffsetsLambda[nlambda-1])) > (trunc(deltaLambda[N_SAMPLES_PSF-1])) ){
 					printf("\n\n ERROR: The wavelength range given in the PSF file is smaller than the range in the mesh file [%lf,%lf] [%lf,%lf]  \n\n",deltaLambda[0],vOffsetsLambda[0],deltaLambda[N_SAMPLES_PSF-1],vOffsetsLambda[nlambda-1]);
 					exit(EXIT_FAILURE);
-				}*/
+				}
 				G = malloc(nlambda * sizeof(PRECISION));
 				
 				double offset=0;
@@ -310,12 +310,32 @@ int main(int argc, char **argv)
 					offset = (((nlambda/2)-posWL)*step)*1000;
 					//printf ("\n OFFSET IS %f\n",offset);
 				}
-				
+				/*printf("\n PSF: [");
+				for(i=0;i<N_SAMPLES_PSF;i++){
+					printf(" %f,", PSF[i]);
+				}
+				printf("]\n");
+				printf("\n Posicion central: %i\n",posWL);*/
+
 				interpolationLinearPSF(deltaLambda,  PSF, vOffsetsLambda ,N_SAMPLES_PSF, G, nlambda,offset);
 
 				sizeG = nlambda;
 				free(deltaLambda);
 				free(PSF);
+
+				/*FILE * fptr = fopen("run/psf_30_.psf", "w");
+				if(fptr!=NULL){
+					for(i=0;i<nlambda;i++){
+						printf("\t%lf\t%le\n",(vLambda[i]-configCrontrolFile.CentralWaveLenght)*1000,G[i]);
+						fprintf(fptr,"\t%lf\t%le\n",(vLambda[i]-configCrontrolFile.CentralWaveLenght)*1000,G[i]);
+					}
+				}
+				fclose(fptr);
+				*/
+				/*printf("\n psf interpolada\n");
+				for(i=0;i<nlambda;i++){
+					printf("\t%lf\t%e\n",vLambda[i]-configCrontrolFile.CentralWaveLenght,G[i]);
+				}*/				
 				/*PRECISION * G_AUX = fgauss_WL(49.2,vLambda[1]-vLambda[0],vLambda[0],vLambda[nlambda/2],nlambda,&sizeG);				
 				printf("\n[");
 				for(i=0;i<nlambda;i++){

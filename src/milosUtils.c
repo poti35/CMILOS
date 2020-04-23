@@ -733,7 +733,7 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 
 	// in this case basenamefile is from initmodel
 	/*char nameAux [4096];
-	strcpy(nameAux,"/mnt/d/IAA/dataTest/synthesis_inicial");
+	strcpy(nameAux,"/mnt/d/IAA/dataTest/synthesis_inicial_ghost");
 	char extension[20];
 	sprintf(extension, "-%d", nlambda);
 	strcat(nameAux,extension);
@@ -752,8 +752,8 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 	}
 	else{
 		printf("\n ERROR !!! The output file can not be open: %s",nameAux);
-	}*/
-
+	}
+	*/
 
 	me_der(cuantic, initModel, wlines, lambda, nlambda, d_spectra, spectra_mac, spectra,ah, slight, *INSTRUMENTAL_CONVOLUTION);
 
@@ -762,7 +762,7 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 	for (number_parametros = 0; number_parametros < NTERMS; number_parametros++)
 	{
 		strcpy(nameAux,"/mnt/d/IAA/dataTest/");
-		strcat(nameAux,"FR_C_");
+		strcat(nameAux,"FR_C_ghost_");
 		extension[20];
 		sprintf(extension, "-%d-%d%s", nlambda, number_parametros,".per");
 		strcat(nameAux,extension);
@@ -779,8 +779,8 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 		}
 		fclose(fptr);
 	}
-	printf("\n");*/
-
+	printf("\n");
+	*/
 	FijaACeroDerivadasNoNecesarias(d_spectra,fixed,nlambda);
 	covarm(weight, vSigma, spectro, nlambda, spectra, d_spectra, beta, alpha);
 
@@ -933,7 +933,7 @@ int interpolationLinearPSF(PRECISION *deltaLambda, PRECISION * PSF, PRECISION * 
    	gsl_interp_accel * accelerator =  gsl_interp_accel_alloc();
 
 	for (i = 0; i < NSamples; ++i){
-		//printf("\n VALOR A INERPOLAR EN X %f, iteration %i\n",lambdasSamples[i],i);
+		//printf("\n VALOR A INERPOLAR EN X %f, iteration %li\n",lambdasSamples[i]-offset,i);
 		double aux;
 		if(offset>0){
 			if(lambdasSamples[i]-offset>= deltaLambda[0]){
