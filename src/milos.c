@@ -256,14 +256,17 @@ int main(int argc, char **argv)
 		if(configCrontrolFile.FWHM > 0){
 			G = fgauss_WL(FWHM,vLambda[1]-vLambda[0],vLambda[0],vLambda[nlambda/2],nlambda,&sizeG);
 			
-			/*FILE * fptr = fopen("run/gauss_35.psf", "w");
+			FILE * fptr = fopen("run/gauss_35.psf", "w");
 			if(fptr!=NULL){
+				printf("\n[");
 				for(i=0;i<nlambda;i++){
-					printf("\t%lf\t%le\n",(vLambda[i]-configCrontrolFile.CentralWaveLenght)*1000,G[i]);
+					//printf("\t%lf\t%le\n",(vLambda[i]-configCrontrolFile.CentralWaveLenght)*1000,G[i]);
+					printf("\t%le,",G[i]);
 					fprintf(fptr,"\t%lf\t%le\n",(vLambda[i]-configCrontrolFile.CentralWaveLenght)*1000,G[i]);
 				}
+				printf("]\n");
 			}
-			fclose(fptr);*/
+			fclose(fptr);
 
 		}else{
 			// read the number of lines 
@@ -305,10 +308,10 @@ int main(int argc, char **argv)
 					if( fabs(trunc(vOffsetsLambda[i]))==0) 
 						posWL = i;
 				}
-				if(posWL!= (nlambda/2)){ // move center to the middle of samples
-					//printf("\nPOS CENTRAL WL %i",posWL);
-					offset = (((nlambda/2)-posWL)*step)*1000;
-					//printf ("\n OFFSET IS %f\n",offset);
+				if(posWL!= (nlambda/2) ){ // move center to the middle of samples
+					printf("\nPOS CENTRAL WL %i, posicion central del array %i",posWL,(nlambda-1)/2);
+					offset = ((  ((nlambda-1)/2) - posWL)*step)*1000;
+					printf ("\n OFFSET IS %f\n",offset);
 				}
 				/*printf("\n PSF: [");
 				for(i=0;i<N_SAMPLES_PSF;i++){
@@ -323,15 +326,18 @@ int main(int argc, char **argv)
 				free(deltaLambda);
 				free(PSF);
 
-				/*FILE * fptr = fopen("run/psf_30_.psf", "w");
-				if(fptr!=NULL){
+				//FILE * fptr = fopen("run/psf_30_.psf", "w");
+				//if(fptr!=NULL){
+					printf("\n[");
 					for(i=0;i<nlambda;i++){
-						printf("\t%lf\t%le\n",(vLambda[i]-configCrontrolFile.CentralWaveLenght)*1000,G[i]);
-						fprintf(fptr,"\t%lf\t%le\n",(vLambda[i]-configCrontrolFile.CentralWaveLenght)*1000,G[i]);
+						//printf("\t%lf\t%le\n",(vLambda[i]-configCrontrolFile.CentralWaveLenght)*1000,G[i]);
+						printf("\t%le,",G[i]);
+						//fprintf(fptr,"\t%lf\t%le\n",(vLambda[i]-configCrontrolFile.CentralWaveLenght)*1000,G[i]);
 					}
-				}
-				fclose(fptr);
-				*/
+					printf("]\n");
+				//}
+				//fclose(fptr);
+				
 				/*printf("\n psf interpolada\n");
 				for(i=0;i<nlambda;i++){
 					printf("\t%lf\t%e\n",vLambda[i]-configCrontrolFile.CentralWaveLenght,G[i]);
@@ -600,7 +606,7 @@ int main(int argc, char **argv)
 			for (kk = 0; kk < nlambda; kk++)
 			{
 				//fprintf(fptr,"%d\t%f\t%e\t%e\t%e\t%e\n", indexLine, (vLambda[kk]-configCrontrolFile.CentralWaveLenght)*1000, spectra[kk], spectra[kk + nlambda], spectra[kk + nlambda * 2], spectra[kk + nlambda * 3]);
-				fprintf(fptr,"%d\t%f\t%e\t%e\t%e\t%e\n", indexLine, vLambda[kk], spectra[kk], spectra[kk + nlambda], spectra[kk + nlambda * 2], spectra[kk + nlambda * 3]);
+				fprintf(fptr,"%d\t%f\t%e\t%e\t%e\t%e\n", indexLine, vLambda[kk]-configCrontrolFile.CentralWaveLenght, spectra[kk], spectra[kk + nlambda], spectra[kk + nlambda * 2], spectra[kk + nlambda * 3]);
 			}
 			fclose(fptr);
 			printf("\n*******************************************************************************************");
@@ -738,7 +744,7 @@ int main(int argc, char **argv)
 					int kk;
 					for (kk = 0; kk < nlambda; kk++)
 					{
-						fprintf(fptr,"%d\t%le\t%le\t%le\t%le\t%le\n", indexLine, vLambda[kk]-configCrontrolFile.CentralWaveLenght, spectra[kk], spectra[kk + nlambda], spectra[kk + nlambda * 2], spectra[kk + nlambda * 3]);
+						fprintf(fptr,"%d\t%f\t%e\t%e\t%e\t%e\n", indexLine, vLambda[kk]-configCrontrolFile.CentralWaveLenght, spectra[kk], spectra[kk + nlambda], spectra[kk + nlambda * 2], spectra[kk + nlambda * 3]);
 					}
 					//printf("\nVALORES DE LAS FUNCIONES RESPUESTA \n");
 					fclose(fptr);

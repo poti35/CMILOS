@@ -501,7 +501,7 @@ void estimacionesClasicas(PRECISION lambda_0, PRECISION *lambda, int nlambda, fl
 
 	Ic = spectro[nlambda - 1]; // Continuo ultimo valor de I
 
-	Icmax = spectro[0];
+	/*Icmax = spectro[0];
 	int index =0;
 	for (i = 0; i < nlambda; i++)
 	{
@@ -511,7 +511,7 @@ void estimacionesClasicas(PRECISION lambda_0, PRECISION *lambda, int nlambda, fl
 		}
 	}
 
-	Ic = Icmax;
+	Ic = Icmax;*/
 
 	x = 0;
 	y = 0;
@@ -929,11 +929,13 @@ int interpolationLinearPSF(PRECISION *deltaLambda, PRECISION * PSF, PRECISION * 
 
 	size_t i;
 	gsl_interp *interpolation = gsl_interp_alloc (gsl_interp_linear,N_PSF);
-   	gsl_interp_init(interpolation, deltaLambda, PSF, N_PSF);
-   	gsl_interp_accel * accelerator =  gsl_interp_accel_alloc();
+	gsl_interp_init(interpolation, deltaLambda, PSF, N_PSF);
+	gsl_interp_accel * accelerator =  gsl_interp_accel_alloc();
 
+	printf("\n[");
 	for (i = 0; i < NSamples; ++i){
-		//printf("\n VALOR A INERPOLAR EN X %f, iteration %li\n",lambdasSamples[i]-offset,i);
+		//printf("\n VALOR A INERPOLAR EN X %f, iteration %li",lambdasSamples[i]-offset,i);
+		printf("\t%f,",lambdasSamples[i]-offset);
 		double aux;
 		if(offset>0){
 			if(lambdasSamples[i]-offset>= deltaLambda[0]){
@@ -963,7 +965,8 @@ int interpolationLinearPSF(PRECISION *deltaLambda, PRECISION * PSF, PRECISION * 
 				aux = 0.0f;
 			}			
 		}
-   }
+	}
+	printf("]\n");
 
   	// normalizations 
 	double cte = 0;

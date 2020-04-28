@@ -691,7 +691,7 @@ int readPSFFile(PRECISION * deltaLambda, PRECISION * PSF, const char * nameInput
 		double delta, psf;
 		sscanf(line,"%le  %le", &delta, &psf);
 		//deltaLambda[index] = (delta/1000)+centralWaveLenght;
-		deltaLambda[index] = delta;
+		deltaLambda[index] = delta*1000;
 		PSF[index] = psf;
 		index++;
 	}
