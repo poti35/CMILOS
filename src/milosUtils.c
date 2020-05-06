@@ -840,7 +840,7 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 	//printf("\n");
 	
 	ochisqr = fchisqr(spectra, nspectro, spectro, weight, vSigma, nfree);
-	printf("\n CHISQR EN LA ITERACION %d,: %e",*iter,ochisqr);
+	//printf("\n CHISQR EN LA ITERACION %d,: %e",*iter,ochisqr);
 
 	chisqr0 = ochisqr;
 
