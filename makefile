@@ -13,7 +13,7 @@ CFLAGS+=-O3
 
 ifdef develop
 	ifeq ($(develop),yes)
-		CFLAGS+=-g -shared-intel -shared-libgcc
+		CFLAGS+=-g 
 		#CFLAGS+=-Wall -Wextra		
 	endif
 endif

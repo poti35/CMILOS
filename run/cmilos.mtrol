@@ -1,4 +1,4 @@
-Number of cycles          (*):100         		! 0 = synthesis, n= max num of iterations, -1 = use classical estimates
+Number of cycles          (*):0         		! 0 = synthesis, n= max num of iterations, -1 = use classical estimates
 Observed profiles          (*):/mnt/d/IAA/dataTest/model_gm170_vlos05_1000_gauss/guess_gauss.per    !   
 Stray light file            :                  ! (none=no stray light contam)
 PSF file                     :49.2            ! .psf file -> read file; number -> FWHM (mA) of gaussian filter; empty -> NO FILTER

@@ -34,12 +34,13 @@
    decomposition,A = U x W x V^T.  The matrix V  (not the  transpose) is
    output  as v[0..n-1][0..n-1].  The  singular values  are output  as
    w[0..n-1] */
+extern int NTERMS;
 
 int svdcmp(PRECISION *a, int m, int n, PRECISION w[], PRECISION *v)
 {
   int flag,i,its,j,jj,k,l=0,nm=0;
   PRECISION anorm,c,f,g,h,s,scale,x,y,z;//,*rv1;
-  static double rv1[NTERMS];
+  double rv1[NTERMS];
   
   
   //rv1=  malloc(sizeof(PRECISION) *n);
