@@ -109,9 +109,7 @@ ConfigControl configCrontrolFile;
 
 // fvoigt memory consuption
  _Complex double *z,* zden, * zdiv;
-
-
-// 
+ 
 gsl_vector *eval;
 gsl_matrix *evec;
 gsl_eigen_symmv_workspace * workspace;
@@ -218,7 +216,7 @@ int main(int argc, char **argv)
 	/*********************************************** INITIALIZE VARIABLES  *********************************/
 	REAL * vSigma = malloc((nlambda*NPARMS)*sizeof(REAL));
 	for(i=0;i<nlambda*NPARMS;i++){
-		vSigma[i] = configCrontrolFile.sigma[0];
+		vSigma[i] = configCrontrolFile.noise;
 	}
 
 	CC = PI / 180.0;
@@ -309,13 +307,13 @@ int main(int argc, char **argv)
 						posWL = i;
 				}
 				if(posWL!= (nlambda/2) ){ // move center to the middle of samples
-					printf("\nPOS CENTRAL WL %i, posicion central del array %i",posWL,(nlambda-1)/2);
-					offset = ((  ((nlambda-1)/2) - posWL)*step)*1000;
-					printf ("\n OFFSET IS %f\n",offset);
+					//printf("\nPOS CENTRAL WL %i, posicion central del array %i",posWL,(nlambda-1)/2);
+					offset = ((  ((nlambda)/2) - posWL)*step)*1000;
+					//printf ("\n OFFSET IS %f\n",offset);
 				}
 				/*printf("\n PSF: [");
 				for(i=0;i<N_SAMPLES_PSF;i++){
-					printf(" %f,", PSF[i]);
+					printf("%f - %e,",deltaLambda[i], PSF[i]);
 				}
 				printf("]\n");
 				printf("\n Posicion central: %i\n",posWL);*/
@@ -482,19 +480,19 @@ int main(int argc, char **argv)
 			strcat(nameAuxOutputModel,MOD_FILE);
 			FILE * fptr = fopen(nameAuxOutputModel, "w");
 			if(fptr!=NULL){
-				fprintf(fptr,"MODEL_ETHA0: %lf",initModel.eta0);
-				fprintf(fptr,"\nMODEL_B: %lf",initModel.B);
-				fprintf(fptr,"\nMODEL_VLOS: %lf",initModel.vlos);
-				fprintf(fptr,"\nMODEL_LAMBDADOPP: %lf",initModel.dopp);
-				fprintf(fptr,"\nMODEL_AA: %lf",initModel.aa);
-				fprintf(fptr,"\nMODEL_GM: %lf",initModel.gm);
-				fprintf(fptr,"\nMODEL_AZI: %lf",initModel.az);
-				fprintf(fptr,"\nMODEL_S0: %lf",initModel.S0);
-				fprintf(fptr,"\nMODEL_S1: %lf",initModel.S1);
-				fprintf(fptr,"\nMODEL_MAC: %lf",initModel.mac);
-				fprintf(fptr,"\nMODEL_ALFA: %lf",initModel.alfa);
-				fprintf(fptr,"\nNUMBER ITERATIONS TO CONVERGE: %d",0);
-				fprintf(fptr,"\nChisqrf %le",0.0);
+				fprintf(fptr,"eta_0:           %lf\n",initModel.eta0);
+				fprintf(fptr,"magnetic field:  %lf\n",initModel.B);
+				fprintf(fptr,"LOS velocity:    %lf\n",initModel.vlos);
+				fprintf(fptr,"Doppler width:   %lf\n",initModel.dopp);
+				fprintf(fptr,"damping:         %lf\n",initModel.aa);
+				fprintf(fptr,"gamma:           %lf\n",initModel.gm);
+				fprintf(fptr,"phi:             %lf\n",initModel.az);
+				fprintf(fptr,"S_0:             %lf\n",initModel.S0);
+				fprintf(fptr,"S_1:             %lf\n",initModel.S1);
+				fprintf(fptr,"v_mac:           %lf\n",initModel.mac);
+				fprintf(fptr,"filling factor:  %lf\n",initModel.alfa);
+				fprintf(fptr,"# Iterations:    %d\n",0);
+				fprintf(fptr,"chisqr:          %le\n",0.0);
 				fprintf(fptr,"\n\n");
 				fclose(fptr);
 			}
@@ -590,8 +588,8 @@ int main(int argc, char **argv)
       AllocateMemoryDerivedSynthesis(nlambda);
 
 		// synthesis
-      mil_sinrf(cuantic, &initModel, wlines, vLambda, nlambda, spectra, AH, slight,spectra_mac, configCrontrolFile.ConvolveWithPSF);
-      me_der(cuantic, &initModel, wlines, vLambda, nlambda, d_spectra, spectra_mac, spectra, AH, slight, configCrontrolFile.ConvolveWithPSF);	
+      mil_sinrf(cuantic, &initModel, wlines, vLambda, nlambda, spectra, configCrontrolFile.mu, slight,spectra_mac, configCrontrolFile.ConvolveWithPSF);
+      me_der(cuantic, &initModel, wlines, vLambda, nlambda, d_spectra, spectra_mac, spectra, configCrontrolFile.mu, slight, configCrontrolFile.ConvolveWithPSF);	
 
 		// in this case basenamefile is from initmodel
 		char nameAux [4096];
@@ -606,7 +604,7 @@ int main(int argc, char **argv)
 			for (kk = 0; kk < nlambda; kk++)
 			{
 				//fprintf(fptr,"%d\t%f\t%e\t%e\t%e\t%e\n", indexLine, (vLambda[kk]-configCrontrolFile.CentralWaveLenght)*1000, spectra[kk], spectra[kk + nlambda], spectra[kk + nlambda * 2], spectra[kk + nlambda * 3]);
-				fprintf(fptr,"%d\t%f\t%e\t%e\t%e\t%e\n", indexLine, vLambda[kk]-configCrontrolFile.CentralWaveLenght, spectra[kk], spectra[kk + nlambda], spectra[kk + nlambda * 2], spectra[kk + nlambda * 3]);
+				fprintf(fptr,"%d\t%f\t%e\t%e\t%e\t%e\n", indexLine, (vLambda[kk]-configCrontrolFile.CentralWaveLenght)*1000, spectra[kk], spectra[kk + nlambda], spectra[kk + nlambda * 2], spectra[kk + nlambda * 3]);
 			}
 			fclose(fptr);
 			printf("\n*******************************************************************************************");
@@ -688,7 +686,7 @@ int main(int argc, char **argv)
 
       	int numIter;
       	lm_mils(cuantic, wlines, vLambda, nlambda, spectroPER, nlambda, &initModel, spectra, &chisqrf, slight, configCrontrolFile.toplim, configCrontrolFile.NumberOfCycles,
-               configCrontrolFile.WeightForStokes, configCrontrolFile.fix, vSigma, configCrontrolFile.sigma, configCrontrolFile.InitialDiagonalElement,&configCrontrolFile.ConvolveWithPSF,&numIter,configCrontrolFile.mu);
+               configCrontrolFile.WeightForStokes, configCrontrolFile.fix, vSigma, configCrontrolFile.noise, configCrontrolFile.InitialDiagonalElement,&configCrontrolFile.ConvolveWithPSF,&numIter,configCrontrolFile.mu, configCrontrolFile.logclambda);
 
 			// SAVE OUTPUT MODEL 
 			char nameAuxOutputModel [4096];
@@ -704,19 +702,22 @@ int main(int argc, char **argv)
 
 			FILE *fptr = fopen(nameAuxOutputModel, "w");
 			if(fptr!=NULL){
-				fprintf(fptr,"MODEL_ETHA0: %lf\n",initModel.eta0);
-				fprintf(fptr,"MODEL_B: %lf\n",initModel.B);
-				fprintf(fptr,"MODEL_VLOS: %lf\n",initModel.vlos);
-				fprintf(fptr,"MODEL_LAMBDADOPP: %lf\n",initModel.dopp);
-				fprintf(fptr,"MODEL_AA: %lf\n",initModel.aa);
-				fprintf(fptr,"MODEL_GM: %lf\n",initModel.gm);
-				fprintf(fptr,"MODEL_AZI: %lf\n",initModel.az);
-				fprintf(fptr,"MODEL_S0: %lf\n",initModel.S0);
-				fprintf(fptr,"MODEL_S1: %lf\n",initModel.S1);
-				fprintf(fptr,"MODEL_MAC: %lf\n",initModel.mac);
-				fprintf(fptr,"MODEL_ALFA: %lf\n",initModel.alfa);
-				fprintf(fptr,"NUMBER ITERATIONS TO CONVERGE: %d\n",numIter);
-				fprintf(fptr,"Chisqrf %le\n",chisqrf);
+				fprintf(fptr,"eta_0:           %lf\n",initModel.eta0);
+				fprintf(fptr,"magnetic field:  %lf\n",initModel.B);
+				fprintf(fptr,"LOS velocity:    %lf\n",initModel.vlos);
+				fprintf(fptr,"Doppler width:   %lf\n",initModel.dopp);
+				fprintf(fptr,"damping:         %lf\n",initModel.aa);
+				fprintf(fptr,"gamma:           %lf\n",initModel.gm);
+				fprintf(fptr,"phi:             %lf\n",initModel.az);
+				fprintf(fptr,"S_0:             %lf\n",initModel.S0);
+				fprintf(fptr,"S_1:             %lf\n",initModel.S1);
+				fprintf(fptr,"v_mac:           %lf\n",initModel.mac);
+				fprintf(fptr,"filling factor:  %lf\n",initModel.alfa);
+				fprintf(fptr,"# Iterations:    %d\n",numIter);
+				fprintf(fptr,"chisqr:          %le\n",chisqrf);
+
+
+
 				fprintf(fptr,"\n\n");
 				fclose(fptr);
 				printf("\n*******************************************************************************************");
@@ -744,7 +745,7 @@ int main(int argc, char **argv)
 					int kk;
 					for (kk = 0; kk < nlambda; kk++)
 					{
-						fprintf(fptr,"%d\t%f\t%e\t%e\t%e\t%e\n", indexLine, vLambda[kk]-configCrontrolFile.CentralWaveLenght, spectra[kk], spectra[kk + nlambda], spectra[kk + nlambda * 2], spectra[kk + nlambda * 3]);
+						fprintf(fptr,"%d\t%f\t%e\t%e\t%e\t%e\n", indexLine, (vLambda[kk]-configCrontrolFile.CentralWaveLenght)*1000, spectra[kk], spectra[kk + nlambda], spectra[kk + nlambda * 2], spectra[kk + nlambda * 3]);
 					}
 					//printf("\nVALORES DE LAS FUNCIONES RESPUESTA \n");
 					fclose(fptr);
@@ -848,7 +849,7 @@ int main(int argc, char **argv)
 							slightPixel = slight+nlambda*indexPixel;
 					}
 					lm_mils(cuantic, wlines, vLambda, nlambda, fitsImage->pixels[indexPixel].spectro, nlambda, &initModel, spectra, &vChisqrf[indexPixel], slightPixel, configCrontrolFile.toplim, configCrontrolFile.NumberOfCycles,
-							configCrontrolFile.WeightForStokes, configCrontrolFile.fix, vSigma,  configCrontrolFile.sigma,configCrontrolFile.InitialDiagonalElement,&configCrontrolFile.ConvolveWithPSF,&vNumIter[indexPixel],configCrontrolFile.mu);						
+							configCrontrolFile.WeightForStokes, configCrontrolFile.fix, vSigma,  configCrontrolFile.noise,configCrontrolFile.InitialDiagonalElement,&configCrontrolFile.ConvolveWithPSF,&vNumIter[indexPixel],configCrontrolFile.mu,configCrontrolFile.logclambda);						
 					
 					vModels[indexPixel] = initModel;
 					if(configCrontrolFile.SaveSynthesisAdjusted){

@@ -92,7 +92,6 @@ PRECISION FWHM = 0;
 ConfigControl configCrontrolFile;
 
 _Complex double  *z,* zden, * zdiv;
-
 gsl_vector *eval;
 gsl_matrix *evec;
 gsl_eigen_symmv_workspace * workspace;
@@ -289,7 +288,7 @@ int main(int argc, char **argv)
 	/*********************************************** INITIALIZE VARIABLES  *********************************/
 	REAL * vSigma = malloc((nlambda*NPARMS)*sizeof(REAL));
 	for(i=0;i<nlambda*NPARMS;i++){
-		vSigma[i] = configCrontrolFile.sigma[0];
+		vSigma[i] = configCrontrolFile.noise;
 	}
 
 	CC = PI / 180.0;
@@ -349,7 +348,6 @@ int main(int argc, char **argv)
 					//slog_error(0,"File \"%s\" does not exist!!!\n",nameInputFilePSF);
 					return 0;
 				}
-
 				//read character by character and check for new line	
 				while((ch=fgetc(fp))!=EOF)
 				{
@@ -855,7 +853,7 @@ int main(int argc, char **argv)
 					initModel.S1 = INITIAL_MODEL.S1;
 
 					// CLASSICAL ESTIMATES TO GET B, GAMMA, vlos, azimuth
-					/*estimacionesClasicas(wlines[1], vGlobalLambda, nlambda, vAuxSpectraSplit+(indexPixel*(nlambda*NPARMS)), &initModel,1);
+					estimacionesClasicas(wlines[1], vGlobalLambda, nlambda, vAuxSpectraSplit+(indexPixel*(nlambda*NPARMS)), &initModel,1);
 					if (isnan(initModel.B))
 						initModel.B = 1;
 					if (isnan(initModel.vlos))
@@ -863,7 +861,7 @@ int main(int argc, char **argv)
 					if (isnan(initModel.gm))
 						initModel.gm = 1;						
 					if (isnan(initModel.az))
-						initModel.az = 1;*/
+						initModel.az = 1;
 					// INVERSION RTE
 					
 					PRECISION * slightPixel;
@@ -878,7 +876,7 @@ int main(int argc, char **argv)
 					
 					
 					lm_mils(cuantic, wlines, vGlobalLambda, nlambda, vAuxSpectraSplit+(indexPixel*(nlambda*NPARMS)), nlambda, &initModel, spectra, &(vChisqrf_L[indexInputFits][indexPixel]), slightPixel, configCrontrolFile.toplim, configCrontrolFile.NumberOfCycles,
-						configCrontrolFile.WeightForStokes, configCrontrolFile.fix, vSigma, configCrontrolFile.sigma, configCrontrolFile.InitialDiagonalElement,&configCrontrolFile.ConvolveWithPSF,&(vNumIter_L[indexInputFits][indexPixel]),configCrontrolFile.mu);																		
+						configCrontrolFile.WeightForStokes, configCrontrolFile.fix, vSigma, configCrontrolFile.noise, configCrontrolFile.InitialDiagonalElement,&configCrontrolFile.ConvolveWithPSF,&(vNumIter_L[indexInputFits][indexPixel]),configCrontrolFile.mu,configCrontrolFile.logclambda);																		
 					
 					resultsInitModel_L[indexInputFits][indexPixel] = initModel;
 					if(configCrontrolFile.SaveSynthesisAdjusted){
@@ -1091,7 +1089,7 @@ int main(int argc, char **argv)
 					initModel.S1 = INITIAL_MODEL.S1;
 					
 					// CLASSICAL ESTIMATES TO GET B, GAMMA, vlos, azimuth
-					/*estimacionesClasicas(wlines[1], vGlobalLambda, nlambda, fitsImage->pixels[indexPixel].spectro, &initModel,1);
+					estimacionesClasicas(wlines[1], vGlobalLambda, nlambda, fitsImage->pixels[indexPixel].spectro, &initModel,1);
 					if (isnan(initModel.B))
 						initModel.B = 1;
 					if (isnan(initModel.vlos))
@@ -1099,7 +1097,7 @@ int main(int argc, char **argv)
 					if (isnan(initModel.gm))
 						initModel.gm = 1;
 					if (isnan(initModel.az))
-						initModel.az = 1;*/
+						initModel.az = 1;
 					// INVERSION RTE
 
 
@@ -1113,7 +1111,7 @@ int main(int argc, char **argv)
 							slightPixel = slight+nlambda*indexPixel;
 					}
 					lm_mils(cuantic, wlines, vGlobalLambda, nlambda, fitsImage->pixels[indexPixel].spectro, nlambda, &initModel, spectra, &vChisqrf[indexPixel], slightPixel, configCrontrolFile.toplim, configCrontrolFile.NumberOfCycles,
-							configCrontrolFile.WeightForStokes, configCrontrolFile.fix, vSigma, configCrontrolFile.sigma, configCrontrolFile.InitialDiagonalElement,&configCrontrolFile.ConvolveWithPSF,&vNumIter[indexPixel],configCrontrolFile.mu);						
+							configCrontrolFile.WeightForStokes, configCrontrolFile.fix, vSigma, configCrontrolFile.noise, configCrontrolFile.InitialDiagonalElement,&configCrontrolFile.ConvolveWithPSF,&vNumIter[indexPixel],configCrontrolFile.mu,configCrontrolFile.logclambda);						
 
 					vModels[indexPixel] = initModel;
 					if(configCrontrolFile.SaveSynthesisAdjusted){
@@ -1284,7 +1282,7 @@ int main(int argc, char **argv)
 				initModel.S1 = INITIAL_MODEL.S1;
 
 				// CLASSICAL ESTIMATES TO GET B, GAMMA, vlos, azimuth
-				/*estimacionesClasicas(wlines[1], vGlobalLambda, nlambda, vSpectraSplit+(indexPixel*(nlambda*NPARMS)), &initModel,1);
+				estimacionesClasicas(wlines[1], vGlobalLambda, nlambda, vSpectraSplit+(indexPixel*(nlambda*NPARMS)), &initModel,1);
 
 				if (isnan(initModel.B))
 					initModel.B = 1;
@@ -1293,7 +1291,7 @@ int main(int argc, char **argv)
 				if (isnan(initModel.gm))
 					initModel.gm = 1;						
 				if (isnan(initModel.az))
-					initModel.az = 1;*/
+					initModel.az = 1;
 
 				// INVERSION RTE
 				
@@ -1308,7 +1306,7 @@ int main(int argc, char **argv)
 				}
 				
 				lm_mils(cuantic, wlines, vGlobalLambda, nlambda, vSpectraSplit+(indexPixel*(nlambda*NPARMS)), nlambda, &initModel, spectra, &vChisqrf[indexPixel], slightPixel, configCrontrolFile.toplim, configCrontrolFile.NumberOfCycles,
-					configCrontrolFile.WeightForStokes, configCrontrolFile.fix, vSigma,  configCrontrolFile.sigma,configCrontrolFile.InitialDiagonalElement,&configCrontrolFile.ConvolveWithPSF,&vNumIter[indexPixel],configCrontrolFile.mu);																							
+					configCrontrolFile.WeightForStokes, configCrontrolFile.fix, vSigma,  configCrontrolFile.noise,configCrontrolFile.InitialDiagonalElement,&configCrontrolFile.ConvolveWithPSF,&vNumIter[indexPixel],configCrontrolFile.mu,configCrontrolFile.logclambda);																							
 				
 				resultsInitModel[indexPixel] = initModel;
 				if(configCrontrolFile.SaveSynthesisAdjusted){
@@ -1479,6 +1477,7 @@ int main(int argc, char **argv)
 	MPI_Type_free(&mpiInitModel);
 	MPI_Finalize() ;
 	free(G);
+	free(vSigma);
 	gsl_eigen_symmv_free (workspace);
 	gsl_vector_free(eval);
 	gsl_matrix_free(evec);

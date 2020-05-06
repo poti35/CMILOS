@@ -62,7 +62,14 @@ int covarm(REAL *w,REAL *sig,float *spectro,int nspectro,REAL *spectra,REAL  *d_
 }
 
 
-
+/**
+ * @param spectra: array with synthetic spectro 
+ * @param nspectro: size of spectro
+ * @param spectro: original spectro
+ * @param w: array of weight for I,Q,U,V 
+ * @param sig: array with sigma for I,Q,U,V 
+ * @param nfree: (nspectro * NPARMS) - NTERMS, NPARAMs is 4 and NTERMS 11. 
+ * */
 REAL fchisqr(REAL * spectra,int nspectro,float *spectro,REAL *w,REAL *sig,REAL nfree){
 	
 	REAL TOT,dif;	
@@ -79,7 +86,6 @@ REAL fchisqr(REAL * spectra,int nspectro,float *spectro,REAL *w,REAL *sig,REAL n
 		TOT+=((w[j]*opa)/(sig[j]));
 	}*/
 
-
 	for(j=0;j<NPARMS;j++){
 		opa=0;
 		for(i=0;i<nspectro;i++){
@@ -90,8 +96,7 @@ REAL fchisqr(REAL * spectra,int nspectro,float *spectro,REAL *w,REAL *sig,REAL n
 		}
 		TOT+= opa;
 	}
-		
-	//return TOT/15;		
+
 	return TOT/nfree;
 	
 }
@@ -265,8 +270,6 @@ int multmatrix_transpose(REAL *a,int naf,int nac, REAL *b,int nbf,int nbc,REAL *
 
 	return 0;
 }
-
-
 int multmatrix_transpose_sigma(REAL *a,int naf,int nac, REAL *b,int nbf,int nbc,REAL *result,int *fil,int *col,REAL weigth, REAL * sigma){
     
     int i,j,k;
@@ -295,7 +298,6 @@ int multmatrix_transpose_sigma(REAL *a,int naf,int nac, REAL *b,int nbf,int nbc,
 
 	return 0;
 }
-
 //Media de un vector de longitud numl
 PRECISION mean(PRECISION *dat, int numl){
 	

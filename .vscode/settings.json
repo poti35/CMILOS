@@ -6,7 +6,13 @@
       "cmath": "cpp",
       "complex": "cpp",
       "gsl_spline.h": "c",
-      "vector": "c"
+      "vector": "c",
+      "array": "c",
+      "deque": "c",
+      "string": "c",
+      "unordered_map": "c",
+      "string_view": "c",
+      "initializer_list": "c"
    },
    "workbench.colorCustomizations": {
       "activityBar.background": "#113513",

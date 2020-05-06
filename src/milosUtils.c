@@ -348,6 +348,20 @@ int mil_svd(PRECISION *h, PRECISION *beta, PRECISION *delta)
 	gsl_eigen_symmv(&gsl_h1.matrix, eval, evec, workspace);
 	w = gsl_vector_ptr(eval,0);
 	v = gsl_matrix_ptr(evec,0,0);
+
+	printf("\nAUTOVALORES: \n");
+	for(i=0;i<NTERMS;i++)
+		printf(" %le",w[i]);
+
+	printf("\n V MATRIX\n");
+	for(i=0;i<NTERMS;i++){
+		int j;
+		for(j=0;j<NTERMS;j++){
+			printf("%le\t",v[i*NTERMS+j]);
+		}
+		printf("\n");
+	}
+	printf("\n");
 	//svdcmp(h2,NTERMS,NTERMS,w2,v2);
 
 	/*double cpu_time_used = ((double) (clock() - t)) / CLOCKS_PER_SEC;
@@ -498,8 +512,34 @@ void estimacionesClasicas(PRECISION lambda_0, PRECISION *lambda, int nlambda, fl
 	spectroU = spectro + nlambda * 2;
 	spectroV = spectro + nlambda * 3;
 
+	//check if there is ghost lambdas in the extrems
+	int beginLambda = 0;
+	
+	int exit=0;
+	for(i=0;i<nlambda && !exit;i++){
+		if(spectroI[i]<0){
+			beginLambda++;
+		}
+		else
+		{
+			exit=1;
+		}	
+	}
 
-	Ic = spectro[nlambda - 1]; // Continuo ultimo valor de I
+	int endLambda = nlambda;
+	exit=0;
+	for(i=nlambda-1;i>=0 && !exit;i--){
+		if(spectroI[i]<0){
+			endLambda--;
+		}
+		else
+		{
+			exit=1;
+		}	
+	}
+
+
+	Ic = spectro[endLambda - 1]; // Continuo ultimo valor de I
 
 	/*Icmax = spectro[0];
 	int index =0;
@@ -517,7 +557,7 @@ void estimacionesClasicas(PRECISION lambda_0, PRECISION *lambda, int nlambda, fl
 	y = 0;
 	x_vlos = 0;
 	y_vlos = 0;
-	for (i = 0; i < nlambda-1 ; i++)
+	for (i = beginLambda; i < endLambda-1 ; i++)
 	{
 		if(spectroI[i]>-1 && spectroV[i]>-1){
 			aux = (Ic - (spectroI[i] + spectroV[i]));
@@ -537,7 +577,7 @@ void estimacionesClasicas(PRECISION lambda_0, PRECISION *lambda, int nlambda, fl
 
 	x = 0;
 	y = 0;
-	for (i = 0; i < nlambda-1 ; i++)
+	for (i = beginLambda; i < endLambda-1 ; i++)
 	{
 		if(spectroI[i]>-1 && spectroV[i]>-1){
 			aux = (Ic - (spectroI[i] - spectroV[i]));
@@ -572,7 +612,7 @@ void estimacionesClasicas(PRECISION lambda_0, PRECISION *lambda, int nlambda, fl
 	//inclinacion
 	x = 0;
 	y = 0;
-	for (i = 0; i < nlambda - 1; i++)
+	for (i = beginLambda; i < endLambda - 1; i++)
 	{
 		if(spectroQ[i]>-1 && spectroU[i]>-1 && spectroV[i]>-1){
 			L = FABS(SQRT(spectroQ[i] * spectroQ[i] + spectroU[i] * spectroU[i]));
@@ -666,7 +706,7 @@ void estimacionesClasicas(PRECISION lambda_0, PRECISION *lambda, int nlambda, fl
 int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda, float *spectro, int nspectro,
 				Init_Model *initModel, REAL *spectra, float *chisqrf,
 				PRECISION * slight, PRECISION toplim, int miter, REAL *weight, int *fix,
-				REAL *vSigma, REAL * sigma, REAL ilambda, int * INSTRUMENTAL_CONVOLUTION, int * iter, REAL ah)
+				REAL *vSigma, REAL sigma, REAL ilambda, int * INSTRUMENTAL_CONVOLUTION, int * iter, REAL ah, int logclambda)
 {
 
 	
@@ -683,10 +723,13 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 	for(i=0;i<nlambda*NPARMS;i++){
 		if(spectro[i]<-1){ 
 			//printf("\n sigma %i cambiada",i);
-			//vSigma[i]= 100000000000000000000;
-			vSigma[i]= FLT_MAX;
+			vSigma[i]= 1000000000000000000000.0;
+			//vSigma[i]= FLT_MAX;
 			//vSigma[i]= -1;
 			n_ghots++;
+		}
+		else{
+			vSigma[i] = sigma;
 		}
 	}
 	
@@ -702,8 +745,6 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 	{
 		return -1; //'NOT ENOUGH POINTS'
 	}
-
-
 
 	flambda = ilambda;
 
@@ -799,7 +840,7 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 	//printf("\n");
 	
 	ochisqr = fchisqr(spectra, nspectro, spectro, weight, vSigma, nfree);
-	
+	printf("\n CHISQR EN LA ITERACION %d,: %e",*iter,ochisqr);
 
 	chisqr0 = ochisqr;
 
@@ -814,7 +855,17 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 			ind = i * (NTERMS + 1);
 			covar[ind] = alpha[ind] * (1.0 + flambda);
 		}
-
+		if(*iter ==0){ // iter 0 impirmir covar
+			printf("\n COVARM MATRIX\n");
+			for(i=0;i<NTERMS;i++){
+				int j;
+				for(j=0;j<NTERMS;j++){
+					printf("%le\t",covar[i*NTERMS+j]);
+				}
+				printf("\n");
+			}
+			printf("\n");
+		}	
 		mil_svd(covar, betad, delta);
 		AplicaDelta(initModel, delta, fixed, &model);
 
@@ -865,7 +916,7 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 			clanda=1 ; // condition to exit of the loop 		
 
 		(*iter)++;
-		PARBETA_FACTOR = log10f(chisqr)/log10f(chisqr0);
+		if(logclambda) PARBETA_FACTOR = log10f(chisqr)/log10f(chisqr0);
 
 	} while (*iter < miter && !clanda);
 
@@ -874,7 +925,6 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 	if (fix == NULL)
 		free(fixed);
 
-	//exit(1);
 	return 1;
 }
 
@@ -932,12 +982,12 @@ int interpolationLinearPSF(PRECISION *deltaLambda, PRECISION * PSF, PRECISION * 
 	gsl_interp_init(interpolation, deltaLambda, PSF, N_PSF);
 	gsl_interp_accel * accelerator =  gsl_interp_accel_alloc();
 
-	printf("\n[");
+	//printf("\n[");
 	for (i = 0; i < NSamples; ++i){
 		//printf("\n VALOR A INERPOLAR EN X %f, iteration %li",lambdasSamples[i]-offset,i);
-		printf("\t%f,",lambdasSamples[i]-offset);
+		//printf("\t%f,",lambdasSamples[i]-offset);
 		double aux;
-		if(offset>0){
+		if(offset>=0){
 			if(lambdasSamples[i]-offset>= deltaLambda[0]){
 				aux = gsl_interp_eval(interpolation, deltaLambda, PSF, lambdasSamples[i]-offset, accelerator);
 						// if lambdasSamples[i] is out of range from deltaLambda then aux is GSL_NAN, we put nan values to 0. 
@@ -952,8 +1002,9 @@ int interpolationLinearPSF(PRECISION *deltaLambda, PRECISION * PSF, PRECISION * 
 			}
 		}
 		else{
-			if(lambdasSamples[i]+offset<= deltaLambda[NSamples-1]){
-				aux = gsl_interp_eval(interpolation, deltaLambda, PSF, lambdasSamples[i]+offset, accelerator);
+			//printf("lamba+offset %f  deltalambda %f ",lambdasSamples[i]+offset,deltaLambda[NSamples-1] );
+			if(lambdasSamples[i]-offset>= deltaLambda[NSamples-1]){
+				aux = gsl_interp_eval(interpolation, deltaLambda, PSF, lambdasSamples[i]-offset, accelerator);
 						// if lambdasSamples[i] is out of range from deltaLambda then aux is GSL_NAN, we put nan values to 0. 
 				if(!gsl_isnan(aux)) 
 					fInterpolated[i] = aux;
@@ -966,7 +1017,7 @@ int interpolationLinearPSF(PRECISION *deltaLambda, PRECISION * PSF, PRECISION * 
 			}			
 		}
 	}
-	printf("]\n");
+	//printf("]\n");
 
   	// normalizations 
 	double cte = 0;
