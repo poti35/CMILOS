@@ -349,7 +349,7 @@ int mil_svd(PRECISION *h, PRECISION *beta, PRECISION *delta)
 	w = gsl_vector_ptr(eval,0);
 	v = gsl_matrix_ptr(evec,0,0);
 
-	printf("\nAUTOVALORES: \n");
+	/*printf("\nAUTOVALORES: \n");
 	for(i=0;i<NTERMS;i++)
 		printf(" %le",w[i]);
 
@@ -361,7 +361,7 @@ int mil_svd(PRECISION *h, PRECISION *beta, PRECISION *delta)
 		}
 		printf("\n");
 	}
-	printf("\n");
+	printf("\n");*/
 	//svdcmp(h2,NTERMS,NTERMS,w2,v2);
 
 	/*double cpu_time_used = ((double) (clock() - t)) / CLOCKS_PER_SEC;
@@ -855,7 +855,7 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 			ind = i * (NTERMS + 1);
 			covar[ind] = alpha[ind] * (1.0 + flambda);
 		}
-		if(*iter ==0){ // iter 0 impirmir covar
+		/*if(*iter ==0){ // iter 0 impirmir covar
 			printf("\n COVARM MATRIX\n");
 			for(i=0;i<NTERMS;i++){
 				int j;
@@ -865,7 +865,7 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 				printf("\n");
 			}
 			printf("\n");
-		}	
+		}*/	
 		mil_svd(covar, betad, delta);
 		AplicaDelta(initModel, delta, fixed, &model);
 

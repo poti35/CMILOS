@@ -238,8 +238,6 @@ int main(int argc, char **argv)
 			nter++;
 	}
 	NTERMS=nter;
-	printf("\n NTERMS ES : %d",NTERMS);
-	printf("\n");
 	// allocate memory for eigen values
 	eval = gsl_vector_alloc (NTERMS);
   	evec = gsl_matrix_alloc (NTERMS, NTERMS);
