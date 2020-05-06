@@ -39,7 +39,7 @@
 
 // ***************************** FUNCTIONS TO READ FITS FILE *********************************************************
 
-int NTERMS;
+int NTERMS=11;
 Cuantic *cuantic; // Global variable with cuantic information 
 
 
