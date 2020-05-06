@@ -64,7 +64,7 @@ PRECISION *GMAC,*GMAC_DERIV, *G; // GAUSSIAN MUST BE IN DOUBLE PRECISION
 PRECISION *dirConvPar; // AUX GLOBAL VECTOR for calculate direct convolutions
 //REAL *resultConv; // aux global vector for store direct convolution
 
-//REAL * opa;
+REAL * opa;
 int FGlobal, HGlobal, uuGlobal;
 
 //PRECISION *d_spectra, *spectra, *spectra_mac;

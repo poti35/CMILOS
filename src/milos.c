@@ -80,7 +80,7 @@ PRECISION * G = NULL;
 
 
 
-//REAL * opa;
+REAL * opa;
 int FGlobal, HGlobal, uuGlobal;
 
 //PRECISION *d_spectra, *spectra, *spectra_mac;
