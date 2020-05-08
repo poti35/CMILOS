@@ -39,7 +39,7 @@
 
 // ***************************** FUNCTIONS TO READ FITS FILE *********************************************************
 
-
+int NTERMS=11;
 Cuantic *cuantic; // Global variable with cuantic information 
 
 
@@ -63,7 +63,7 @@ REAL **FGlobalInicial;
 PRECISION *GMAC,*GMAC_DERIV, *G; // GAUSSIAN MUST BE IN DOUBLE PRECISION 
 PRECISION *dirConvPar; // AUX GLOBAL VECTOR for calculate direct convolutions
 //REAL *resultConv; // aux global vector for store direct convolution
-REAL AP[NTERMS*NTERMS*NPARMS],BT[NPARMS*NTERMS];
+
 REAL * opa;
 int FGlobal, HGlobal, uuGlobal;
 
@@ -145,11 +145,6 @@ int main(int argc, char **argv)
 
 	PRECISION *wlines;
 	int nlambda, numPixels, indexPixel;
-	
-	// allocate memory for eigen values
-	eval = gsl_vector_alloc (NTERMS);
-  	evec = gsl_matrix_alloc (NTERMS, NTERMS);
-	workspace = gsl_eigen_symmv_alloc (NTERMS);
 
 	//*****
 	Init_Model INITIAL_MODEL;
@@ -242,6 +237,14 @@ int main(int argc, char **argv)
 		printf("\n\n ¡¡¡ ERROR READING INIT MODEL !!! \n\n");
 		exit(EXIT_FAILURE);
 	}
+
+	if(configCrontrolFile.fix[10]==0) NTERMS--;
+	if(configCrontrolFile.fix[9]==0 && INITIAL_MODEL.mac==0 ) NTERMS--;
+
+	// allocate memory for eigen values
+	eval = gsl_vector_alloc (NTERMS);
+  	evec = gsl_matrix_alloc (NTERMS, NTERMS);
+	workspace = gsl_eigen_symmv_alloc (NTERMS);
 
 	/***************** READ WAVELENGHT FROM GRID OR FITS ********************************/
 	PRECISION * vGlobalLambda, *vOffsetsLambda;
@@ -582,7 +585,6 @@ int main(int argc, char **argv)
 	MPI_Group_size(vGroups[myGroup], &myGroupSize);
 	MPI_Barrier(MPI_COMM_WORLD);
 	
-
 	//**************************************** END OF CREATE GROUPS FOR DIVIDE IMAGE IN 2 ********************************************/
 
 	if(idProc == root){
@@ -826,7 +828,7 @@ int main(int argc, char **argv)
 		}
 	}
 
-	AllocateMemoryDerivedSynthesis(nlambda);
+	AllocateMemoryDerivedSynthesis(nlambda,NTERMS);
 	//*************************************** ONE IMAGE PER PROCESSOR *********************************
 
 	if(numFilesPerProcessParallel){

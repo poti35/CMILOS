@@ -67,7 +67,7 @@
 
 #define CLASSICAL_ESTIMATES_SAMPLE_REF 4 //Muestra referencia para cambio de cuadrante de azimuth. Depende del numero de muestras y posicion Continuo
 
-#define NTERMS 11 
+//#define NTERMS 11 
 
 #define PRECISION double //double 
 
@@ -136,7 +136,7 @@ typedef struct CUANTIC Cuantic;
 
 /******************************************************/
 
-void AllocateMemoryDerivedSynthesis(int numl);
+void AllocateMemoryDerivedSynthesis(int numl, int NTERMS);
 void FreeMemoryDerivedSynthesis();
 
 /******************************************************/
@@ -144,7 +144,7 @@ void FreeMemoryDerivedSynthesis();
 
 Cuantic * create_cuantic(PRECISION * dat, int log);
 
-int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *lambda,int nlambda, REAL *d_spectra,REAL *spectra, REAL * spectra_slight,REAL ah,PRECISION * slight,int filter);
+int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *lambda,int nlambda, REAL *d_spectra,REAL *spectra, REAL * spectra_slight,REAL ah,PRECISION * slight,int filter, int * fix);
 
 int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *lambda,int nlambda,REAL *spectra,
 			REAL ah,PRECISION * slight,REAL * spectra_mc, int filter);

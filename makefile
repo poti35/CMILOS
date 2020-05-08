@@ -1,19 +1,20 @@
-compiler= $(shell mpicc -show | awk '{print $1}')
+compiler=$(shell (mpicc -show))
+comp=$(shell echo $(compiler) | head -c 3)
 
 CC=mpicc
 
 CFLAGS=
-ifeq ($(compiler),icc)
+ifeq ($(comp),icc)
 	CFLAGS+=-ipo -xHost -no-multibyte-chars
 endif
-ifeq ($(compiler),gcc)
+ifeq ($(comp),gcc)
 	CFLAGS+=-march=native
 endif
 CFLAGS+=-O3
 
 ifdef develop
 	ifeq ($(develop),yes)
-		CFLAGS+=-g -shared-intel -shared-libgcc
+		CFLAGS+=-g 
 		#CFLAGS+=-Wall -Wextra		
 	endif
 endif

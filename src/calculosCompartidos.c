@@ -26,7 +26,7 @@ extern PRECISION *dirConvPar;
 extern _Complex double *z,* zden, * zdiv;
 
 
-void AllocateMemoryDerivedSynthesis(int numl)
+void AllocateMemoryDerivedSynthesis(int numl, int NTERMS)
 {
 
 	/************* ME DER *************************************/

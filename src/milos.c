@@ -45,6 +45,8 @@
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_eigen.h>
 
+
+int NTERMS = 11;
 Cuantic *cuantic; // Variable global, está hecho así, de momento,para parecerse al original
 
 
@@ -76,7 +78,7 @@ PRECISION * dirConvPar;
 PRECISION * G = NULL;
 //REAL * G;
 
-REAL AP[NTERMS*NTERMS*NPARMS],BT[NPARMS*NTERMS];
+
 
 REAL * opa;
 int FGlobal, HGlobal, uuGlobal;
@@ -124,12 +126,6 @@ int main(int argc, char **argv)
 	int * vNumIter; // to store the number of iterations used to converge for each pixel
 	int indexLine; // index to identify central line to read it 
 
-	
-	// allocate memory for eigen values
-	eval = gsl_vector_alloc (NTERMS);
-  	evec = gsl_matrix_alloc (NTERMS, NTERMS);
-	workspace = gsl_eigen_symmv_alloc (NTERMS);
-
 	//*****
 	Init_Model INITIAL_MODEL;
 	PRECISION * deltaLambda, * PSF;
@@ -140,17 +136,11 @@ int main(int argc, char **argv)
 
 	PRECISION * slight = NULL;
 	int dimStrayLight;
-
 	const char  * nameInputFileSpectra ;
-	
-	
 	char nameOutputFilePerfiles [4096];
-	
 	const char	* nameInputFileLines;
-	
 	const char	* nameInputFilePSF ;	
-
-   FitsImage * fitsImage;
+    FitsImage * fitsImage;
 	PRECISION  dat[7];
 
 	/********************* Read data input from file ******************************/
@@ -167,12 +157,22 @@ int main(int argc, char **argv)
 	FWHM = configCrontrolFile.FWHM;
 
 
+
 	/***************** READ INIT MODEL ********************************/
 	if(configCrontrolFile.InitialGuessModel[0]!='\0' && !readInitialModel(&INITIAL_MODEL,configCrontrolFile.InitialGuessModel)){
 		printf("\nERROR READING GUESS MODEL 1 FILE\n");
 		exit(EXIT_FAILURE);
 	}
 	
+	if(configCrontrolFile.fix[10]==0) NTERMS--;
+	if(configCrontrolFile.fix[9]==0 && INITIAL_MODEL.mac==0 ) NTERMS--;
+
+	printf("\n NTERMS ES : %d",NTERMS);
+	// allocate memory for eigen values
+	eval = gsl_vector_alloc (NTERMS);
+  	evec = gsl_matrix_alloc (NTERMS, NTERMS);
+	workspace = gsl_eigen_symmv_alloc (NTERMS);
+
 	/***************** READ WAVELENGHT FROM GRID OR FITS ********************************/
 	PRECISION * vLambda, *vOffsetsLambda;
 
@@ -417,8 +417,6 @@ int main(int argc, char **argv)
 
 	}		
 
-
-
 	/****************************************************************************************************/
 	//  IF NUMBER OF CYCLES IS LES THAN 0 THEN --> WE USE CLASSICAL ESTIMATES 
 	//  IF NUMBER OF CYCLES IS 0 THEN -->  DO SYNTHESIS FROM THE INIT MODEL 
@@ -428,7 +426,7 @@ int main(int argc, char **argv)
 	if(configCrontrolFile.NumberOfCycles<0){
 		// read fits or per 
       
-		AllocateMemoryDerivedSynthesis(nlambda);
+		AllocateMemoryDerivedSynthesis(nlambda,NTERMS);
 		if(strcmp(file_ext(configCrontrolFile.ObservedProfiles),PER_FILE)==0){ // invert only per file
 			float * spectroPER = calloc(nlambda*NPARMS,sizeof(float));
 			FILE * fReadSpectro;
@@ -456,8 +454,6 @@ int main(int argc, char **argv)
 				contLine++;
 			}
 			fclose(fReadSpectro);
-
-      	
 
 			Init_Model initModel;
 			initModel.eta0 = 0;
@@ -581,15 +577,15 @@ int main(int argc, char **argv)
       printf("\n S1: %lf",initModel.S1);      
       printf("\n mac: %lf",initModel.mac);
       printf("\n alfa: %lf",initModel.alfa);
-		printf("\n");    
+	  printf("\n");    
 
       
       
-      AllocateMemoryDerivedSynthesis(nlambda);
+      AllocateMemoryDerivedSynthesis(nlambda,NTERMS);
 
 		// synthesis
       mil_sinrf(cuantic, &initModel, wlines, vLambda, nlambda, spectra, configCrontrolFile.mu, slight,spectra_mac, configCrontrolFile.ConvolveWithPSF);
-      me_der(cuantic, &initModel, wlines, vLambda, nlambda, d_spectra, spectra_mac, spectra, configCrontrolFile.mu, slight, configCrontrolFile.ConvolveWithPSF);	
+      me_der(cuantic, &initModel, wlines, vLambda, nlambda, d_spectra, spectra_mac, spectra, configCrontrolFile.mu, slight, configCrontrolFile.ConvolveWithPSF,configCrontrolFile.fix);	
 
 		// in this case basenamefile is from initmodel
 		char nameAux [4096];
@@ -670,7 +666,7 @@ int main(int argc, char **argv)
 
       
       	
-			AllocateMemoryDerivedSynthesis(nlambda);
+			AllocateMemoryDerivedSynthesis(nlambda,NTERMS);
 			Init_Model initModel;
 			initModel.eta0 = INITIAL_MODEL.eta0;
 			initModel.B = INITIAL_MODEL.B; //200 700
@@ -799,7 +795,7 @@ int main(int argc, char **argv)
 				}
 
 				//***************************************** INIT MEMORY WITH SIZE OF LAMBDA ****************************************************//
-				AllocateMemoryDerivedSynthesis(nlambda);
+				AllocateMemoryDerivedSynthesis(nlambda,NTERMS);
 				int indexPixel = 0;
 
 				// ALLOCATE MEMORY FOR STORE THE RESULTS 

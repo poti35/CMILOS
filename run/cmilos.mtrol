@@ -1,7 +1,7 @@
 Number of cycles          (*):100         		! 0 = synthesis, n= max num of iterations, -1 = use classical estimates
-Observed profiles          (*):/mnt/d/IAA/dataTest/model_gm170_vlos05_1000_gauss/guess_gauss.per    !   
+Observed profiles          (*):/mnt/d/IAA/dataTest/model_gm170_vlos05_1000/guess.per    !   
 Stray light file            :                  ! (none=no stray light contam)
-PSF file                     :49.2            ! .psf file -> read file; number -> FWHM (mA) of gaussian filter; empty -> NO FILTER
+PSF file                     :            ! .psf file -> read file; number -> FWHM (mA) of gaussian filter; empty -> NO FILTER
 Wavelength grid file      (s):run/malla.grid 	! (automatic selection, grid, or wavelength file)
 Atomic parameters file       :run/LINES      	! 
 Abundances file		         : 					    ! not used
@@ -16,12 +16,12 @@ Nodes for S_0 1     	     :1                 ! (0 or blank=no, 1=yes)
 Nodes for S_1 1		         :1                 ! (0 or blank=no, 1=yes)
 Nodes for eta0 1             :1                 ! (0 or blank=no, 1=yes)
 Nodes for magnetic field 1   :1	                ! (0 or blank=no, 1=yes)
-Nodes for LOS velocity 1     :1                 ! (0 or blank=no, 1=yes)
+Nodes for LOS velocity 1     :0                 ! (0 or blank=no, 1=yes)
 Nodes for gamma 1            :1                 ! (0 or blank=no, 1=yes)
 Nodes for phi 1              :1                 ! (0 or blank=no, 1=yes)
 Nodes for lambda_doppler 1   :1                 ! (0 or blank=no, 1=yes)
 Nodes for damping 1	         :1                 ! (0 or blank=no, 1=yes)
-Invert macroturbulence 1     :0                	! (0 or blank=no, 1=yes)
+Invert macroturbulence 1     :1                	! (0 or blank=no, 1=yes)
 Nodes for S_0 2     	     :                 ! not used for the moment
 Nodes for S_1 2  	         :                 ! not used for the moment                     
 Nodes for eta0 2             :                 ! not used for the moment
