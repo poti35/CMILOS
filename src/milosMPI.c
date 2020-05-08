@@ -339,9 +339,10 @@ int main(int argc, char **argv)
 			vMask = calloc(configCrontrolFile.nx*configCrontrolFile.ny,sizeof(int));
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Bcast(vMask, configCrontrolFile.nx*configCrontrolFile.ny, MPI_INT, root , MPI_COMM_WORLD);
+		MPI_Barrier(MPI_COMM_WORLD);
 	}
 
-	MPI_Barrier(MPI_COMM_WORLD);
+	
 	// ************************** DEFINE PLANS TO EXECUTE MACROTURBULENCE IF NECESSARY **********************************************//
 	// MACROTURBULENCE PLANS
 	
