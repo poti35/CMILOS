@@ -167,7 +167,7 @@ int main(int argc, char **argv)
 	if(configCrontrolFile.fix[10]==0) NTERMS--;
 	if(configCrontrolFile.fix[9]==0 && INITIAL_MODEL.mac==0 ) NTERMS--;
 
-	printf("\n NTERMS ES : %d",NTERMS);
+	
 	// allocate memory for eigen values
 	eval = gsl_vector_alloc (NTERMS);
   	evec = gsl_matrix_alloc (NTERMS, NTERMS);
