@@ -2241,8 +2241,8 @@ int readInitFile(char * fileParameters,  ConfigControl * trolConfig, int printLo
 		printf("\n ******* THIS IS THE NAME OF THE FILE RECEVIED : %s \n", fileParameters);
 		return 0;		
 	}
-	if(printLog) printf("Maskfile to apply: %s\n", trolConfig->MaskFile);
-	//if(printLog) printf("%s", LINE);
+	//if(printLog) printf("Maskfile to apply: %s\n", trolConfig->MaskFile);
+	if(printLog) printf("%s", LINE);
 	/*************************** t1 ********************************************/
 	
 	returnLine = fgets(LINE,4096,fReadParameters);

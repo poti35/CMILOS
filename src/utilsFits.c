@@ -1328,7 +1328,7 @@ int * readFitsMaskFile (const char * fitsMask, int numRows, int numCols){
 					fits_report_error(stderr, status);
 					return NULL;	
 				}
-				printf("\n STRAY LIGHT LEIDO: \n");
+				
 			}
 			else{
 				printf("\n Naxis for MASK file must be 2, current naxis %d ** \n", naxis);
@@ -1352,8 +1352,7 @@ int * readFitsMaskFile (const char * fitsMask, int numRows, int numCols){
 		if (status) fits_report_error(stderr, status); /* print any error message */
 		return NULL;
 	}
-	printf("\n STRAY LIGHT FILE READ");
-	printf("\n**********");
+
 
 	return vMask;
 }

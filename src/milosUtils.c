@@ -325,7 +325,7 @@ void FijaACeroDerivadasNoNecesarias(REAL *d_spectra, int *fixed, int nlambda)
 int mil_svd(PRECISION *h, PRECISION *beta, PRECISION *delta, int * fix)
 {
 
-	PRECISION epsilon;
+	const PRECISION epsilon = 1e-12;
 	PRECISION h1[NTERMS * NTERMS];
 	PRECISION *v, *w;
 	
@@ -334,9 +334,9 @@ int mil_svd(PRECISION *h, PRECISION *beta, PRECISION *delta, int * fix)
 	PRECISION aux2[NTERMS], delta_aux [NTERMS];
 	int aux_nf, aux_nc;
 	
-	epsilon = 1e-12;
+	
 
-	int nter=0;
+	/*int nter=0;
 	for(i=0;i<NTERMS;i++){
 		if(fix[i])
 			nter++;
@@ -353,7 +353,7 @@ int mil_svd(PRECISION *h, PRECISION *beta, PRECISION *delta, int * fix)
 			}
 			
 		}
-	}
+	}*/
 
 
 	for (j = 0; j < NTERMS * NTERMS; j++)
@@ -363,7 +363,7 @@ int mil_svd(PRECISION *h, PRECISION *beta, PRECISION *delta, int * fix)
  	}
 
 
-	printf("\n h2 MATRIX\n");
+	/*printf("\n h2 MATRIX\n");
 	
 	for(i=0;i<nter;i++){
 		for(j=0;j<nter;j++){
@@ -379,7 +379,7 @@ int mil_svd(PRECISION *h, PRECISION *beta, PRECISION *delta, int * fix)
 	gsl_matrix_view gsl_h2 = gsl_matrix_view_array (h1, nter, nter);
 	gsl_eigen_symmv(&gsl_h2.matrix, eval2, evec2, workspace);
 	w2 = gsl_vector_ptr(eval2,0);
-	v2 = gsl_matrix_ptr(evec2,0,0);
+	v2 = gsl_matrix_ptr(evec2,0,0);*/
 
 	//clock_t t = clock();
 	gsl_matrix_view gsl_h1 = gsl_matrix_view_array (h1, NTERMS, NTERMS);
@@ -387,7 +387,7 @@ int mil_svd(PRECISION *h, PRECISION *beta, PRECISION *delta, int * fix)
 	w = gsl_vector_ptr(eval,0);
 	v = gsl_matrix_ptr(evec,0,0);
 
-	printf("\nAUTOVALORES V1: \n");
+	/*printf("\nAUTOVALORES V1: \n");
 	for(i=0;i<NTERMS;i++)
 		printf(" %le",w[i]);
 
@@ -413,7 +413,7 @@ int mil_svd(PRECISION *h, PRECISION *beta, PRECISION *delta, int * fix)
 		printf("\n");
 	}
 	printf("\n");
-	exit(2);
+	exit(2);*/
 	//svdcmp(h2,NTERMS,NTERMS,w2,v2);
 
 	/*double cpu_time_used = ((double) (clock() - t)) / CLOCKS_PER_SEC;
@@ -907,7 +907,7 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 			ind = i * (NTERMS + 1);
 			covar[ind] = alpha[ind] * (1.0 + flambda);
 		}
-		if(*iter ==0){ // iter 0 impirmir covar
+		/*if(*iter ==0){ // iter 0 impirmir covar
 			printf("\n COVARM MATRIX\n");
 			for(i=0;i<NTERMS;i++){
 				int j;
@@ -917,7 +917,7 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 				printf("\n");
 			}
 			printf("\n");
-		}	
+		}	*/
 		mil_svd(covar, betad, delta,fixed);
 		AplicaDelta(initModel, delta, fixed, &model);
 
