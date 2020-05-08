@@ -1298,6 +1298,67 @@ PRECISION * readFitsStrayLightFile (const char * fitsFileStrayLight, int * dimSt
 }
 
 
+int * readFitsMaskFile (const char * fitsMask, int numRows, int numCols){
+	
+	fitsfile *fptr;   /* FITS file pointer, defined in fitsio.h */
+	int status = 0;   /* CFITSIO status value MUST be initialized to zero! */
+	int nulval = 0; // define null value to 0 because the performance to read from fits file is better doing this. 
+	int bitpix, naxis, anynul;
+	long naxes [2] = {1,1}; /* The maximun number of dimension that we will read is 4*/
+	
+	int * vMask = NULL;
+	/*printf("\n READING IMAGE WITH LAMBDA ");
+	printf("\n**********");*/
+	if (!fits_open_file(&fptr, fitsMask, READONLY, &status)){
+		if (!fits_get_img_param(fptr, 2, &bitpix, &naxis, naxes, &status) ){
+
+			if(naxis==2){
+
+				if( naxes[0]!= numRows || naxes[1]!= numCols){ // stray light has different size of spectra image 
+					printf("\n MASK FILE HAS DIFFERENT SIZE OF SPECTRA IMAGE. SIZE SPECTRA %d X %d X . MASK SIZE %ld X %ld ", numRows, numCols , naxes[0], naxes[1]);
+					return NULL;
+				}
+				// READ ALL FILE IN ONLY ONE ARRAY 
+				// WE ASSUME THAT DATA COMES IN THE FORMAT ROW x COL x LAMBDA
+				int dimMask = numRows*numCols;
+				vMask = calloc(dimMask, sizeof(int));
+				long fpixel [2] = {1,1};
+				fits_read_pix(fptr, TINT, fpixel, dimMask, &nulval, vMask, &anynul, &status);
+				if(status){
+					fits_report_error(stderr, status);
+					return NULL;	
+				}
+				printf("\n STRAY LIGHT LEIDO: \n");
+			}
+			else{
+				printf("\n Naxis for MASK file must be 2, current naxis %d ** \n", naxis);
+				return 0;
+			}
+			// CLOSE FILE FITS LAMBDAS
+			fits_close_file(fptr, &status);
+			if (status){
+				fits_report_error(stderr, status);
+				return  NULL;
+			}
+		}
+		else {
+			printf("\n WE CAN NOT OPEN FILE OF STRAY LIGHT ** \n");
+			if (status) fits_report_error(stderr, status); /* print any error message */
+			return NULL;
+		}
+	}
+	else {
+		printf("\n WE CAN NOT READ PARAMETERS FROM THE FILE  %s \n",fitsMask);
+		if (status) fits_report_error(stderr, status); /* print any error message */
+		return NULL;
+	}
+	printf("\n STRAY LIGHT FILE READ");
+	printf("\n**********");
+
+	return vMask;
+}
+
+
 void freeFitsImage(FitsImage * image){
 	int i;
 	if(image!=NULL){

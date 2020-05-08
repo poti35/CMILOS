@@ -51,6 +51,20 @@ PRECISION * readFitsLambdaToArray (const char * fitsFileLambda,  int * indexLine
  */
 PRECISION * readFitsStrayLightFile (const char * fitsFileStrayLight, int * dimStrayLight, int numLambda);
 
+
+/**
+ * This function read from a fits file a mask matrix with the same size of spectral image. 
+ * If size is different to the spectral imgen return a null value showing this issue, in normal case return 
+ * an array of numRowsXnumCols with integer values of mask. 
+ * 
+ * @param fitsMask --> name of the fits Mask 
+ * @param numRows --> num of rows of spectral image
+ * @param numCols --> num of cols of spectral image
+ * 
+ * @return an array with mask integer values or null in error case
+ */
+int * readFitsMaskFile (const char * fitsMask, int numRows, int numCols);
+
 /**
  * Clean the memory reserved for the image
  * @param image --> Image to clean memory . 
