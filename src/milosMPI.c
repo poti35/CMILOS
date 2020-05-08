@@ -232,22 +232,19 @@ int main(int argc, char **argv)
 	nameInputFilePSF = configCrontrolFile.PSFFile;
 	FWHM = configCrontrolFile.FWHM;
 
-	int nter = 0;
-	for(i=0;i<NTERMS;i++){
-		if(configCrontrolFile.fix[i])
-			nter++;
-	}
-	NTERMS=nter;
-	// allocate memory for eigen values
-	eval = gsl_vector_alloc (NTERMS);
-  	evec = gsl_matrix_alloc (NTERMS, NTERMS);
-	workspace = gsl_eigen_symmv_alloc (NTERMS);
-
 	/***************** READ INIT MODEL ********************************/
 	if(!readInitialModel(&INITIAL_MODEL,configCrontrolFile.InitialGuessModel)){
 		printf("\n\n ¡¡¡ ERROR READING INIT MODEL !!! \n\n");
 		exit(EXIT_FAILURE);
 	}
+
+	if(configCrontrolFile.fix[10]==0) NTERMS--;
+	if(configCrontrolFile.fix[9]==0 && INITIAL_MODEL.mac==0 ) NTERMS--;
+
+	// allocate memory for eigen values
+	eval = gsl_vector_alloc (NTERMS);
+  	evec = gsl_matrix_alloc (NTERMS, NTERMS);
+	workspace = gsl_eigen_symmv_alloc (NTERMS);
 
 	/***************** READ WAVELENGHT FROM GRID OR FITS ********************************/
 	PRECISION * vGlobalLambda, *vOffsetsLambda;
@@ -588,7 +585,6 @@ int main(int argc, char **argv)
 	MPI_Group_size(vGroups[myGroup], &myGroupSize);
 	MPI_Barrier(MPI_COMM_WORLD);
 	
-
 	//**************************************** END OF CREATE GROUPS FOR DIVIDE IMAGE IN 2 ********************************************/
 
 	if(idProc == root){

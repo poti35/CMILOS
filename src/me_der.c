@@ -63,7 +63,7 @@ extern fftw_complex * inSpectraFwPSF, *inSpectraBwPSF, *outSpectraFwPSF, *outSpe
 extern fftw_plan planForwardPSF, planBackwardPSF;
 extern ConfigControl configCrontrolFile;
 extern int NTERMS;
-int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *lambda,int nlambda,REAL *d_spectra,REAL *spectra, REAL * spectra_slight, REAL ah,PRECISION * slight,int filter)
+int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *lambda,int nlambda,REAL *d_spectra,REAL *spectra, REAL * spectra_slight, REAL ah,PRECISION * slight,int filter, int * fix)
 {
 
 	int nterms,numl;
@@ -345,7 +345,7 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
     //MACROTURBULENCIA
                 
 	 int macApplied = 0;
-    if(MC > 0.0001){
+    if( fix[9] && MC > 0.0001){
 		 
 		macApplied = 1;
 		odd=(numl%2);		
@@ -510,16 +510,24 @@ int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *
 
 	// stray light factor 
 
-	if(slight!=NULL){
+	if(fix[10] && slight!=NULL){
 
 		// Response Functions 
 	   for(par=0;par<NPARMS;par++){
 	    	for(il=0;il<NTERMS;il++){
 				for(i=0;i<numl;i++){
 					d_spectra[numl*il+numl*nterms*par+i]=d_spectra[numl*il+numl*nterms*par+i]*ALF;
+					
 
-					if(il==10){ //Magnetic filling factor Response function
-						d_spectra[numl*il+numl*nterms*par+i]=spectra_slight[numl*par+i]-slight[numl*par+i];
+					if(fix[9]){ // if there is mac 
+						if(il==10){ //Magnetic filling factor Response function
+							d_spectra[numl*il+numl*nterms*par+i]=spectra_slight[numl*par+i]-slight[numl*par+i];
+						}
+					}
+					else{
+						if(il==10){ //Magnetic filling factor Response function
+							d_spectra[numl*il+numl*nterms*par+i]=spectra_slight[numl*par+i]-slight[numl*par+i];
+						}
 					}
 				}
 	    	}

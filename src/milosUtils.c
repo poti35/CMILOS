@@ -322,14 +322,13 @@ void FijaACeroDerivadasNoNecesarias(REAL *d_spectra, int *fixed, int nlambda)
 	return en delta tam 1xNTERMS
 */
 
-int mil_svd(PRECISION *h, PRECISION *beta, PRECISION *delta)
+int mil_svd(PRECISION *h, PRECISION *beta, PRECISION *delta, int * fix)
 {
 
 	PRECISION epsilon;
 	PRECISION h1[NTERMS * NTERMS];
-	PRECISION h2[NTERMS * NTERMS];
 	PRECISION *v, *w;
-	PRECISION v2[NTERMS*NTERMS], beta_aux[NTERMS*NTERMS],w2[NTERMS];
+	
 	int i, j;
 	//static PRECISION aux2[NTERMS];
 	PRECISION aux2[NTERMS], delta_aux [NTERMS];
@@ -337,23 +336,62 @@ int mil_svd(PRECISION *h, PRECISION *beta, PRECISION *delta)
 	
 	epsilon = 1e-12;
 
+	int nter=0;
+	for(i=0;i<NTERMS;i++){
+		if(fix[i])
+			nter++;
+	}
+	PRECISION h2[nter * nter];
+	PRECISION *v2, *w2;
+	int index=0;
+	for(i=0;i<NTERMS;i++){
+		if(fix[i]){
+			for(j=0;j<NTERMS;j++){
+				
+				if(fix[j])
+					h2[index++] = h[i*NTERMS+j];
+			}
+			
+		}
+	}
+
+
 	for (j = 0; j < NTERMS * NTERMS; j++)
 	{
 		h1[j] = h[j];
 		//h2[j] = h[j];
  	}
+
+
+	printf("\n h2 MATRIX\n");
 	
+	for(i=0;i<nter;i++){
+		for(j=0;j<nter;j++){
+			printf("%le\t",h2[i*nter+j]);
+		}
+		printf("\n");
+	}
+	printf("\n");
+
+	gsl_vector * eval2 = gsl_vector_alloc (nter);
+  	gsl_matrix * evec2 = gsl_matrix_alloc (nter, nter);
+	gsl_eigen_symmv_workspace * workspace2 = gsl_eigen_symmv_alloc (nter);
+	gsl_matrix_view gsl_h2 = gsl_matrix_view_array (h1, nter, nter);
+	gsl_eigen_symmv(&gsl_h2.matrix, eval2, evec2, workspace);
+	w2 = gsl_vector_ptr(eval2,0);
+	v2 = gsl_matrix_ptr(evec2,0,0);
+
 	//clock_t t = clock();
 	gsl_matrix_view gsl_h1 = gsl_matrix_view_array (h1, NTERMS, NTERMS);
 	gsl_eigen_symmv(&gsl_h1.matrix, eval, evec, workspace);
 	w = gsl_vector_ptr(eval,0);
 	v = gsl_matrix_ptr(evec,0,0);
 
-	/*printf("\nAUTOVALORES: \n");
+	printf("\nAUTOVALORES V1: \n");
 	for(i=0;i<NTERMS;i++)
 		printf(" %le",w[i]);
 
-	printf("\n V MATRIX\n");
+	printf("\n V1 MATRIX\n");
 	for(i=0;i<NTERMS;i++){
 		int j;
 		for(j=0;j<NTERMS;j++){
@@ -361,7 +399,21 @@ int mil_svd(PRECISION *h, PRECISION *beta, PRECISION *delta)
 		}
 		printf("\n");
 	}
-	printf("\n");*/
+
+	printf("\nAUTOVALORES V2: \n");
+	for(i=0;i<nter;i++)
+		printf(" %le",w2[i]);
+
+	printf("\n V2 MATRIX\n");
+	for(i=0;i<nter;i++){
+		int j;
+		for(j=0;j<nter;j++){
+			printf("%le\t",v2[i*nter+j]);
+		}
+		printf("\n");
+	}
+	printf("\n");
+	exit(2);
 	//svdcmp(h2,NTERMS,NTERMS,w2,v2);
 
 	/*double cpu_time_used = ((double) (clock() - t)) / CLOCKS_PER_SEC;
@@ -796,7 +848,7 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 	}
 	*/
 
-	me_der(cuantic, initModel, wlines, lambda, nlambda, d_spectra, spectra_mac, spectra,ah, slight, *INSTRUMENTAL_CONVOLUTION);
+	me_der(cuantic, initModel, wlines, lambda, nlambda, d_spectra, spectra_mac, spectra,ah, slight, *INSTRUMENTAL_CONVOLUTION,fixed);
 
 	/*int number_parametros = 0;
 	
@@ -822,7 +874,7 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 	}
 	printf("\n");
 	*/
-	//FijaACeroDerivadasNoNecesarias(d_spectra,fixed,nlambda);
+	FijaACeroDerivadasNoNecesarias(d_spectra,fixed,nlambda);
 	covarm(weight, vSigma, spectro, nlambda, spectra, d_spectra, beta, alpha);
 
 	//printf("\n BETA INICIAL: ");
@@ -855,7 +907,7 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 			ind = i * (NTERMS + 1);
 			covar[ind] = alpha[ind] * (1.0 + flambda);
 		}
-		/*if(*iter ==0){ // iter 0 impirmir covar
+		if(*iter ==0){ // iter 0 impirmir covar
 			printf("\n COVARM MATRIX\n");
 			for(i=0;i<NTERMS;i++){
 				int j;
@@ -865,8 +917,8 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 				printf("\n");
 			}
 			printf("\n");
-		}*/	
-		mil_svd(covar, betad, delta);
+		}	
+		mil_svd(covar, betad, delta,fixed);
 		AplicaDelta(initModel, delta, fixed, &model);
 
 		check(&model);
@@ -887,8 +939,8 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 			//flambda = flambda / 10.0;
 			flambda=flambda/(PARBETA_better*PARBETA_FACTOR);
 			*initModel = model;
-			me_der(cuantic, initModel, wlines, lambda, nlambda, d_spectra, spectra_mac,spectra, ah, slight,*INSTRUMENTAL_CONVOLUTION);
-			//FijaACeroDerivadasNoNecesarias(d_spectra,fixed,nlambda);	
+			me_der(cuantic, initModel, wlines, lambda, nlambda, d_spectra, spectra_mac,spectra, ah, slight,*INSTRUMENTAL_CONVOLUTION,fixed);
+			FijaACeroDerivadasNoNecesarias(d_spectra,fixed,nlambda);	
 			covarm(weight, vSigma, spectro, nlambda, spectra, d_spectra, beta, alpha);
 			
 			//printf("\n BETA ITER %i INICIAL: ", (*iter));
