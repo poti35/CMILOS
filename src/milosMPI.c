@@ -337,6 +337,7 @@ int main(int argc, char **argv)
 	if(shareVMask){
 		if(idProc!=root)
 			vMask = calloc(configCrontrolFile.nx*configCrontrolFile.ny,sizeof(int));
+		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Bcast(vMask, configCrontrolFile.nx*configCrontrolFile.ny, MPI_INT, root , MPI_COMM_WORLD);
 	}
 
