@@ -307,26 +307,37 @@ int main(int argc, char **argv)
 	/******************* APPLY GAUSSIAN, CREATE CUANTINC AND INITIALIZE DINAMYC MEMORY*******************/
 	MPI_Barrier(MPI_COMM_WORLD);
 	cuantic = create_cuantic(dat,(idProc==root));
-	
+	MPI_Barrier(MPI_COMM_WORLD);
 
 	/**************************************** READ FITS  STRAY LIGHT ******************************/
-	MPI_Barrier(MPI_COMM_WORLD);
+	
 	if(access(configCrontrolFile.StrayLightFile,F_OK)!=-1){ //  IF NOT EMPTY READ stray light file 
 		slight = readFitsStrayLightFile(configCrontrolFile.StrayLightFile,&dimStrayLight,nlambda);
 	}
 
 	
 	/**************************************** READ FITS  MASK  ******************************/
-
-	if(access(configCrontrolFile.MaskFile,F_OK)!=-1){ //  IF NOT EMPTY READ MASK FILE
+	int shareVMask = 0;
+	if(idProc==root && access(configCrontrolFile.MaskFile,F_OK)!=-1){ //  IF NOT EMPTY READ MASK FILE
 
 		vMask=readFitsMaskFile (configCrontrolFile.MaskFile, configCrontrolFile.nx, configCrontrolFile.ny);
 		if(vMask==NULL){
 			printf("\n El fichero de máscara  no ha podido ser leido correctamente o tiene dimensiones incorrectas. No se aplicará a la inversión. ");
 		}
+		else{
+			shareVMask =1;
+		}
 	}
 
+	MPI_Barrier(MPI_COMM_WORLD); // Wait UNTIL THE IMAGE HAS BEEN READED COMPLETELY
+	//  BROADCAST THE NUMBER OF LAMBDAS READS FROM THE FILE AND THE NUMBER OF PIXELS
+	MPI_Bcast(&shareVMask, 1, MPI_INT, root , MPI_COMM_WORLD);
+	MPI_Barrier(MPI_COMM_WORLD);
 
+	if(shareVMask)
+		MPI_Bcast(vMask, configCrontrolFile.nx*configCrontrolFile.ny, MPI_INT, root , MPI_COMM_WORLD);
+		
+	MPI_Barrier(MPI_COMM_WORLD);
 	// ************************** DEFINE PLANS TO EXECUTE MACROTURBULENCE IF NECESSARY **********************************************//
 	// MACROTURBULENCE PLANS
 	
