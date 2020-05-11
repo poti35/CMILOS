@@ -907,7 +907,7 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 			ind = i * (NTERMS + 1);
 			covar[ind] = alpha[ind] * (1.0 + flambda);
 		}
-		/*if(*iter ==0){ // iter 0 impirmir covar
+		if(*iter ==0){ // iter 0 impirmir covar
 			printf("\n COVARM MATRIX\n");
 			for(i=0;i<NTERMS;i++){
 				int j;
@@ -917,7 +917,7 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 				printf("\n");
 			}
 			printf("\n");
-		}	*/
+		}	
 		mil_svd(covar, betad, delta,fixed);
 		AplicaDelta(initModel, delta, fixed, &model);
 

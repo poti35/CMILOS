@@ -28,7 +28,7 @@
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/milos",
-      "args": ["run/cmilos.mtrol"],
+      "args": ["/mnt/d/IAA/StrayLight/invert.mtrol"],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],

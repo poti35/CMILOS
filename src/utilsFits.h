@@ -19,6 +19,14 @@ void freeVpixels(vpixels * image, int numPixels);
 FitsImage *  readFitsSpectroImage (const char * fitsFileSpectra, int forParallel);
 
 
+/**
+ * This function read the spectro image from the file "fitsFileSpectra" and store it into a struct of FitsImage
+ * @param fitsFileSpectra --> name of the fits file to read 
+ * @param configControlFile
+ * @param forParallel
+ * Return the image read or NULL if something was wrong during the lecture. 
+ */
+FitsImage * readFitsSpectroImageRectangular (const char * fitsFileSpectra, ConfigControl * configCrontrolFile, int forParallel);
 
 /**
  * This function read the spectro image from the file "fitsFileSpectra" and store it into a struct of FitsImage
@@ -40,6 +48,19 @@ int readFitsLambdaFile (const char * fitsFileLambda, FitsImage * fitsImage);
  * 
  * */
 PRECISION * readFitsLambdaToArray (const char * fitsFileLambda,  int * indexLine, int * nLambda);
+
+
+
+/**
+ * This function read the Stray Light values from the file "perFileStrayLight" and store it into an array of length nlambda * NPARAMS
+ *  
+ * be read it before call this method. 
+ * @param perFileStrayLight --> name of the PER file to read with lambda values 
+ * @param nlambda --> struct of image 
+ * Return 1 If the image has been read corectly if not return 0 
+ */
+PRECISION * readPerStrayLightFile (const char * perFileStrayLight, int nlambda);
+
 
 /**
  * This function read the Stray Light values from the file "fitsFileStrayLight" and store it into a vector , in dimStrayLight will be stored the tam of fits file:

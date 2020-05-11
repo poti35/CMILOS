@@ -265,20 +265,20 @@ void freeVpixels(vpixels * image, int numPixels){
 }*/
 
 FitsImage *  readFitsSpectroImage (const char * fitsFileSpectra, int forParallel){
-   fitsfile *fptr;   /* FITS file pointer, defined in fitsio.h */
-   FitsImage * image =  malloc(sizeof(FitsImage));
-   int status = 0;   /* CFITSIO status value MUST be initialized to zero! */
+	fitsfile *fptr;   /* FITS file pointer, defined in fitsio.h */
+	FitsImage * image =  malloc(sizeof(FitsImage));
+	int status = 0;   /* CFITSIO status value MUST be initialized to zero! */
 	PRECISION nulval = 0.; // define null value to 0 because the performance to read from fits file is better doing this. 
-   int bitpix, naxis, anynul, numPixelsFitsFile;
-   long naxes [4] = {1,1,1,1}; /* The maximun number of dimension that we will read is 4*/
+	int bitpix, naxis, anynul, numPixelsFitsFile;
+	long naxes [4] = {1,1,1,1}; /* The maximun number of dimension that we will read is 4*/
 	char comment[FLEN_CARD];   /* Standard string lengths defined in fitsio.h */
 	
 	int i, j, k, h;
    // OPEN THE FITS FILE TO READ THE DEPTH OF EACH DIMENSION
-   if (!fits_open_file(&fptr, fitsFileSpectra, READONLY, &status)){
-      // READ THE HDU PARAMETER FROM THE FITS FILE
-      int hdutype;
-      fits_get_hdu_type(fptr, &hdutype, &status);
+	if (!fits_open_file(&fptr, fitsFileSpectra, READONLY, &status)){
+		// READ THE HDU PARAMETER FROM THE FITS FILE
+		int hdutype;
+		fits_get_hdu_type(fptr, &hdutype, &status);
 
 		// We want only fits image 
 		if(hdutype==IMAGE_HDU){
@@ -359,14 +359,14 @@ FitsImage *  readFitsSpectroImage (const char * fitsFileSpectra, int forParallel
 				if (!imageTemp)  {
 					printf("ERROR ALLOCATION MEMORY FOR TEMP IMAGE");
 					return NULL;
-          	}
+          		}
 				
 				
 				long fpixel [4] = {1,1,1,1}; 
 				fits_read_pix(fptr, TFLOAT, fpixel, numPixelsFitsFile, &nulval, imageTemp, &anynul, &status);
 				if(status){
 					fits_report_error(stderr, status);
-               return NULL;	
+               		return NULL;	
 				}
 
 				// allocate memory for reorder the image
@@ -519,7 +519,6 @@ FitsImage *  readFitsSpectroImage (const char * fitsFileSpectra, int forParallel
 								}
 							}
 						}
-
 					}
 				}
 				free(imageTemp);
@@ -813,24 +812,24 @@ FitsImage * readFitsSpectroNPixels (const char * fitsFileSpectra, int rowInit, i
 	return image; 
 }
 
-/*FitsImage * readFitsSpectroImageRectangular (const char * fitsFileSpectra, ConfigControl * configCrontrolFile, int forParallel){
+FitsImage * readFitsSpectroImageRectangular (const char * fitsFileSpectra, ConfigControl * configCrontrolFile, int forParallel){
 
 
 
 	fitsfile *fptr;   
-   FitsImage * image =  malloc(sizeof(FitsImage));
-   int status = 0;   
-   PRECISION nulval = 0.; // define null value to 0 because the performance to read from fits file is better doing this. 
-   int bitpix, naxis, anynul, numPixelsFitsFile;
-   long naxes [4] = {1,1,1,1}; 
+	FitsImage * image =  malloc(sizeof(FitsImage));
+   	int status = 0;   
+   	PRECISION nulval = 0.; // define null value to 0 because the performance to read from fits file is better doing this. 
+   	int bitpix, naxis, anynul, numPixelsFitsFile;
+   	long naxes [4] = {1,1,1,1}; 
 	char comment[FLEN_CARD];   
 	
 	int i, j, k, h;
-   // OPEN THE FITS FILE TO READ THE DEPTH OF EACH DIMENSION
-   if (!fits_open_file(&fptr, fitsFileSpectra, READONLY, &status)){
-      // READ THE HDU PARAMETER FROM THE FITS FILE
-      int hdutype;
-      fits_get_hdu_type(fptr, &hdutype, &status);
+   	// OPEN THE FITS FILE TO READ THE DEPTH OF EACH DIMENSION
+   	if (!fits_open_file(&fptr, fitsFileSpectra, READONLY, &status)){
+    	// READ THE HDU PARAMETER FROM THE FITS FILE
+    	int hdutype;
+    	fits_get_hdu_type(fptr, &hdutype, &status);
 
 		// We want only fits image 
 		if(hdutype==IMAGE_HDU){
@@ -841,57 +840,89 @@ FitsImage * readFitsSpectroNPixels (const char * fitsFileSpectra, int rowInit, i
 			if(fits_read_key(fptr, TSTRING, CTYPE4, image->ctype_4, comment, &status)) return 0;
 
 			// ORDER MUST BE CTYPE1->'HPLN-TAN',CTYPE2->'HPLT-TAN',CTYPE3->'WAVE-GRI',CTYPE4->'STOKES'
+			// int pos_row = 0, pos_col = 1, pos_lambda = 2, pos_stokes_parameters = 3;
+			int correctOrder =0;
+			// GET THE CURRENT POSITION OF EVERY PARAMETER
+			int pos_lambda; 
+			int pos_row;
+			int pos_col;
+			int pos_stokes_parameters;
+			// LAMBDA POSITION
+			if(strcmp(image->ctype_1,CTYPE_WAVE)==0) pos_lambda = 0;
+			if(strcmp(image->ctype_2,CTYPE_WAVE)==0) pos_lambda = 1;
+			if(strcmp(image->ctype_3,CTYPE_WAVE)==0) pos_lambda = 2;
+			if(strcmp(image->ctype_4,CTYPE_WAVE)==0) pos_lambda = 3;
 
-			if(strcmp(image->ctype_1,CTYPE_HPLN_TAN)!=0){
-				printf("\n ERROR reading spectro image, the first dimension must be 'HPLN-TAN' and is %s",image->ctype_1);
-			}
-			if(strcmp(image->ctype_2,CTYPE_HPLT_TAN)!=0){
-				printf("\n ERROR reading spectro image, the first dimension must be 'HPLN-TAN' and is %s",image->ctype_1);
-			}
-			if(strcmp(image->ctype_3,CTYPE_WAVE)!=0){
-				printf("\n ERROR reading spectro image, the first dimension must be 'HPLN-TAN' and is %s",image->ctype_1);
-			}
-			if(strcmp(image->ctype_4,CTYPE_STOKES)!=0){
-				printf("\n ERROR reading spectro image, the first dimension must be 'HPLN-TAN' and is %s",image->ctype_1);
-			}
+			// HPLN TAN 
+			if(strcmp(image->ctype_1,CTYPE_HPLN_TAN)==0) pos_row = 0;
+			if(strcmp(image->ctype_2,CTYPE_HPLN_TAN)==0) pos_row = 1;
+			if(strcmp(image->ctype_3,CTYPE_HPLN_TAN)==0) pos_row = 2;
+			if(strcmp(image->ctype_4,CTYPE_HPLN_TAN)==0) pos_row = 3;
+
+			// HPLT TAN 
+			if(strcmp(image->ctype_1,CTYPE_HPLT_TAN)==0) pos_col = 0;
+			if(strcmp(image->ctype_2,CTYPE_HPLT_TAN)==0) pos_col = 1;
+			if(strcmp(image->ctype_3,CTYPE_HPLT_TAN)==0) pos_col = 2;
+			if(strcmp(image->ctype_4,CTYPE_HPLT_TAN)==0) pos_col = 3;			
+
+			// Stokes paramter position , 
+			if(strcmp(image->ctype_1,CTYPE_STOKES)==0) pos_stokes_parameters = 0;
+			if(strcmp(image->ctype_2,CTYPE_STOKES)==0) pos_stokes_parameters = 1;
+			if(strcmp(image->ctype_3,CTYPE_STOKES)==0) pos_stokes_parameters = 2;
+			if(strcmp(image->ctype_4,CTYPE_STOKES)==0) pos_stokes_parameters = 3;
+
+			
+			
+			if(pos_row==0 && pos_col ==1 && pos_lambda == 2 && pos_stokes_parameters == 3)
+			//if(pos_row==2 && pos_col ==3 && pos_lambda == 0 && pos_stokes_parameters == 1)
+				correctOrder = 1;
 
 			// GET THE CURRENT POSITION OF EVERY PARAMETER
-			int pos_row = 0;
+			/*int pos_row = 0;
 			int pos_col = 1;
 			int pos_lambda = 2; 
-			int pos_stokes_parameters = 3;
+			int pos_stokes_parameters = 3;*/
 
 
 			// READ IMAGE AND STORAGE IN STRUCTURE IMAGE 
 			if (!fits_get_img_param(fptr, 4, &bitpix, &naxis, naxes, &status) ){
 
-
+				if(bitpix != FLOAT_IMG){
+					printf("\n ERROR: the datatype of FITS spectro image must be FLOAT\n");
+					printf("\n EXITING THE PROGRAM");
+					fits_close_file(fptr, &status);
+					exit(EXIT_FAILURE);
+				}
 				//image->rows=naxes[pos_row];
 				if(configCrontrolFile->subx2==0 && configCrontrolFile->subx1==0){
-					image->rows = naxes[0];
+					image->rows = naxes[pos_row];
 					configCrontrolFile->subx1 = 1;
-					configCrontrolFile->subx2 = naxes[0];
+					configCrontrolFile->subx2 = naxes[pos_row];
 				}
 				else			
 					image->rows=(configCrontrolFile->subx2-configCrontrolFile->subx1)+1;
 				
 				if(configCrontrolFile->suby2==0 && configCrontrolFile->suby1==0){
-					image->cols = naxes[1];
+					image->cols = naxes[pos_col];
 					configCrontrolFile->suby1 = 1;
-					configCrontrolFile->suby2 = naxes[1];
+					configCrontrolFile->suby2 = naxes[pos_col];
 				}
 				else
 					image->cols= (configCrontrolFile->suby2-configCrontrolFile->suby1)+1;
 
-				image->nLambdas=naxes[2];
-				image->numStokes=naxes[3];
-
+				image->nLambdas=naxes[pos_lambda];
+				image->numStokes=naxes[pos_stokes_parameters];
+				if(image->numStokes!=4){
+					printf("\n************** PLEASE REVIEW THE ORDER OF HEADER NAXIS. DIMENSION OF STOKES MUST HAVE AS VALUE: 4 \n");
+					exit(EXIT_FAILURE);
+				}
 				image->numPixels = image->cols * image->rows ; // we will read the image by columns 
-				image->pos_row = 0;
-				image->pos_col = 1;
-				image->pos_lambda = 2;
-				image->pos_stokes_parameters = 3;
-				numPixelsFitsFile = image->rows*image->rows*image->nLambdas*image->numStokes;
+
+				image->pos_lambda = pos_lambda;
+				image->pos_col = pos_col;
+				image->pos_row = pos_row;
+				image->pos_stokes_parameters = pos_stokes_parameters;
+				numPixelsFitsFile = image->rows*image->cols*image->nLambdas*image->numStokes;
 				
 				
 				// allocate memory to read all pixels in the same array 
@@ -899,7 +930,7 @@ FitsImage * readFitsSpectroNPixels (const char * fitsFileSpectra, int rowInit, i
 				if (!imageTemp)  {
 					printf("ERROR ALLOCATION MEMORY FOR TEMP IMAGE");
 					return NULL;
-          	}
+          		}
 				
 				
 				long fpixelBegin [4] = {1,1,1,1}; 
@@ -925,16 +956,23 @@ FitsImage * readFitsSpectroNPixels (const char * fitsFileSpectra, int rowInit, i
 				//printf("\n TIME TO READ PIXELS:  %f seconds to execute \n", time2ReadPixels);				
 				if(status){
 					fits_report_error(stderr, status);
-               return NULL;	
+               		return NULL;	
 				}
 
 				// allocate memory for reorder the image
 				image->pixels = calloc(image->numPixels, sizeof(vpixels));
 				if(forParallel){
-					image->vLambdaImagen = calloc(image->numPixels*image->nLambdas, sizeof(float));
+					image->vLambdaImagen = NULL;
+					image->pixels = NULL;
 					image->spectroImagen = calloc(image->numPixels*image->nLambdas*image->numStokes, sizeof(float));
 				}
 				else{
+					image->pixels = calloc(image->numPixels, sizeof(vpixels));
+					for( i=0;i<image->numPixels;i++){
+						image->pixels[i].spectro = calloc ((image->numStokes*image->nLambdas),sizeof(float));
+						image->pixels[i].vLambda = NULL;
+						image->pixels[i].nLambda = image->nLambdas;
+					}					
 					image->vLambdaImagen = NULL;
 					image->spectroImagen = NULL;
 				}
@@ -954,24 +992,117 @@ FitsImage * readFitsSpectroNPixels (const char * fitsFileSpectra, int rowInit, i
 					int sizeDim2 = (fpixelEnd[2]-(fpixelBegin[2]-1));
 					int sizeDim3 = (fpixelEnd[3]-(fpixelBegin[3]-1));
 					
-
-					// i = stokes, j = lambda, k = cols, h = rows 
+					if(correctOrder){
+						for( i=0; i<sizeDim3;i++){
+							for( j=0; j<sizeDim2;j++){
+								for( k=0;k<sizeDim1;k++){
+									for( h=0;h<sizeDim0;h++){
+										if(forParallel){
+											image->spectroImagen[ (((i*sizeDim2) + j)*(image->nLambdas*image->numStokes)) + (image->nLambdas * k) + h] = imageTemp [(i*sizeDim2*sizeDim1*sizeDim1) + (j*sizeDim1*sizeDim0) + (k*sizeDim0) + h];  // I =0, Q = 1, U = 2, V = 3
+										}
+										else{
+											image->pixels[(i*sizeDim2) + j].spectro[h + (image->nLambdas * k)] = imageTemp [(i*sizeDim2*sizeDim1*sizeDim0) + (j*sizeDim1*sizeDim0) + (k*sizeDim0) + h];  // I =0, Q = 1, U = 2, V = 3
+										}
+									}
+								}
+							}
+						}						
+					}						
+					int currentLambda = 0, currentRow = 0, currentStokeParameter=0, currentCol = 0, currentPixel;
 					for( i=0; i<sizeDim3;i++){
 						for( j=0; j<sizeDim2;j++){
 							for( k=0;k<sizeDim1;k++){
 								for( h=0;h<sizeDim0;h++){
-									//currentPixel = (k*image->rows) + h;
-									image->pixels[(k*image->rows) + h].spectro[j + (image->nLambdas * i)] = imageTemp [(i*(fpixelEnd[2]-(fpixelBegin[2]-1))*(fpixelEnd[1]-(fpixelBegin[1]-1))*(fpixelEnd[0]-(fpixelBegin[0]-1))) + (j*(fpixelEnd[1]-(fpixelBegin[1]-1))*(fpixelEnd[0]-(fpixelBegin[0]-1))) + (k*(fpixelEnd[0]-(fpixelBegin[0]-1))) + h];
+									PRECISION pixel = 0.0;
+									//fits_read_pix(fptr, datatype, fpixel, 1, &nulval, &pixel, &anynul, &status);
+									// I NEED TO KNOW THE CURRENT POSITION OF EACH ITERATOR 
+									switch (pos_lambda)
+									{
+										case 0:
+											currentLambda = h;
+											//currentLambda = fpixel[0]-1;
+											break;
+										case 1:
+											currentLambda = k;
+											//currentLambda = fpixel[1]-1;
+											break;
+										case 2:
+											currentLambda = j;
+											//currentLambda = fpixel[2]-1;
+											break;
+										case 3:
+											currentLambda = i;
+											//currentLambda = fpixel[3]-1;
+											break;																						
+									}
+									switch (pos_stokes_parameters)
+									{
+										case 0:
+											currentStokeParameter = h;
+											//currentStokeParameter = fpixel[0]-1;
+											break;
+										case 1:
+											currentStokeParameter = k;
+											//currentStokeParameter = fpixel[1]-1;
+											break;
+										case 2:
+											currentStokeParameter = j;
+											//currentStokeParameter = fpixel[2]-1;
+											break;
+										case 3:
+											currentStokeParameter = i;
+											//currentStokeParameter = fpixel[3]-1;
+											break;																						
+									}
+									switch (pos_row)
+									{
+										case 0:
+											currentRow = h;
+											//currentRow = fpixel[0]-1;
+											break;
+										case 1:
+											currentRow = k;
+											//currentRow = fpixel[1]-1;
+											break;
+										case 2:
+											currentRow = j;
+											//currentRow = fpixel[2]-1;
+											break;
+										case 3:
+											currentRow = i;
+											//currentRow = fpixel[3]-1;
+											break;																						
+									}
+									switch (pos_col)
+									{
+										case 0:
+											currentCol = h;
+											//currentCol = fpixel[0]-1;
+											break;
+										case 1:
+											currentCol = k;
+											//currentCol = fpixel[1]-1;;
+											break;
+										case 2:
+											currentCol = j;
+											//currentCol = fpixel[2]-1;
+											break;
+										case 3:
+											currentCol = i;
+											//currentCol = fpixel[3]-1;
+											break;																						
+									}			
+									pixel = imageTemp [(i*sizeDim2*sizeDim1*sizeDim0) + (j*sizeDim1*sizeDim0) + (k*sizeDim0) + h];
+									currentPixel = (currentCol*naxes[pos_row]) + currentRow;
+									if(forParallel){
+										image->spectroImagen[(currentPixel *(image->nLambdas*image->numStokes)) + (image->nLambdas * currentStokeParameter) + currentLambda] = pixel;
+									}
+									else
+									{
+										image->pixels[currentPixel].spectro[currentLambda + (image->nLambdas * currentStokeParameter)] = pixel;  // I =0, Q = 1, U = 2, V = 3
+									}
 								}
 							}
-						}
-					}
-				}
-				if(forParallel){
-					int contSpectro = 0;
-					for( i=0;i<image->numPixels;i++){
-						for( j=0;j<(image->nLambdas*image->numStokes);j++){
-							image->spectroImagen[contSpectro++] = image->pixels[i].spectro[j];
 						}
 					}
 				}
@@ -995,7 +1126,7 @@ FitsImage * readFitsSpectroNPixels (const char * fitsFileSpectra, int rowInit, i
 	
 	return image; 
 }
-*/
+
 
 
 
@@ -1218,6 +1349,37 @@ PRECISION * readFitsLambdaToArray (const char * fitsFileLambda,  int * indexLine
 
 }
 
+
+PRECISION * readPerStrayLightFile (const char * perFileStrayLight, int nlambda){
+
+	PRECISION * slightPER = NULL;
+	FILE * fReadStrayLight;
+	char * line = NULL;
+	size_t len = 0;
+	ssize_t read;
+	fReadStrayLight = fopen(perFileStrayLight, "r");
+	
+	int contLine=0;
+	if (fReadStrayLight == NULL)
+	{
+		printf("Error opening file stray light it's possible that the file doesn't exist. Please verify it. \n");
+		printf("\n ******* THIS IS THE NAME OF THE FILE RECEVIED : %s \n", perFileStrayLight);
+		fclose(fReadStrayLight);
+		return NULL;
+	}
+	slightPER = calloc(nlambda*NPARMS,sizeof(PRECISION));
+	float aux1, aux2,aux3,aux4,aux5,aux6;
+	while ((read = getline(&line, &len, fReadStrayLight)) != -1 && contLine<nlambda) {
+		sscanf(line,"%e %e %e %e %e %e",&aux1,&aux2,&aux3,&aux4,&aux5,&aux6);
+		slightPER[contLine] = aux3;
+		slightPER[contLine + nlambda] = aux4;
+		slightPER[contLine + nlambda * 2] = aux5;
+		slightPER[contLine + nlambda * 3] = aux6;
+		contLine++;
+	}
+	fclose(fReadStrayLight);
+	return slightPER;
+}
 
 
 PRECISION * readFitsStrayLightFile (const char * fitsFileStrayLight, int * dimStrayLight, int numLambda){

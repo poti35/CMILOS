@@ -164,8 +164,8 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 	
-	if(configCrontrolFile.fix[10]==0) NTERMS--;
-	if(configCrontrolFile.fix[9]==0 && INITIAL_MODEL.mac==0 ) NTERMS--;
+	/*if(configCrontrolFile.fix[10]==0) NTERMS--;
+	if(configCrontrolFile.fix[9]==0 && INITIAL_MODEL.mac==0 ) NTERMS--;*/
 
 	
 	// allocate memory for eigen values
@@ -546,46 +546,53 @@ int main(int argc, char **argv)
 	}
 	else if(configCrontrolFile.NumberOfCycles==0){ // synthesis
 	
-      if(access(configCrontrolFile.StrayLightFile,F_OK)!=-1){ //  IF NOT EMPTY READ stray light file 
+      /*if(access(configCrontrolFile.StrayLightFile,F_OK)!=-1){ //  IF NOT EMPTY READ stray light file 
          slight = readFitsStrayLightFile(configCrontrolFile.StrayLightFile,&dimStrayLight,nlambda);
          printf("\n STRAY LIGHT READ \n");
       }
       else{
          printf("\n STRAY LIGHT NOT USED \n");
-      }      
-      Init_Model initModel;
-      initModel.eta0 = INITIAL_MODEL.eta0;
-      initModel.B = INITIAL_MODEL.B; //200 700
-      initModel.gm = INITIAL_MODEL.gm;
-      initModel.az = INITIAL_MODEL.az;
-      initModel.vlos = INITIAL_MODEL.vlos; //km/s 0
-      initModel.mac = INITIAL_MODEL.mac;
-      initModel.dopp = INITIAL_MODEL.dopp;
-      initModel.aa = INITIAL_MODEL.aa;
-      initModel.alfa = INITIAL_MODEL.alfa; //0.38; //stray light factor
-      initModel.S0 = INITIAL_MODEL.S0;
-      initModel.S1 = INITIAL_MODEL.S1;
-      printf("\n MODEL ATMOSPHERE: \n");
-      printf("\n ETA0: %lf",initModel.eta0);
-      printf("\n B: %lf",initModel.B);
-      printf("\n vlos: %lf",initModel.vlos);
-      printf("\n dopp: %lf",initModel.dopp);
-      printf("\n aa: %lf",initModel.aa);
-      printf("\n gm: %lf",initModel.gm);
-      printf("\n az: %lf",initModel.az);
-      printf("\n S0: %lf",initModel.S0);
-      printf("\n S1: %lf",initModel.S1);      
-      printf("\n mac: %lf",initModel.mac);
-      printf("\n alfa: %lf",initModel.alfa);
-	  printf("\n");    
+      }*/
+		if(access(configCrontrolFile.StrayLightFile,F_OK)!=-1){ //  IF NOT EMPTY READ stray light file 
+			slight = readPerStrayLightFile(configCrontrolFile.StrayLightFile,nlambda);
+			printf("\n STRAY LIGHT READ \n");
+		}
+		else{
+			printf("\n STRAY LIGHT NOT USED \n");
+		}      
+		Init_Model initModel;
+		initModel.eta0 = INITIAL_MODEL.eta0;
+		initModel.B = INITIAL_MODEL.B; //200 700
+		initModel.gm = INITIAL_MODEL.gm;
+		initModel.az = INITIAL_MODEL.az;
+		initModel.vlos = INITIAL_MODEL.vlos; //km/s 0
+		initModel.mac = INITIAL_MODEL.mac;
+		initModel.dopp = INITIAL_MODEL.dopp;
+		initModel.aa = INITIAL_MODEL.aa;
+		initModel.alfa = INITIAL_MODEL.alfa; //0.38; //stray light factor
+		initModel.S0 = INITIAL_MODEL.S0;
+		initModel.S1 = INITIAL_MODEL.S1;
+		printf("\n MODEL ATMOSPHERE: \n");
+		printf("\n ETA0: %lf",initModel.eta0);
+		printf("\n B: %lf",initModel.B);
+		printf("\n vlos: %lf",initModel.vlos);
+		printf("\n dopp: %lf",initModel.dopp);
+		printf("\n aa: %lf",initModel.aa);
+		printf("\n gm: %lf",initModel.gm);
+		printf("\n az: %lf",initModel.az);
+		printf("\n S0: %lf",initModel.S0);
+		printf("\n S1: %lf",initModel.S1);      
+		printf("\n mac: %lf",initModel.mac);
+		printf("\n alfa: %lf",initModel.alfa);
+		printf("\n");    
 
-      
-      
-      AllocateMemoryDerivedSynthesis(nlambda,NTERMS);
+		
+		
+		AllocateMemoryDerivedSynthesis(nlambda,NTERMS);
 
 		// synthesis
-      mil_sinrf(cuantic, &initModel, wlines, vLambda, nlambda, spectra, configCrontrolFile.mu, slight,spectra_mac, configCrontrolFile.ConvolveWithPSF);
-      me_der(cuantic, &initModel, wlines, vLambda, nlambda, d_spectra, spectra_mac, spectra, configCrontrolFile.mu, slight, configCrontrolFile.ConvolveWithPSF,configCrontrolFile.fix);	
+		mil_sinrf(cuantic, &initModel, wlines, vLambda, nlambda, spectra, configCrontrolFile.mu, slight,spectra_mac, configCrontrolFile.ConvolveWithPSF);
+		//me_der(cuantic, &initModel, wlines, vLambda, nlambda, d_spectra, spectra_mac, spectra, configCrontrolFile.mu, slight, configCrontrolFile.ConvolveWithPSF,configCrontrolFile.fix);	
 
 		// in this case basenamefile is from initmodel
 		char nameAux [4096];
@@ -664,6 +671,13 @@ int main(int argc, char **argv)
 			}
 			fclose(fReadSpectro);
 
+			if(access(configCrontrolFile.StrayLightFile,F_OK)!=-1){ //  IF NOT EMPTY READ stray light file 
+				slight = readPerStrayLightFile(configCrontrolFile.StrayLightFile,nlambda);
+				printf("\n STRAY LIGHT READ \n");
+			}
+			else{
+				printf("\n STRAY LIGHT NOT USED \n");
+			}
       
       	
 			AllocateMemoryDerivedSynthesis(nlambda,NTERMS);

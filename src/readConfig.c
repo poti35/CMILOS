@@ -1940,6 +1940,20 @@ int readTrolFile(char * fileParameters,  ConfigControl * trolConfig, int printLo
 	//if(printLog) printf("Invert macroturbulence 2 to apply: %d\n", trolConfig->fix2[9]);
 	if(printLog) printf("%s", LINE);
 
+	/*************************** INVERT FILLING FACTOR ********************************************/
+	
+	returnLine = fgets(LINE,4096,fReadParameters);
+	if(returnLine == NULL) return 0;						
+	rfscanf = sscanf(LINE,"%99[^:]:%i%99[^!]!",name, &trolConfig->InvertFillingFactor,comment);
+	if(rfscanf ==0 || rfscanf == EOF){
+		printf("Error reading the file of parameters, param Filling Factor. Please verify it. \n");
+		printf("\n ******* THIS IS THE NAME OF THE FILE RECEVIED : %s \n", fileParameters);
+		return 0;		
+	}
+	//if(printLog) printf("Filling Factor  to apply: %d\n", trolConfig->InvertFillingFactor);
+	if(printLog) printf("%s", LINE);
+
+
 	/*************************** STRAY LIGHT FACTOR ********************************************/
 	
 	returnLine = fgets(LINE,4096,fReadParameters);
@@ -1955,18 +1969,6 @@ int readTrolFile(char * fileParameters,  ConfigControl * trolConfig, int printLo
 	if(printLog) printf("%s", LINE);
 
 
-	/*************************** INVERT FILLING FACTOR ********************************************/
-	
-	returnLine = fgets(LINE,4096,fReadParameters);
-	if(returnLine == NULL) return 0;						
-	rfscanf = sscanf(LINE,"%99[^:]:%i%99[^!]!",name, &trolConfig->InvertFillingFactor,comment);
-	if(rfscanf ==0 || rfscanf == EOF){
-		printf("Error reading the file of parameters, param Filling Factor. Please verify it. \n");
-		printf("\n ******* THIS IS THE NAME OF THE FILE RECEVIED : %s \n", fileParameters);
-		return 0;		
-	}
-	//if(printLog) printf("Filling Factor  to apply: %d\n", trolConfig->InvertFillingFactor);
-	if(printLog) printf("%s", LINE);
 
 
 	/*************************** MU ********************************************/
