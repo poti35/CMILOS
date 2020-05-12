@@ -933,7 +933,7 @@ FitsImage * readFitsSpectroImageRectangular (const char * fitsFileSpectra, Confi
 					configCrontrolFile->subx2 = naxes[pos_row];
 				}
 				else			
-					image->rows=(configCrontrolFile->subx2-configCrontrolFile->subx1)+1;
+					image->rows=(configCrontrolFile->subx2-configCrontrolFile->subx1);
 				
 				if(configCrontrolFile->suby2==0 && configCrontrolFile->suby1==0){
 					image->cols = naxes[pos_col];
@@ -941,7 +941,7 @@ FitsImage * readFitsSpectroImageRectangular (const char * fitsFileSpectra, Confi
 					configCrontrolFile->suby2 = naxes[pos_col];
 				}
 				else
-					image->cols= (configCrontrolFile->suby2-configCrontrolFile->suby1)+1;
+					image->cols= (configCrontrolFile->suby2-configCrontrolFile->suby1);
 
 				image->nLambdas=naxes[pos_lambda];
 				image->numStokes=naxes[pos_stokes_parameters];
@@ -968,10 +968,17 @@ FitsImage * readFitsSpectroImageRectangular (const char * fitsFileSpectra, Confi
 				long fpixelBegin [4] = {1,1,1,1}; 
 				long fpixelEnd [4] = {1,1,1,1}; 
 				long inc [4] = {1,1,1,1};
-				fpixelBegin[pos_row] = configCrontrolFile->subx1;
+				//if(configCrontrolFile->subx1==0)
+					fpixelBegin[pos_row] = configCrontrolFile->subx1+1;
+				/*else
+					fpixelBegin[pos_row] = configCrontrolFile->subx1;*/
 				fpixelEnd[pos_row] = configCrontrolFile->subx2;
 
-				fpixelBegin[pos_col] = configCrontrolFile->suby1;
+				//if(configCrontrolFile->suby1==0)
+					fpixelBegin[pos_col] = configCrontrolFile->suby1+1;
+				/*else
+					fpixelBegin[pos_col] = configCrontrolFile->suby1;*/
+				
 				fpixelEnd[pos_col] = configCrontrolFile->suby2;
 
 				fpixelEnd[pos_lambda] = naxes[pos_lambda];
@@ -1012,10 +1019,14 @@ FitsImage * readFitsSpectroImageRectangular (const char * fitsFileSpectra, Confi
 					int sizeDim2 = (fpixelEnd[2]-(fpixelBegin[2]-1));
 					int sizeDim3 = (fpixelEnd[3]-(fpixelBegin[3]-1));
 					image->naxes = calloc(4,sizeof(long));
-					image->naxes[pos_row] = (fpixelEnd[pos_row]-(fpixelBegin[pos_row]-1));
-					image->naxes[pos_col] = (fpixelEnd[pos_col]-(fpixelBegin[pos_col]-1));
+					image->naxes[pos_row] = (fpixelEnd[pos_row]-(fpixelBegin[pos_row]-1))+1;
+					image->naxes[pos_col] = (fpixelEnd[pos_col]-(fpixelBegin[pos_col]-1))+1;
+					printf("\n NUM ROWS %d NUM ROWS NAXES %ld ", image->rows, image->naxes[pos_row]);
+					printf("\n NUM COLS %d NUM COLS NAXES %ld ", image->cols, image->naxes[pos_col]);
 					image->naxes[pos_lambda] = (fpixelEnd[pos_lambda]-(fpixelBegin[pos_lambda]-1));
 					image->naxes[pos_stokes_parameters] = (fpixelEnd[pos_stokes_parameters]-(fpixelBegin[pos_stokes_parameters]-1));
+					printf("\n NUM lambdas %ld ", image->naxes[pos_lambda]);
+					printf("\n NUM stokes parameters %ld ", image->naxes[pos_stokes_parameters]);
 
 					if(correctOrder){
 						for( i=0; i<sizeDim3;i++){

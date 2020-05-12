@@ -768,7 +768,8 @@ int main(int argc, char **argv)
 
 				if((access(vInputFileSpectraParalell[indexInputFits].name,F_OK)!=-1)){
 					clock_t t = clock();
-					if(configCrontrolFile.subx1 !=0 && configCrontrolFile.subx2 !=0 && configCrontrolFile.suby1 != 0 && configCrontrolFile.suby2!=0){
+					
+					if(configCrontrolFile.subx1 !=0 || configCrontrolFile.subx2 !=0 || configCrontrolFile.suby1 != 0 || configCrontrolFile.suby2!=0){
 						fitsImages[indexInputFits] = readFitsSpectroImageRectangular(vInputFileSpectraParalell[indexInputFits].name,&configCrontrolFile,1);
 					}
 					else
@@ -1090,7 +1091,7 @@ int main(int argc, char **argv)
 			clock_t t, timeTotal;
 			t = clock();
 			timeTotal = clock();
-			if(configCrontrolFile.subx1 !=0 && configCrontrolFile.subx2 !=0 && configCrontrolFile.suby1 != 0 && configCrontrolFile.suby2!=0){
+			if(configCrontrolFile.subx1 !=0 || configCrontrolFile.subx2 !=0 || configCrontrolFile.suby1 != 0 || configCrontrolFile.suby2!=0){
 				fitsImage = readFitsSpectroImageRectangular(vInputFileSpectraLocal[indexInputFits].name,&configCrontrolFile,0);
 			}
 			else
@@ -1296,7 +1297,7 @@ int main(int argc, char **argv)
 			
 			clock_t t = clock();
 			timeTotal = clock();
-			if(configCrontrolFile.subx1 !=0 && configCrontrolFile.subx2 !=0 && configCrontrolFile.suby1 != 0 && configCrontrolFile.suby2!=0){
+			if(configCrontrolFile.subx1 !=0 || configCrontrolFile.subx2 !=0 || configCrontrolFile.suby1 != 0 || configCrontrolFile.suby2!=0){
 				fitsImage = readFitsSpectroImageRectangular(vInputFileSpectraDiv2Parallel[myGroup].name,&configCrontrolFile,1);
 			}
 			else

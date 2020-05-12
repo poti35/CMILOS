@@ -776,11 +776,11 @@ int main(int argc, char **argv)
 			
 			configCrontrolFile.subx1 = 1;
 			configCrontrolFile.suby1 = 1;
-			configCrontrolFile.subx2 = 300;
-			configCrontrolFile.suby2 = 300;
+			configCrontrolFile.subx2 = 894;
+			configCrontrolFile.suby2 = 500;
 			
-			//fitsImage = readFitsSpectroImageRectangular(configCrontrolFile.ObservedProfiles,&configCrontrolFile,0);
-			fitsImage = readFitsSpectroImage(nameInputFileSpectra,0);
+			fitsImage = readFitsSpectroImageRectangular(configCrontrolFile.ObservedProfiles,&configCrontrolFile,0);
+			//fitsImage = readFitsSpectroImage(nameInputFileSpectra,0);
 			t = clock() - t;
 			timeReadImage = ((PRECISION)t)/CLOCKS_PER_SEC; // in seconds 
 			
