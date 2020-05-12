@@ -2209,17 +2209,25 @@ int readInitFile(char * fileParameters,  ConfigControl * trolConfig, int printLo
 	if(printLog) printf("%s", LINE);
 	// CHECK SIZE IMAGE PARAMS
 
-	if(trolConfig->subx2 > trolConfig->nx || trolConfig->subx1>trolConfig->subx2 || trolConfig->suby2 > trolConfig->ny || trolConfig->suby1 > trolConfig->suby2){
-		printf("\n ERROR IN THE DIMENSIONS, PLEASE CHECK GIVEN VALUES \n ");
-		exit(1);
-	}
-	if(trolConfig->subx1 == 0 && trolConfig->subx2==0 && trolConfig->suby1==0 && trolConfig->suby2==0){ // invert entire image 
+
+	/*if(trolConfig->subx1 == 0 && trolConfig->subx2==0 && trolConfig->suby1==0 && trolConfig->suby2==0){ // invert entire image 
 		trolConfig->subx1 = 1;
 		trolConfig->suby1 = 1;
 		trolConfig->subx2 = trolConfig->nx;
 		trolConfig->suby2 = trolConfig->ny;
 	}
-
+	else{
+		if(trolConfig->subx1 < 0 || trolConfig->suby1 <0 || trolConfig->subx2 > trolConfig->nx || trolConfig->subx1>trolConfig->subx2 || trolConfig->suby2 > trolConfig->ny || trolConfig->suby1 > trolConfig->suby2){
+			printf("\n ERROR IN THE DIMENSIONS, PLEASE CHECK GIVEN VALUES \n ");
+			exit(1);
+		}
+	}*/
+	
+	if(trolConfig->subx1 < 0 || trolConfig->suby1 <0 || trolConfig->subx2 > trolConfig->nx || trolConfig->subx1>trolConfig->subx2 || trolConfig->suby2 > trolConfig->ny || trolConfig->suby1 > trolConfig->suby2){
+		if(printLog) printf("\n ERROR IN THE DIMENSIONS, PLEASE CHECK GIVEN VALUES \n ");
+		exit(1);
+	}	
+	 
 	/***************************  output file prefix  ********************************************/
 
 	returnLine = fgets(LINE,4096,fReadParameters);

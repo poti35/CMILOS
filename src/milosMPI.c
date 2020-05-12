@@ -951,9 +951,6 @@ int main(int argc, char **argv)
 							}						
 						}
 					}
-
-					
-					
 				}
 
 				MPI_Igatherv(resultsInitModel_L[indexInputFits], sendcountsPixels_L[indexInputFits][idProc], mpiInitModel, resultsInitModelTotal_L[indexInputFits], sendcountsPixels_L[indexInputFits], displsPixels_L[indexInputFits], mpiInitModel, root, MPI_COMM_WORLD,&vMpiRequestInitModel[indexInputFits]);
