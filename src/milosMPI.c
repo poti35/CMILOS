@@ -67,8 +67,8 @@ PRECISION *dirConvPar; // AUX GLOBAL VECTOR for calculate direct convolutions
 REAL * opa;
 int FGlobal, HGlobal, uuGlobal;
 
-//PRECISION *d_spectra, *spectra, *spectra_mac;
-REAL *d_spectra, *spectra, *spectra_mac;
+
+REAL *d_spectra, *spectra, *spectra_mac, *spectra_slight;
 
 
 // GLOBAL variables to use for FFT calculation 
@@ -155,7 +155,7 @@ int main(int argc, char **argv)
 	//INIT_MODEL=[eta0,magnet,vlos,landadopp,aa,gamma,azi,B1,B2,macro,alfa]
 	//----------------------------------------------
 
-	PRECISION * slight = NULL;
+	REAL * slight = NULL;
 	int dimStrayLight;
 	int * vMask = NULL;
 	int nRowsMask, nColsMask;
@@ -179,7 +179,7 @@ int main(int argc, char **argv)
 	
 	const char	* nameInputFilePSF ;
 
-	FitsImage * fitsImage = NULL;
+	FitsImage * fitsImage = NULL, *fitsSlight = NULL;
 	PRECISION  dat[7];
 
 	double local_start, local_finish, local_elapsed, elapsed;
@@ -312,7 +312,7 @@ int main(int argc, char **argv)
 	/**************************************** READ FITS  STRAY LIGHT ******************************/
 	
 	if(access(configCrontrolFile.StrayLightFile,F_OK)!=-1){ //  IF NOT EMPTY READ stray light file 
-		slight = readFitsStrayLightFile(configCrontrolFile.StrayLightFile,&dimStrayLight,nlambda);
+		readFitsStrayLightFile(configCrontrolFile.StrayLightFile,nlambda,fitsSlight,slight);
 	}
 
 	
@@ -768,7 +768,11 @@ int main(int argc, char **argv)
 
 				if((access(vInputFileSpectraParalell[indexInputFits].name,F_OK)!=-1)){
 					clock_t t = clock();
-					fitsImages[indexInputFits] = readFitsSpectroImage(vInputFileSpectraParalell[indexInputFits].name,1);
+					if(configCrontrolFile.subx1 !=0 && configCrontrolFile.subx2 !=0 && configCrontrolFile.suby1 != 0 && configCrontrolFile.suby2!=0){
+						fitsImages[indexInputFits] = readFitsSpectroImageRectangular(vInputFileSpectraParalell[indexInputFits].name,&configCrontrolFile,1);
+					}
+					else
+						fitsImages[indexInputFits] = readFitsSpectroImage(vInputFileSpectraParalell[indexInputFits].name,1);
 					t = clock() - t;
 					PRECISION timeReadImage = ((PRECISION)t)/CLOCKS_PER_SEC; // in seconds 
 					printf("\n TIME TO READ FITS IMAGE %s:  %f seconds to execute . NUMBER OF PIXELS READ: %d \n",vInputFileSpectraParalell[indexInputFits].name, timeReadImage,fitsImages[indexInputFits]->numPixels); 
@@ -902,14 +906,14 @@ int main(int argc, char **argv)
 							initModel.az = 1;
 						// INVERSION RTE
 						
-						PRECISION * slightPixel;
-						if(slight==NULL) 
+						REAL * slightPixel;
+						if(slight==NULL && fitsSlight==NULL) 
 							slightPixel = NULL;
 						else{
-							if(dimStrayLight==nlambda) 
+							if(slight!=NULL) 
 								slightPixel = slight;
 							else 
-								slightPixel = slight+nlambda*indexPixel;
+								slightPixel = fitsSlight->spectroImagen+ (nlambda*indexPixel);
 						}
 						
 						
@@ -1089,7 +1093,11 @@ int main(int argc, char **argv)
 			clock_t t, timeTotal;
 			t = clock();
 			timeTotal = clock();
-			fitsImage = readFitsSpectroImage(vInputFileSpectraLocal[indexInputFits].name,0);
+			if(configCrontrolFile.subx1 !=0 && configCrontrolFile.subx2 !=0 && configCrontrolFile.suby1 != 0 && configCrontrolFile.suby2!=0){
+				fitsImage = readFitsSpectroImageRectangular(vInputFileSpectraLocal[indexInputFits].name,&configCrontrolFile,0);
+			}
+			else
+				fitsImage = readFitsSpectroImage(vInputFileSpectraLocal[indexInputFits].name,0);
 			t = clock() - t;
 			timeReadImage = ((PRECISION)t)/CLOCKS_PER_SEC; // in seconds 
 			
@@ -1113,6 +1121,12 @@ int main(int argc, char **argv)
 					imageStokesAdjust->pos_stokes_parameters = fitsImage->pos_stokes_parameters;
 					imageStokesAdjust->numPixels = fitsImage->numPixels;
 					imageStokesAdjust->pixels = calloc(imageStokesAdjust->numPixels, sizeof(vpixels));
+					imageStokesAdjust->naxes = fitsImage->naxes;
+					imageStokesAdjust->vCard = fitsImage->vCard;
+					imageStokesAdjust->vKeyname = fitsImage->vKeyname;
+					imageStokesAdjust->nkeys = fitsImage->nkeys;
+					imageStokesAdjust->naxis = fitsImage->naxis;
+					imageStokesAdjust->bitpix = fitsImage->bitpix;					
 					for( i=0;i<imageStokesAdjust->numPixels;i++){
 						imageStokesAdjust->pixels[i].spectro = calloc (nlambda*NPARMS,sizeof(float));
 					}
@@ -1168,14 +1182,14 @@ int main(int argc, char **argv)
 						// INVERSION RTE
 
 
-						PRECISION * slightPixel;
-						if(slight==NULL) 
+						REAL * slightPixel;
+						if(slight==NULL && fitsSlight==NULL) 
 							slightPixel = NULL;
 						else{
-							if(dimStrayLight==nlambda) 
+							if(slight!=NULL) 
 								slightPixel = slight;
 							else 
-								slightPixel = slight+nlambda*indexPixel;
+								slightPixel = fitsSlight->spectroImagen+ (nlambda*indexPixel);
 						}
 						lm_mils(cuantic, wlines, vGlobalLambda, nlambda, fitsImage->pixels[indexPixel].spectro, nlambda, &initModel, spectra, &vChisqrf[indexPixel], slightPixel, configCrontrolFile.toplim, configCrontrolFile.NumberOfCycles,
 								configCrontrolFile.WeightForStokes, configCrontrolFile.fix, vSigma, configCrontrolFile.noise, configCrontrolFile.InitialDiagonalElement,&configCrontrolFile.ConvolveWithPSF,&vNumIter[indexPixel],configCrontrolFile.mu,configCrontrolFile.logclambda);						
@@ -1285,6 +1299,10 @@ int main(int argc, char **argv)
 			
 			clock_t t = clock();
 			timeTotal = clock();
+			if(configCrontrolFile.subx1 !=0 && configCrontrolFile.subx2 !=0 && configCrontrolFile.suby1 != 0 && configCrontrolFile.suby2!=0){
+				fitsImage = readFitsSpectroImageRectangular(vInputFileSpectraDiv2Parallel[myGroup].name,&configCrontrolFile,1);
+			}
+			else
 			fitsImage = readFitsSpectroImage(vInputFileSpectraDiv2Parallel[myGroup].name,1);
 			t = clock() - t;
 			PRECISION timeReadImage = ((PRECISION)t)/CLOCKS_PER_SEC; // in seconds 
@@ -1390,14 +1408,14 @@ int main(int argc, char **argv)
 
 					// INVERSION RTE
 					
-					PRECISION * slightPixel;
-					if(slight==NULL) 
+					REAL * slightPixel;
+					if(slight==NULL && fitsSlight==NULL) 
 						slightPixel = NULL;
 					else{
-						if(dimStrayLight==nlambda) 
+						if(slight!=NULL) 
 							slightPixel = slight;
 						else 
-							slightPixel = slight+nlambda*indexPixel;
+							slightPixel = fitsSlight->spectroImagen+ (nlambda*indexPixel);
 					}
 					
 					lm_mils(cuantic, wlines, vGlobalLambda, nlambda, vSpectraSplit+(indexPixel*(nlambda*NPARMS)), nlambda, &initModel, spectra, &vChisqrf[indexPixel], slightPixel, configCrontrolFile.toplim, configCrontrolFile.NumberOfCycles,

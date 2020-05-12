@@ -30,9 +30,9 @@ extern REAL *dgp1, *dgp2, *dgp3, *dgp4, *dgp5, *dgp6, *d_dt;
 extern REAL *d_ei, *d_eq, *d_eu, *d_ev, *d_rq, *d_ru, *d_rv;
 extern REAL *dfi, *dshi;
 extern REAL *fi_p, *fi_b, *fi_r, *shi_p, *shi_b, *shi_r;
-//extern PRECISION *spectra, *d_spectra, *spectra_mac;
 
-extern REAL *spectra, *d_spectra, *spectra_mac;
+
+extern REAL *spectra, *d_spectra, *spectra_mac, *spectra_slight;
 extern REAL *etain, *etaqn, *etaun, *etavn, *rhoqn, *rhoun, *rhovn;
 extern REAL *etai, *etaq, *etau, *etav, *rhoq, *rhou, *rhov;
 extern REAL *parcial1, *parcial2, *parcial3;
@@ -125,7 +125,7 @@ void response_functions_convolution(int * nlambda)
 
 }
 
-void AplicaSlight(REAL * d_spectra, int numl, PRECISION ALFA, PRECISION * slight){
+void AplicaSlight(REAL * d_spectra, int numl, PRECISION ALFA, REAL * slight){
 	int par, il, i;
 	// Response Functions 
 	for(par=0;par<NPARMS;par++){
@@ -153,7 +153,7 @@ void AplicaDelta(Init_Model *model, PRECISION *delta, int *fixed, Init_Model *mo
 	int index =0;
 	if (fixed[0])  // ETHA 0 
 	{
-		modelout->eta0 = model->eta0 - delta[index++]; // 0
+		modelout->eta0 = model->eta0 - delta[0]; // 0
 	}
 	if (fixed[1]) // B
 	{
@@ -161,7 +161,7 @@ void AplicaDelta(Init_Model *model, PRECISION *delta, int *fixed, Init_Model *mo
 			delta[1] = -300;
 		else if (delta[1] > 300)
 			delta[1] = 300;
-		modelout->B = model->B - delta[index++]; //magnetic field
+		modelout->B = model->B - delta[1]; //magnetic field
 	}
 	if (fixed[2]) // VLOS
 	{
@@ -170,7 +170,7 @@ void AplicaDelta(Init_Model *model, PRECISION *delta, int *fixed, Init_Model *mo
 
 		if (delta[2] < -2)
 			delta[2] = -2;		*/
-		modelout->vlos = model->vlos - delta[index++];
+		modelout->vlos = model->vlos - delta[2];
 	}
 
 	if (fixed[3]) // DOPPLER WIDTH
@@ -180,11 +180,11 @@ void AplicaDelta(Init_Model *model, PRECISION *delta, int *fixed, Init_Model *mo
 			delta[3] = 1e-2;
 		else if (delta[3] < -1e-2)
 			delta[3] = -1e-2;*/
-		modelout->dopp = model->dopp - delta[index++];
+		modelout->dopp = model->dopp - delta[3];
 	}
 
 	if (fixed[4]) // DAMPING 
-		modelout->aa = model->aa - delta[index++];
+		modelout->aa = model->aa - delta[4];
 
 	if (fixed[5])  // GAMMA 
 	{
@@ -193,7 +193,7 @@ void AplicaDelta(Init_Model *model, PRECISION *delta, int *fixed, Init_Model *mo
 		else if (delta[5] > 30)
 			delta[5] = 30;
 
-		modelout->gm = model->gm - delta[index++]; //5
+		modelout->gm = model->gm - delta[5]; //5
 	}
 	if (fixed[6]) // AZIMUTH
 	{
@@ -207,17 +207,17 @@ void AplicaDelta(Init_Model *model, PRECISION *delta, int *fixed, Init_Model *mo
 		else if (delta[6] > 30)
 			delta[6] = 30;
 
-		modelout->az = model->az - delta[index++];
+		modelout->az = model->az - delta[6];
 	}
 	if (fixed[7])
-		modelout->S0 = model->S0 - delta[index++];
+		modelout->S0 = model->S0 - delta[7];
 	if (fixed[8])
-		modelout->S1 = model->S1 - delta[index++];
+		modelout->S1 = model->S1 - delta[8];
 	if (fixed[9]){
-		modelout->mac = model->mac - delta[index++]; //9
+		modelout->mac = model->mac - delta[9]; //9
 	}
 	if (fixed[10])
-		modelout->alfa = model->alfa - delta[index++];
+		modelout->alfa = model->alfa - delta[10];
 }
 
 
@@ -757,7 +757,7 @@ void estimacionesClasicas(PRECISION lambda_0, PRECISION *lambda, int nlambda, fl
 
 int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda, float *spectro, int nspectro,
 				Init_Model *initModel, REAL *spectra, float *chisqrf,
-				PRECISION * slight, PRECISION toplim, int miter, REAL *weight, int *fix,
+				REAL * slight, PRECISION toplim, int miter, REAL *weight, int *fix,
 				REAL *vSigma, REAL sigma, REAL ilambda, int * INSTRUMENTAL_CONVOLUTION, int * iter, REAL ah, int logclambda)
 {
 
@@ -822,7 +822,7 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 
 	
 
-	mil_sinrf(cuantic, initModel, wlines, lambda, nlambda, spectra, ah,slight,spectra_mac, *INSTRUMENTAL_CONVOLUTION);
+	mil_sinrf(cuantic, initModel, wlines, lambda, nlambda, spectra, ah,slight,spectra_mac, spectra_slight, *INSTRUMENTAL_CONVOLUTION);
 
 	// in this case basenamefile is from initmodel
 	/*char nameAux [4096];
@@ -848,7 +848,7 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 	}
 	*/
 
-	me_der(cuantic, initModel, wlines, lambda, nlambda, d_spectra, spectra_mac, spectra,ah, slight, *INSTRUMENTAL_CONVOLUTION,fixed);
+	me_der(cuantic, initModel, wlines, lambda, nlambda, d_spectra, spectra_mac, spectra_slight,ah, slight, *INSTRUMENTAL_CONVOLUTION,fixed);
 
 	/*int number_parametros = 0;
 	
@@ -907,7 +907,7 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 			ind = i * (NTERMS + 1);
 			covar[ind] = alpha[ind] * (1.0 + flambda);
 		}
-		if(*iter ==0){ // iter 0 impirmir covar
+		/*if(*iter ==0){ // iter 0 impirmir covar
 			printf("\n COVARM MATRIX\n");
 			for(i=0;i<NTERMS;i++){
 				int j;
@@ -917,12 +917,12 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 				printf("\n");
 			}
 			printf("\n");
-		}	
+		}*/	
 		mil_svd(covar, betad, delta,fixed);
 		AplicaDelta(initModel, delta, fixed, &model);
 
 		check(&model);
-		mil_sinrf(cuantic, &model, wlines, lambda, nlambda, spectra, ah,slight,spectra_mac,*INSTRUMENTAL_CONVOLUTION);
+		mil_sinrf(cuantic, &model, wlines, lambda, nlambda, spectra, ah,slight,spectra_mac,spectra_slight,*INSTRUMENTAL_CONVOLUTION);
 	
 		chisqr = fchisqr(spectra, nspectro, spectro, weight, vSigma, nfree);
 		

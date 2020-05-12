@@ -63,7 +63,7 @@ extern fftw_complex * inSpectraFwPSF, *inSpectraBwPSF, *outSpectraFwPSF, *outSpe
 extern fftw_plan planForwardPSF, planBackwardPSF;
 extern ConfigControl configCrontrolFile;
 extern int NTERMS;
-int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *lambda,int nlambda,REAL *d_spectra,REAL *spectra, REAL * spectra_slight, REAL ah,PRECISION * slight,int filter, int * fix)
+int me_der(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *lambda,int nlambda,REAL *d_spectra,REAL *spectra, REAL * spectra_slight, REAL ah,REAL * slight,int filter, int * fix)
 {
 
 	int nterms,numl;

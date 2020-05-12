@@ -58,7 +58,7 @@ extern fftw_plan planForwardPSF, planBackwardPSF;
 extern ConfigControl configCrontrolFile;
 
 int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISION *lambda,int nlambda,REAL *spectra,
-			REAL ah,PRECISION * slight, REAL * spectra_mc, int filter)
+			REAL ah,REAL * slight, REAL * spectra_mc, REAL * spectra_slight, int filter)
 {
 
 	int offset,numl;
@@ -459,7 +459,9 @@ int mil_sinrf(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,PRECISIO
 	}
 
 	if(slight!=NULL){  //ADDING THE STRAY-LIGHT PROFILE
+
 		for(i=0;i<numl*NPARMS;i++){
+			spectra_slight[i] = spectra[i];
 			spectra[i] = spectra[i]*ALF+slight[i]*(1.0-ALF);
 		}
 

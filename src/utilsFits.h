@@ -59,7 +59,7 @@ PRECISION * readFitsLambdaToArray (const char * fitsFileLambda,  int * indexLine
  * @param nlambda --> struct of image 
  * Return 1 If the image has been read corectly if not return 0 
  */
-PRECISION * readPerStrayLightFile (const char * perFileStrayLight, int nlambda);
+REAL * readPerStrayLightFile (const char * perFileStrayLight, int nlambda);
 
 
 /**
@@ -70,7 +70,7 @@ PRECISION * readPerStrayLightFile (const char * perFileStrayLight, int nlambda);
  * @param fitsImage --> struct of image 
  * Return 1 If the image has been read corectly if not return 0 
  */
-PRECISION * readFitsStrayLightFile (const char * fitsFileStrayLight, int * dimStrayLight, int numLambda);
+void readFitsStrayLightFile (const char * fitsFileStrayLight, int numLambda,FitsImage * image,REAL * vStrayLight);
 
 
 /**
