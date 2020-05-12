@@ -1391,7 +1391,7 @@ PRECISION * readFitsLambdaToArray (const char * fitsFileLambda,  int * indexLine
 }
 
 
-REAL * readPerStrayLightFile (const char * perFileStrayLight, int nlambda){
+REAL * readPerStrayLightFile (const char * perFileStrayLight, int nlambda, PRECISION *  vOffsetsLambda){
 
 	REAL * slightPER = NULL;
 	FILE * fReadStrayLight;
@@ -1410,8 +1410,13 @@ REAL * readPerStrayLightFile (const char * perFileStrayLight, int nlambda){
 	}
 	slightPER = calloc(nlambda*NPARMS,sizeof(REAL));
 	float aux1, aux2,aux3,aux4,aux5,aux6;
-	while ((read = getline(&line, &len, fReadStrayLight)) != -1 && contLine<nlambda) {
+	int correcto = 1;
+	while ((read = getline(&line, &len, fReadStrayLight)) != -1 && contLine<nlambda && correcto) {
 		sscanf(line,"%e %e %e %e %e %e",&aux1,&aux2,&aux3,&aux4,&aux5,&aux6);
+		if(aux2 != trunc(vOffsetsLambda[contLine]) ){ 
+			correcto = 0;
+			printf("\n WAVE LENGTH: %f   -   %f", aux2, trunc(vOffsetsLambda[contLine]));
+		}
 		slightPER[contLine] = aux3;
 		slightPER[contLine + nlambda] = aux4;
 		slightPER[contLine + nlambda * 2] = aux5;
@@ -1419,6 +1424,11 @@ REAL * readPerStrayLightFile (const char * perFileStrayLight, int nlambda){
 		contLine++;
 	}
 	fclose(fReadStrayLight);
+	if(!correcto){
+		printf("\nThe observed profiles and the stray light profiles do not have the same wavelengths and/or line index\n");
+		exit(EXIT_FAILURE);
+	}
+
 	return slightPER;
 }
 

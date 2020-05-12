@@ -546,15 +546,8 @@ int main(int argc, char **argv)
 	}
 	else if(configCrontrolFile.NumberOfCycles==0){ // synthesis
 	
-      /*if(access(configCrontrolFile.StrayLightFile,F_OK)!=-1){ //  IF NOT EMPTY READ stray light file 
-         slight = readFitsStrayLightFile(configCrontrolFile.StrayLightFile,&dimStrayLight,nlambda);
-         printf("\n STRAY LIGHT READ \n");
-      }
-      else{
-         printf("\n STRAY LIGHT NOT USED \n");
-      }*/
 		if(access(configCrontrolFile.StrayLightFile,F_OK)!=-1){ //  IF NOT EMPTY READ stray light file 
-			slight = readPerStrayLightFile(configCrontrolFile.StrayLightFile,nlambda);
+			slight = readPerStrayLightFile(configCrontrolFile.StrayLightFile,nlambda,vOffsetsLambda);
 			printf("\n STRAY LIGHT READ \n");
 		}
 		else{
@@ -670,7 +663,7 @@ int main(int argc, char **argv)
 			fclose(fReadSpectro);
 
 			if(access(configCrontrolFile.StrayLightFile,F_OK)!=-1){ //  IF NOT EMPTY READ stray light file 
-				slight = readPerStrayLightFile(configCrontrolFile.StrayLightFile,nlambda);
+				slight = readPerStrayLightFile(configCrontrolFile.StrayLightFile,nlambda,vOffsetsLambda);
 				printf("\n STRAY LIGHT READ \n");
 			}
 			else{
@@ -779,8 +772,8 @@ int main(int argc, char **argv)
 			configCrontrolFile.subx2 = 894;
 			configCrontrolFile.suby2 = 500;
 			
-			fitsImage = readFitsSpectroImageRectangular(configCrontrolFile.ObservedProfiles,&configCrontrolFile,0);
-			//fitsImage = readFitsSpectroImage(nameInputFileSpectra,0);
+			//fitsImage = readFitsSpectroImageRectangular(configCrontrolFile.ObservedProfiles,&configCrontrolFile,0);
+			fitsImage = readFitsSpectroImage(nameInputFileSpectra,0);
 			t = clock() - t;
 			timeReadImage = ((PRECISION)t)/CLOCKS_PER_SEC; // in seconds 
 			
