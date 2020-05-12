@@ -1019,8 +1019,8 @@ FitsImage * readFitsSpectroImageRectangular (const char * fitsFileSpectra, Confi
 					int sizeDim2 = (fpixelEnd[2]-(fpixelBegin[2]-1));
 					int sizeDim3 = (fpixelEnd[3]-(fpixelBegin[3]-1));
 					image->naxes = calloc(4,sizeof(long));
-					image->naxes[pos_row] = (fpixelEnd[pos_row]-(fpixelBegin[pos_row]-1))+1;
-					image->naxes[pos_col] = (fpixelEnd[pos_col]-(fpixelBegin[pos_col]-1))+1;
+					image->naxes[pos_row] = (fpixelEnd[pos_row]-(fpixelBegin[pos_row]-1));
+					image->naxes[pos_col] = (fpixelEnd[pos_col]-(fpixelBegin[pos_col]-1));
 					printf("\n NUM ROWS %d NUM ROWS NAXES %ld ", image->rows, image->naxes[pos_row]);
 					printf("\n NUM COLS %d NUM COLS NAXES %ld ", image->cols, image->naxes[pos_col]);
 					image->naxes[pos_lambda] = (fpixelEnd[pos_lambda]-(fpixelBegin[pos_lambda]-1));
