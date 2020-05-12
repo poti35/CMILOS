@@ -361,6 +361,11 @@ FitsImage *  readFitsSpectroImage (const char * fitsFileSpectra, int forParallel
 				image->cols=naxes[pos_col];
 				image->nLambdas=naxes[pos_lambda];
 				image->numStokes=naxes[pos_stokes_parameters];
+				image->naxes = calloc(4,sizeof(long));
+				image->naxes[pos_row] = naxes[pos_row];
+				image->naxes[pos_col] = naxes[pos_col];
+				image->naxes[pos_lambda] = naxes[pos_lambda];
+				image->naxes[pos_stokes_parameters] = naxes[pos_stokes_parameters];
 				if(image->numStokes!=4){
 					printf("\n************** PLEASE REVIEW THE ORDER OF HEADER NAXIS. DIMENSION OF STOKES MUST HAVE AS VALUE: 4 \n");
 					exit(EXIT_FAILURE);
