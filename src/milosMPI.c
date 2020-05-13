@@ -794,6 +794,7 @@ int main(int argc, char **argv)
 				
 				if(idProc == root){
 					printf("\n***********************  DOING INVERSION: %s *******************************\n\n",vInputFileSpectraParalell[indexInputFits].name );
+					
 					resultsInitModelTotal_L[indexInputFits] = calloc (vNumPixelsImage[indexInputFits] , sizeof(Init_Model));
 					chisqrfTotal_L[indexInputFits] = calloc (vNumPixelsImage[indexInputFits] , sizeof(float));
 					vNumIterTotal_L[indexInputFits] = calloc (vNumPixelsImage[indexInputFits], sizeof(int));
@@ -837,8 +838,8 @@ int main(int argc, char **argv)
 					vSpectraAdjustedSplit_L[indexInputFits] = calloc(sendcountsSpectro_L[indexInputFits][idProc],sizeof(float));
 				
 				local_start_scatter = MPI_Wtime();
-				
-
+				printf("\n IDPROC %d  %d     %d",idProc, sendcountsSpectro_L[indexInputFits][idProc], displsSpectro_L[indexInputFits][idProc]);
+				printf("\n+++++++++++++++++++++++++++");
 				MPI_Barrier(MPI_COMM_WORLD); // Wait until all processes have their vlambda				
 				if( root == idProc){
 					MPI_Scatterv(fitsImages[indexInputFits]->spectroImagen, sendcountsSpectro_L[indexInputFits], displsSpectro_L[indexInputFits], MPI_FLOAT, vSpectraSplit_L[indexInputFits], sendcountsSpectro_L[indexInputFits][idProc], MPI_FLOAT, root, MPI_COMM_WORLD);

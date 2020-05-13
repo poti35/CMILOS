@@ -425,22 +425,23 @@ FitsImage *  readFitsSpectroImage (const char * fitsFileSpectra, int forParallel
 				if (!imageTemp)  {
 					printf("ERROR ALLOCATION MEMORY FOR TEMP IMAGE");
 					return NULL;
-          		}
+          	}
 				
 				
 				long fpixel [4] = {1,1,1,1}; 
 				fits_read_pix(fptr, TFLOAT, fpixel, numPixelsFitsFile, &nulval, imageTemp, &anynul, &status);
 				if(status){
 					fits_report_error(stderr, status);
-               		return NULL;	
+               return NULL;	
 				}
 
 				// allocate memory for reorder the image
 				
 				if(forParallel){
+					//image->vLambdaImagen = calloc(image->numPixels*image->nLambdas, sizeof(PRECISION));
 					image->vLambdaImagen = NULL;
 					image->pixels = NULL;
-					image->spectroImagen = calloc(numPixelsFitsFile, sizeof(float));
+					image->spectroImagen = calloc(image->numPixels*image->nLambdas*image->numStokes, sizeof(float));
 				}
 				else{
 					image->pixels = calloc(image->numPixels, sizeof(vpixels));
