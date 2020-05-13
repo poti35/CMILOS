@@ -438,10 +438,9 @@ FitsImage *  readFitsSpectroImage (const char * fitsFileSpectra, int forParallel
 				// allocate memory for reorder the image
 				
 				if(forParallel){
-					//image->vLambdaImagen = calloc(image->numPixels*image->nLambdas, sizeof(PRECISION));
 					image->vLambdaImagen = NULL;
 					image->pixels = NULL;
-					image->spectroImagen = calloc(image->numPixels*image->nLambdas*image->numStokes, sizeof(float));
+					image->spectroImagen = calloc(numPixelsFitsFile, sizeof(float));
 				}
 				else{
 					image->pixels = calloc(image->numPixels, sizeof(vpixels));

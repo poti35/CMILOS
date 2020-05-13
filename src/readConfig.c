@@ -2275,8 +2275,8 @@ int readInitFile(char * fileParameters,  ConfigControl * trolConfig, int printLo
 		printf("\n ******* THIS IS THE NAME OF THE FILE RECEVIED : %s \n", fileParameters);
 		return 0;		
 	}
-	//if(printLog) printf("Save Synthesis Profile to apply: %d\n", trolConfig->SaveSynthesisAdjusted);
-	if(printLog) printf("%s", LINE);
+	if(printLog) printf("Save Synthesis Profile to apply: %d\n", trolConfig->SaveSynthesisAdjusted);
+	//if(printLog) printf("%s", LINE);
 
 
 	return 1;

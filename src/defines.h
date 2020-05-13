@@ -136,7 +136,7 @@ typedef struct CUANTIC Cuantic;
 
 /******************************************************/
 
-void AllocateMemoryDerivedSynthesis(int numl, int NTERMS);
+void AllocateMemoryDerivedSynthesis(int numl);
 void FreeMemoryDerivedSynthesis();
 
 /******************************************************/

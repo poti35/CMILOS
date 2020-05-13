@@ -840,7 +840,7 @@ int main(int argc, char **argv)
 				
 
 				MPI_Barrier(MPI_COMM_WORLD); // Wait until all processes have their vlambda				
-				if( root == idProc){					
+				if( root == idProc){
 					//MPI_Scatterv(fitsImages[indexInputFits]->spectroImagen, sendcountsSpectro_L[indexInputFits], displsSpectro_L[indexInputFits], MPI_FLOAT, vSpectraSplit_L[indexInputFits], sendcountsSpectro_L[indexInputFits][idProc], MPI_FLOAT, root, MPI_COMM_WORLD);
 					MPI_Iscatterv(fitsImages[indexInputFits]->spectroImagen, sendcountsSpectro_L[indexInputFits], displsSpectro_L[indexInputFits], MPI_FLOAT, vSpectraSplit_L[indexInputFits], sendcountsSpectro_L[indexInputFits][idProc], MPI_FLOAT, root, MPI_COMM_WORLD,&vMpiRequestScatter[indexInputFits]);
 				}
@@ -853,7 +853,6 @@ int main(int argc, char **argv)
 				resultsInitModel_L[indexInputFits] = calloc(sendcountsPixels_L[indexInputFits][idProc], sizeof(Init_Model));
 				vChisqrf_L[indexInputFits] = calloc(sendcountsPixels_L[indexInputFits][idProc], sizeof(float));
 				vNumIter_L[indexInputFits] = calloc(sendcountsPixels_L[indexInputFits][idProc], sizeof(int));
-				
 			}
 			else if (idProc==root){
 				printf("\n\n ***************************** FITS FILE CAN NOT BE READ IT %s ******************************",vInputFileSpectraParalell[indexInputFits].name);
@@ -867,7 +866,7 @@ int main(int argc, char **argv)
 		}
 	}
 
-	AllocateMemoryDerivedSynthesis(nlambda,NTERMS);
+	AllocateMemoryDerivedSynthesis(nlambda);
 	//*************************************** ONE IMAGE PER PROCESSOR *********************************
 
 	if(numFilesPerProcessParallel){
@@ -1357,6 +1356,9 @@ int main(int argc, char **argv)
 			// SCATTER VPIXELS 
 			local_start = MPI_Wtime();
 			local_start_scatter = MPI_Wtime();
+			printf("\n pid %d sendcountsDiv2Spectro %d",myGroupRank,sendcountsDiv2Spectro[myGroupRank]);
+			printf("\n pid %d displsDiv2Spectro %d",myGroupRank,displsDiv2Spectro[myGroupRank]);
+			printf("\n*******************");
 			vSpectraSplit = calloc(sendcountsDiv2Spectro[myGroupRank],sizeof(float));
 			
 			if(configCrontrolFile.SaveSynthesisAdjusted)

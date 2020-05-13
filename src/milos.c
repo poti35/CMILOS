@@ -426,7 +426,7 @@ int main(int argc, char **argv)
 	if(configCrontrolFile.NumberOfCycles<0){
 		// read fits or per 
       
-		AllocateMemoryDerivedSynthesis(nlambda,NTERMS);
+		AllocateMemoryDerivedSynthesis(nlambda);
 		if(strcmp(file_ext(configCrontrolFile.ObservedProfiles),PER_FILE)==0){ // invert only per file
 			float * spectroPER = calloc(nlambda*NPARMS,sizeof(float));
 			FILE * fReadSpectro;
@@ -579,7 +579,7 @@ int main(int argc, char **argv)
 		printf("filling factor      :%lf\n",initModel.alfa);
 		printf("\n");
 
-		AllocateMemoryDerivedSynthesis(nlambda,NTERMS);
+		AllocateMemoryDerivedSynthesis(nlambda);
 
 		// synthesis
 		mil_sinrf(cuantic, &initModel, wlines, vLambda, nlambda, spectra, configCrontrolFile.mu, slight,spectra_mac,spectra_slight, configCrontrolFile.ConvolveWithPSF);
@@ -671,7 +671,7 @@ int main(int argc, char **argv)
 			}
       
       	
-			AllocateMemoryDerivedSynthesis(nlambda,NTERMS);
+			AllocateMemoryDerivedSynthesis(nlambda);
 			Init_Model initModel;
 			initModel.eta0 = INITIAL_MODEL.eta0;
 			initModel.B = INITIAL_MODEL.B; //200 700
@@ -810,7 +810,7 @@ int main(int argc, char **argv)
 				}
 
 				//***************************************** INIT MEMORY WITH SIZE OF LAMBDA ****************************************************//
-				AllocateMemoryDerivedSynthesis(nlambda,NTERMS);
+				AllocateMemoryDerivedSynthesis(nlambda);
 				int indexPixel = 0;
 
 				// ALLOCATE MEMORY FOR STORE THE RESULTS 

@@ -15,7 +15,7 @@ CFLAGS+=-O3
 ifdef develop
 	ifeq ($(develop),yes)
 		CFLAGS+=-g 
-		#CFLAGS+=-Wall -Wextra		
+		CFLAGS+=-Wall -Wextra		
 	endif
 endif
 ifdef use_double
@@ -34,7 +34,7 @@ CFLAGS+=-m${HOST_SIZE}
 #CFLAGS+=-Wno-unused-but-set-variable -Wno-unused-parameter
 
 SRCDIR= src
-DEPENCOMMON=$(SRCDIR)/calculosCompartidos.o $(SRCDIR)/fgauss.o $(SRCDIR)/fvoigt.o  $(SRCDIR)/me_der.o $(SRCDIR)/mil_sinrf.o $(SRCDIR)/lib.o $(SRCDIR)/create_cuantic.o $(SRCDIR)/utilsFits.o $(SRCDIR)/milosUtils.o $(SRCDIR)/convolution.o $(SRCDIR)/readConfig.o $(SRCDIR)/svdcmp.o $(SRCDIR)/jacobi.o
+DEPENCOMMON=$(SRCDIR)/calculosCompartidos.o $(SRCDIR)/fgauss.o $(SRCDIR)/fvoigt.o  $(SRCDIR)/me_der.o $(SRCDIR)/mil_sinrf.o $(SRCDIR)/lib.o $(SRCDIR)/create_cuantic.o $(SRCDIR)/utilsFits.o $(SRCDIR)/milosUtils.o $(SRCDIR)/convolution.o $(SRCDIR)/readConfig.o
 DEPEN_SEQ=$(SRCDIR)/milos.o 
 DEPEN_PAR=$(SRCDIR)/milosMPI.o 
 LDLIBS= -lm -lcfitsio -lnsl -lgsl -lgslcblas -lfftw3 -ldl -lpthread # -shared-intel
