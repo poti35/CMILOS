@@ -267,7 +267,7 @@ void freeVpixels(vpixels * image, int numPixels){
 FitsImage *  readFitsSpectroImage (const char * fitsFileSpectra, int forParallel){
 	fitsfile *fptr;   /* FITS file pointer, defined in fitsio.h */
 	FitsImage * image =  malloc(sizeof(FitsImage));
-	int status = 0;   /* CFITSIO status value MUST be initialized to zero! */
+	int status = 0, header = 1;   /* CFITSIO status value MUST be initialized to zero! */
 	PRECISION nulval = 0.; // define null value to 0 because the performance to read from fits file is better doing this. 
 	int bitpix, naxis, anynul, numPixelsFitsFile, nkeys;
 	long naxes [4] = {1,1,1,1}; /* The maximun number of dimension that we will read is 4*/
@@ -284,10 +284,10 @@ FitsImage *  readFitsSpectroImage (const char * fitsFileSpectra, int forParallel
 		// We want only fits image 
 		if(hdutype==IMAGE_HDU){
 			// We assume that we have only on HDU as primary 
-			if(fits_read_key(fptr, TSTRING, CTYPE1, image->ctype_1, comment, &status)) return 0;
-			if(fits_read_key(fptr, TSTRING, CTYPE2, image->ctype_2, comment, &status)) return 0;
-			if(fits_read_key(fptr, TSTRING, CTYPE3, image->ctype_3, comment, &status)) return 0;
-			if(fits_read_key(fptr, TSTRING, CTYPE4, image->ctype_4, comment, &status)) return 0;
+			if(fits_read_key(fptr, TSTRING, CTYPE1, image->ctype_1, comment, &status)) header=0;
+			if(fits_read_key(fptr, TSTRING, CTYPE2, image->ctype_2, comment, &status)) header=0;
+			if(fits_read_key(fptr, TSTRING, CTYPE3, image->ctype_3, comment, &status)) header=0;
+			if(fits_read_key(fptr, TSTRING, CTYPE4, image->ctype_4, comment, &status)) header=0;
 
 			// ORDER MUST BE CTYPE1->'HPLN-TAN',CTYPE2->'HPLT-TAN',CTYPE3->'WAVE-GRI',CTYPE4->'STOKES'
 			// int pos_row = 0, pos_col = 1, pos_lambda = 2, pos_stokes_parameters = 3;
@@ -297,30 +297,31 @@ FitsImage *  readFitsSpectroImage (const char * fitsFileSpectra, int forParallel
 			int pos_row;
 			int pos_col;
 			int pos_stokes_parameters;
-			// LAMBDA POSITION
-			if(strcmp(image->ctype_1,CTYPE_WAVE)==0) pos_lambda = 0;
-			if(strcmp(image->ctype_2,CTYPE_WAVE)==0) pos_lambda = 1;
-			if(strcmp(image->ctype_3,CTYPE_WAVE)==0) pos_lambda = 2;
-			if(strcmp(image->ctype_4,CTYPE_WAVE)==0) pos_lambda = 3;
+			if(header){
+				// LAMBDA POSITION
+				if(strcmp(image->ctype_1,CTYPE_WAVE)==0) pos_lambda = 0;
+				if(strcmp(image->ctype_2,CTYPE_WAVE)==0) pos_lambda = 1;
+				if(strcmp(image->ctype_3,CTYPE_WAVE)==0) pos_lambda = 2;
+				if(strcmp(image->ctype_4,CTYPE_WAVE)==0) pos_lambda = 3;
 
-			// HPLN TAN 
-			if(strcmp(image->ctype_1,CTYPE_HPLN_TAN)==0) pos_row = 0;
-			if(strcmp(image->ctype_2,CTYPE_HPLN_TAN)==0) pos_row = 1;
-			if(strcmp(image->ctype_3,CTYPE_HPLN_TAN)==0) pos_row = 2;
-			if(strcmp(image->ctype_4,CTYPE_HPLN_TAN)==0) pos_row = 3;
+				// HPLN TAN 
+				if(strcmp(image->ctype_1,CTYPE_HPLN_TAN)==0) pos_row = 0;
+				if(strcmp(image->ctype_2,CTYPE_HPLN_TAN)==0) pos_row = 1;
+				if(strcmp(image->ctype_3,CTYPE_HPLN_TAN)==0) pos_row = 2;
+				if(strcmp(image->ctype_4,CTYPE_HPLN_TAN)==0) pos_row = 3;
 
-			// HPLT TAN 
-			if(strcmp(image->ctype_1,CTYPE_HPLT_TAN)==0) pos_col = 0;
-			if(strcmp(image->ctype_2,CTYPE_HPLT_TAN)==0) pos_col = 1;
-			if(strcmp(image->ctype_3,CTYPE_HPLT_TAN)==0) pos_col = 2;
-			if(strcmp(image->ctype_4,CTYPE_HPLT_TAN)==0) pos_col = 3;			
+				// HPLT TAN 
+				if(strcmp(image->ctype_1,CTYPE_HPLT_TAN)==0) pos_col = 0;
+				if(strcmp(image->ctype_2,CTYPE_HPLT_TAN)==0) pos_col = 1;
+				if(strcmp(image->ctype_3,CTYPE_HPLT_TAN)==0) pos_col = 2;
+				if(strcmp(image->ctype_4,CTYPE_HPLT_TAN)==0) pos_col = 3;			
 
-			// Stokes paramter position , 
-			if(strcmp(image->ctype_1,CTYPE_STOKES)==0) pos_stokes_parameters = 0;
-			if(strcmp(image->ctype_2,CTYPE_STOKES)==0) pos_stokes_parameters = 1;
-			if(strcmp(image->ctype_3,CTYPE_STOKES)==0) pos_stokes_parameters = 2;
-			if(strcmp(image->ctype_4,CTYPE_STOKES)==0) pos_stokes_parameters = 3;
-
+				// Stokes paramter position , 
+				if(strcmp(image->ctype_1,CTYPE_STOKES)==0) pos_stokes_parameters = 0;
+				if(strcmp(image->ctype_2,CTYPE_STOKES)==0) pos_stokes_parameters = 1;
+				if(strcmp(image->ctype_3,CTYPE_STOKES)==0) pos_stokes_parameters = 2;
+				if(strcmp(image->ctype_4,CTYPE_STOKES)==0) pos_stokes_parameters = 3;
+			}
 			
 			
 			if(pos_row==0 && pos_col ==1 && pos_lambda == 2 && pos_stokes_parameters == 3)
@@ -341,7 +342,50 @@ FitsImage *  readFitsSpectroImage (const char * fitsFileSpectra, int forParallel
 					fits_close_file(fptr, &status);
 					exit(EXIT_FAILURE);
 				}
+				if(!header){
+					
+					int num_stokes = 10000;
+					for(i=0;i<naxis;i++){
+						if(naxes[i]<num_stokes){
+							pos_stokes_parameters =i;
+							num_stokes = naxes[i];
+						}
+					}
+					int num_lambda = 10000;
+					for(i=0;i<naxis;i++){
+						if(i!=pos_stokes_parameters){
+							if(naxes[i]<num_lambda){
+								pos_lambda =i;
+								num_lambda = naxes[i];
+							}
+						}
+					}
 
+					if( (pos_stokes_parameters == 0 && pos_lambda == 1) || (pos_stokes_parameters == 1 && pos_lambda == 0) ){ 
+						pos_row = 2;
+						pos_col = 3;
+					}
+					if( (pos_stokes_parameters == 0 && pos_lambda == 2) || (pos_stokes_parameters == 2 && pos_lambda == 0) ){ 
+						pos_row = 1;
+						pos_col = 3;
+					} 
+					if( (pos_stokes_parameters == 0 && pos_lambda == 3) || (pos_stokes_parameters == 3 && pos_lambda == 0) ){ 
+						pos_row = 1;
+						pos_col = 2;					
+					}
+					if( (pos_stokes_parameters == 1 && pos_lambda == 2) || (pos_stokes_parameters == 2 && pos_lambda == 1) ){ 
+						pos_row = 0;
+						pos_col = 3;					
+					}
+					if( (pos_stokes_parameters == 1 && pos_lambda == 3) || (pos_stokes_parameters == 3 && pos_lambda == 1) ){ 
+						pos_row = 0;
+						pos_col = 2;					
+					}
+					if( (pos_stokes_parameters == 2 && pos_lambda == 3) || (pos_stokes_parameters == 3 && pos_lambda == 2) ){ 
+						pos_row = 0;
+						pos_col = 1;					
+					}
+				}
 				fits_get_hdrspace(fptr, &nkeys, NULL, &status); 
 				image->nkeys = nkeys;
 				image->vCard = (char**) malloc( nkeys * sizeof(char*));
@@ -840,7 +884,7 @@ FitsImage * readFitsSpectroImageRectangular (const char * fitsFileSpectra, Confi
 
 	fitsfile *fptr;   
 	FitsImage * image =  malloc(sizeof(FitsImage));
-   	int status = 0;   
+   	int status = 0, headers = 1;   
    	PRECISION nulval = 0.; // define null value to 0 because the performance to read from fits file is better doing this. 
    	int bitpix, naxis, anynul, numPixelsFitsFile,nkeys;
    	long naxes [4] = {1,1,1,1}; 
@@ -857,10 +901,11 @@ FitsImage * readFitsSpectroImageRectangular (const char * fitsFileSpectra, Confi
 		// We want only fits image 
 		if(hdutype==IMAGE_HDU){
 			// We assume that we have only on HDU as primary 
-			if(fits_read_key(fptr, TSTRING, CTYPE1, image->ctype_1, comment, &status)) return 0;
-			if(fits_read_key(fptr, TSTRING, CTYPE2, image->ctype_2, comment, &status)) return 0;
-			if(fits_read_key(fptr, TSTRING, CTYPE3, image->ctype_3, comment, &status)) return 0;
-			if(fits_read_key(fptr, TSTRING, CTYPE4, image->ctype_4, comment, &status)) return 0;
+
+			if(fits_read_key(fptr, TSTRING, CTYPE1, image->ctype_1, comment, &status)) headers=0;
+			if(fits_read_key(fptr, TSTRING, CTYPE2, image->ctype_2, comment, &status)) headers=0;
+			if(fits_read_key(fptr, TSTRING, CTYPE3, image->ctype_3, comment, &status)) headers=0;
+			if(fits_read_key(fptr, TSTRING, CTYPE4, image->ctype_4, comment, &status)) headers=0;
 
 			// ORDER MUST BE CTYPE1->'HPLN-TAN',CTYPE2->'HPLT-TAN',CTYPE3->'WAVE-GRI',CTYPE4->'STOKES'
 			// int pos_row = 0, pos_col = 1, pos_lambda = 2, pos_stokes_parameters = 3;
@@ -870,29 +915,31 @@ FitsImage * readFitsSpectroImageRectangular (const char * fitsFileSpectra, Confi
 			int pos_row;
 			int pos_col;
 			int pos_stokes_parameters;
-			// LAMBDA POSITION
-			if(strcmp(image->ctype_1,CTYPE_WAVE)==0) pos_lambda = 0;
-			if(strcmp(image->ctype_2,CTYPE_WAVE)==0) pos_lambda = 1;
-			if(strcmp(image->ctype_3,CTYPE_WAVE)==0) pos_lambda = 2;
-			if(strcmp(image->ctype_4,CTYPE_WAVE)==0) pos_lambda = 3;
+			if(headers){
+				// LAMBDA POSITION
+				if(strcmp(image->ctype_1,CTYPE_WAVE)==0) pos_lambda = 0;
+				if(strcmp(image->ctype_2,CTYPE_WAVE)==0) pos_lambda = 1;
+				if(strcmp(image->ctype_3,CTYPE_WAVE)==0) pos_lambda = 2;
+				if(strcmp(image->ctype_4,CTYPE_WAVE)==0) pos_lambda = 3;
 
-			// HPLN TAN 
-			if(strcmp(image->ctype_1,CTYPE_HPLN_TAN)==0) pos_row = 0;
-			if(strcmp(image->ctype_2,CTYPE_HPLN_TAN)==0) pos_row = 1;
-			if(strcmp(image->ctype_3,CTYPE_HPLN_TAN)==0) pos_row = 2;
-			if(strcmp(image->ctype_4,CTYPE_HPLN_TAN)==0) pos_row = 3;
+				// HPLN TAN 
+				if(strcmp(image->ctype_1,CTYPE_HPLN_TAN)==0) pos_row = 0;
+				if(strcmp(image->ctype_2,CTYPE_HPLN_TAN)==0) pos_row = 1;
+				if(strcmp(image->ctype_3,CTYPE_HPLN_TAN)==0) pos_row = 2;
+				if(strcmp(image->ctype_4,CTYPE_HPLN_TAN)==0) pos_row = 3;
 
-			// HPLT TAN 
-			if(strcmp(image->ctype_1,CTYPE_HPLT_TAN)==0) pos_col = 0;
-			if(strcmp(image->ctype_2,CTYPE_HPLT_TAN)==0) pos_col = 1;
-			if(strcmp(image->ctype_3,CTYPE_HPLT_TAN)==0) pos_col = 2;
-			if(strcmp(image->ctype_4,CTYPE_HPLT_TAN)==0) pos_col = 3;			
+				// HPLT TAN 
+				if(strcmp(image->ctype_1,CTYPE_HPLT_TAN)==0) pos_col = 0;
+				if(strcmp(image->ctype_2,CTYPE_HPLT_TAN)==0) pos_col = 1;
+				if(strcmp(image->ctype_3,CTYPE_HPLT_TAN)==0) pos_col = 2;
+				if(strcmp(image->ctype_4,CTYPE_HPLT_TAN)==0) pos_col = 3;			
 
-			// Stokes paramter position , 
-			if(strcmp(image->ctype_1,CTYPE_STOKES)==0) pos_stokes_parameters = 0;
-			if(strcmp(image->ctype_2,CTYPE_STOKES)==0) pos_stokes_parameters = 1;
-			if(strcmp(image->ctype_3,CTYPE_STOKES)==0) pos_stokes_parameters = 2;
-			if(strcmp(image->ctype_4,CTYPE_STOKES)==0) pos_stokes_parameters = 3;
+				// Stokes paramter position , 
+				if(strcmp(image->ctype_1,CTYPE_STOKES)==0) pos_stokes_parameters = 0;
+				if(strcmp(image->ctype_2,CTYPE_STOKES)==0) pos_stokes_parameters = 1;
+				if(strcmp(image->ctype_3,CTYPE_STOKES)==0) pos_stokes_parameters = 2;
+				if(strcmp(image->ctype_4,CTYPE_STOKES)==0) pos_stokes_parameters = 3;
+			}
 
 			
 			
@@ -917,6 +964,56 @@ FitsImage * readFitsSpectroImageRectangular (const char * fitsFileSpectra, Confi
 					exit(EXIT_FAILURE);
 				}
 
+				if(!headers){
+					
+					int num_stokes = 10000;
+					for(i=0;i<naxis;i++){
+						if(naxes[i]<num_stokes){
+							pos_stokes_parameters =i;
+							num_stokes = naxes[i];
+						}
+					}
+					int num_lambda = 10000;
+					for(i=0;i<naxis;i++){
+						if(i!=pos_stokes_parameters){
+							if(naxes[i]<num_lambda){
+								pos_lambda =i;
+								num_lambda = naxes[i];
+							}
+						}
+					}
+
+					if( (pos_stokes_parameters == 0 && pos_lambda == 1) || (pos_stokes_parameters == 1 && pos_lambda == 0) ){ 
+						pos_row = 2;
+						pos_col = 3;
+					}
+					if( (pos_stokes_parameters == 0 && pos_lambda == 2) || (pos_stokes_parameters == 2 && pos_lambda == 0) ){ 
+						pos_row = 1;
+						pos_col = 3;
+					} 
+					if( (pos_stokes_parameters == 0 && pos_lambda == 3) || (pos_stokes_parameters == 3 && pos_lambda == 0) ){ 
+						pos_row = 1;
+						pos_col = 2;					
+					}
+					if( (pos_stokes_parameters == 1 && pos_lambda == 2) || (pos_stokes_parameters == 2 && pos_lambda == 1) ){ 
+						pos_row = 0;
+						pos_col = 3;					
+					}
+					if( (pos_stokes_parameters == 1 && pos_lambda == 3) || (pos_stokes_parameters == 3 && pos_lambda == 1) ){ 
+						pos_row = 0;
+						pos_col = 2;					
+					}
+					if( (pos_stokes_parameters == 2 && pos_lambda == 3) || (pos_stokes_parameters == 3 && pos_lambda == 2) ){ 
+						pos_row = 0;
+						pos_col = 1;					
+					}
+				}
+
+				if( configCrontrolFile->subx2 > naxes[pos_row] || configCrontrolFile->subx1>configCrontrolFile->subx2 || configCrontrolFile->suby2 > naxes[pos_col] || configCrontrolFile->suby1 > configCrontrolFile->suby2){
+					printf("\n ERROR IN THE DIMENSIONS, PLEASE CHECK GIVEN VALUES \n ");
+					exit(EXIT_FAILURE);
+				}
+
 				fits_get_hdrspace(fptr, &nkeys, NULL, &status); 
 				image->nkeys = nkeys;
 				image->vCard = (char**) malloc( nkeys * sizeof(char*));
@@ -932,21 +1029,21 @@ FitsImage * readFitsSpectroImageRectangular (const char * fitsFileSpectra, Confi
 				image->bitpix = bitpix;
 				image->naxis  = naxis;
 				//image->rows=naxes[pos_row];
-				if(configCrontrolFile->subx2==0 && configCrontrolFile->subx1==0){
+				/*if(configCrontrolFile->subx2==0 && configCrontrolFile->subx1==0){
 					image->rows = naxes[pos_row];
 					configCrontrolFile->subx1 = 1;
 					configCrontrolFile->subx2 = naxes[pos_row];
 				}
-				else			
-					image->rows=(configCrontrolFile->subx2-configCrontrolFile->subx1);
+				else			*/
+				image->rows=(configCrontrolFile->subx2-configCrontrolFile->subx1)+1;
 				
-				if(configCrontrolFile->suby2==0 && configCrontrolFile->suby1==0){
+				/*if(configCrontrolFile->suby2==0 && configCrontrolFile->suby1==0){
 					image->cols = naxes[pos_col];
 					configCrontrolFile->suby1 = 1;
 					configCrontrolFile->suby2 = naxes[pos_col];
 				}
-				else
-					image->cols= (configCrontrolFile->suby2-configCrontrolFile->suby1);
+				else*/
+				image->cols= (configCrontrolFile->suby2-configCrontrolFile->suby1)+1;
 
 				image->nLambdas=naxes[pos_lambda];
 				image->numStokes=naxes[pos_stokes_parameters];
@@ -973,17 +1070,10 @@ FitsImage * readFitsSpectroImageRectangular (const char * fitsFileSpectra, Confi
 				long fpixelBegin [4] = {1,1,1,1}; 
 				long fpixelEnd [4] = {1,1,1,1}; 
 				long inc [4] = {1,1,1,1};
-				//if(configCrontrolFile->subx1==0)
-					fpixelBegin[pos_row] = configCrontrolFile->subx1+1;
-				/*else
-					fpixelBegin[pos_row] = configCrontrolFile->subx1;*/
-				fpixelEnd[pos_row] = configCrontrolFile->subx2;
 
-				//if(configCrontrolFile->suby1==0)
-					fpixelBegin[pos_col] = configCrontrolFile->suby1+1;
-				/*else
-					fpixelBegin[pos_col] = configCrontrolFile->suby1;*/
-				
+				fpixelBegin[pos_row] = configCrontrolFile->subx1;
+				fpixelEnd[pos_row] = configCrontrolFile->subx2;
+				fpixelBegin[pos_col] = configCrontrolFile->suby1;
 				fpixelEnd[pos_col] = configCrontrolFile->suby2;
 
 				fpixelEnd[pos_lambda] = naxes[pos_lambda];
@@ -1433,7 +1523,7 @@ REAL * readPerStrayLightFile (const char * perFileStrayLight, int nlambda, PRECI
 }
 
 
-void readFitsStrayLightFile (const char * fitsFileStrayLight, int numLambda,FitsImage * image,REAL * vStrayLight){
+void readFitsStrayLightFile (const char * fitsFileStrayLight, FitsImage * image,REAL * vStrayLight,int * nl_straylight,int * ns_straylight){
 	
 	fitsfile *fptr;   /* FITS file pointer, defined in fitsio.h */
 	
@@ -1455,11 +1545,21 @@ void readFitsStrayLightFile (const char * fitsFileStrayLight, int numLambda,Fits
 			}
 
 			if(naxis==2){
-				if( naxes[0]!= numLambda || naxes[1]!= NPARMS){ // stray light has different size of spectra image 
+				/*if( naxes[0]!= numLambda || naxes[1]!= NPARMS){ // stray light has different size of spectra image 
 					printf("\n STRAY LIGHT FILE HAS DIFFERENT SIZE OF SPECTRA IMAGE. SIZE SPECTRA %d X %d X . STRAY LIGHT SIZE %ld X %ld ", numLambda, NPARMS , naxes[0], naxes[1]);
 					image= NULL;
 					vStrayLight = NULL;
+				}*/
+				if(naxes[0]>naxes[1]){
+					*nl_straylight = naxes[0];
+					*ns_straylight = naxes[1];
 				}
+				else
+				{
+					*nl_straylight = naxes[1];
+					*ns_straylight = naxes[0];
+				}
+				
 				// READ ALL FILE IN ONLY ONE ARRAY 
 				// WE ASSUME THAT DATA COMES IN THE FORMAT ROW x COL x LAMBDA
 				vStrayLight = calloc(naxes[0]*naxes[1], sizeof(REAL));
@@ -1694,7 +1794,7 @@ void readFitsStrayLightFile (const char * fitsFileStrayLight, int numLambda,Fits
 }
 
 
-int * readFitsMaskFile (const char * fitsMask, int numRows, int numCols){
+int * readFitsMaskFile (const char * fitsMask, int * numRows, int * numCols){
 	
 	fitsfile *fptr;   /* FITS file pointer, defined in fitsio.h */
 	int status = 0;   /* CFITSIO status value MUST be initialized to zero! */
@@ -1710,13 +1810,15 @@ int * readFitsMaskFile (const char * fitsMask, int numRows, int numCols){
 
 			if(naxis==2){
 
-				if( naxes[0]!= numRows || naxes[1]!= numCols){ // stray light has different size of spectra image 
+				/*if( naxes[0]!= numRows || naxes[1]!= numCols){ // stray light has different size of spectra image 
 					printf("\n MASK FILE HAS DIFFERENT SIZE OF SPECTRA IMAGE. SIZE SPECTRA %d X %d X . MASK SIZE %ld X %ld ", numRows, numCols , naxes[0], naxes[1]);
 					return NULL;
-				}
+				}*/
 				// READ ALL FILE IN ONLY ONE ARRAY 
 				// WE ASSUME THAT DATA COMES IN THE FORMAT ROW x COL x LAMBDA
-				int dimMask = numRows*numCols;
+				*numRows = naxes[0];
+				*numCols = naxes[1];
+				int dimMask = (*numRows)*(*numCols);
 				vMask = calloc(dimMask, sizeof(int));
 				long fpixel [2] = {1,1};
 				fits_read_pix(fptr, TINT, fpixel, dimMask, &nulval, vMask, &anynul, &status);

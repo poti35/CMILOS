@@ -70,7 +70,7 @@ REAL * readPerStrayLightFile (const char * perFileStrayLight, int nlambda, PRECI
  * @param fitsImage --> struct of image 
  * Return 1 If the image has been read corectly if not return 0 
  */
-void readFitsStrayLightFile (const char * fitsFileStrayLight, int numLambda,FitsImage * image,REAL * vStrayLight);
+void readFitsStrayLightFile (const char * fitsFileStrayLight, FitsImage * image,REAL * vStrayLight,int * nl_straylight,int * ns_straylight);
 
 
 /**
@@ -84,7 +84,7 @@ void readFitsStrayLightFile (const char * fitsFileStrayLight, int numLambda,Fits
  * 
  * @return an array with mask integer values or null in error case
  */
-int * readFitsMaskFile (const char * fitsMask, int numRows, int numCols);
+int * readFitsMaskFile (const char * fitsMask, int * numRows, int * numCols);
 
 /**
  * Clean the memory reserved for the image

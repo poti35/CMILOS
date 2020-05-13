@@ -156,8 +156,8 @@ int main(int argc, char **argv)
 	//----------------------------------------------
 
 	REAL * slight = NULL;
-	int dimStrayLight;
-	int * vMask = NULL;
+	int nl_straylight, ns_straylight;
+	int * vMask = NULL, numRowsMask, numColsMask;
 	int nRowsMask, nColsMask;
 
 
@@ -311,8 +311,8 @@ int main(int argc, char **argv)
 
 	/**************************************** READ FITS  STRAY LIGHT ******************************/
 	
-	if(access(configCrontrolFile.StrayLightFile,F_OK)!=-1){ //  IF NOT EMPTY READ stray light file 
-		readFitsStrayLightFile(configCrontrolFile.StrayLightFile,nlambda,fitsSlight,slight);
+	if( configCrontrolFile.fix[10] && access(configCrontrolFile.StrayLightFile,F_OK)!=-1){ //  IF NOT EMPTY READ stray light file 
+		readFitsStrayLightFile(configCrontrolFile.StrayLightFile,fitsSlight,slight,&nl_straylight,&ns_straylight);
 	}
 
 	
@@ -320,7 +320,7 @@ int main(int argc, char **argv)
 	int shareVMask = 0;
 	if(idProc==root && access(configCrontrolFile.MaskFile,F_OK)!=-1){ //  IF NOT EMPTY READ MASK FILE
 
-		vMask=readFitsMaskFile (configCrontrolFile.MaskFile, configCrontrolFile.nx, configCrontrolFile.ny);
+		vMask=readFitsMaskFile (configCrontrolFile.MaskFile,&numRowsMask,&numColsMask);
 		if(vMask==NULL){
 			printf("\n El fichero de máscara  no ha podido ser leido correctamente o tiene dimensiones incorrectas. No se aplicará a la inversión. ");
 		}
@@ -331,14 +331,16 @@ int main(int argc, char **argv)
 
 	MPI_Barrier(MPI_COMM_WORLD); // Wait UNTIL THE IMAGE HAS BEEN READED COMPLETELY
 	//  BROADCAST THE NUMBER OF LAMBDAS READS FROM THE FILE AND THE NUMBER OF PIXELS
+	MPI_Bcast(&numRowsMask, 1, MPI_INT, root , MPI_COMM_WORLD);
+	MPI_Bcast(&numColsMask, 1, MPI_INT, root , MPI_COMM_WORLD);
 	MPI_Bcast(&shareVMask, 1, MPI_INT, root , MPI_COMM_WORLD);
 	MPI_Barrier(MPI_COMM_WORLD);
 
 	if(shareVMask){
 		if(idProc!=root)
-			vMask = calloc(configCrontrolFile.nx*configCrontrolFile.ny,sizeof(int));
+			vMask = calloc(numRowsMask*numColsMask,sizeof(int));
 		MPI_Barrier(MPI_COMM_WORLD);
-		MPI_Bcast(vMask, configCrontrolFile.nx*configCrontrolFile.ny, MPI_INT, root , MPI_COMM_WORLD);
+		MPI_Bcast(vMask, numRowsMask*numColsMask, MPI_INT, root , MPI_COMM_WORLD);
 		MPI_Barrier(MPI_COMM_WORLD);
 	}
 
@@ -769,11 +771,12 @@ int main(int argc, char **argv)
 				if((access(vInputFileSpectraParalell[indexInputFits].name,F_OK)!=-1)){
 					clock_t t = clock();
 					
-					if(configCrontrolFile.subx1 !=0 || configCrontrolFile.subx2 !=0 || configCrontrolFile.suby1 != 0 || configCrontrolFile.suby2!=0){
+					if(configCrontrolFile.subx1 > 0 && configCrontrolFile.subx2 >0 && configCrontrolFile.suby1 > 0 && configCrontrolFile.suby2>0){
 						fitsImages[indexInputFits] = readFitsSpectroImageRectangular(vInputFileSpectraParalell[indexInputFits].name,&configCrontrolFile,1);
 					}
-					else
+					else{
 						fitsImages[indexInputFits] = readFitsSpectroImage(vInputFileSpectraParalell[indexInputFits].name,1);
+					}
 					t = clock() - t;
 					PRECISION timeReadImage = ((PRECISION)t)/CLOCKS_PER_SEC; // in seconds 
 					printf("\n TIME TO READ FITS IMAGE %s:  %f seconds to execute . NUMBER OF PIXELS READ: %d \n",vInputFileSpectraParalell[indexInputFits].name, timeReadImage,fitsImages[indexInputFits]->numPixels); 
@@ -837,7 +840,7 @@ int main(int argc, char **argv)
 				
 
 				MPI_Barrier(MPI_COMM_WORLD); // Wait until all processes have their vlambda				
-				if( root == idProc){
+				if( root == idProc){					
 					//MPI_Scatterv(fitsImages[indexInputFits]->spectroImagen, sendcountsSpectro_L[indexInputFits], displsSpectro_L[indexInputFits], MPI_FLOAT, vSpectraSplit_L[indexInputFits], sendcountsSpectro_L[indexInputFits][idProc], MPI_FLOAT, root, MPI_COMM_WORLD);
 					MPI_Iscatterv(fitsImages[indexInputFits]->spectroImagen, sendcountsSpectro_L[indexInputFits], displsSpectro_L[indexInputFits], MPI_FLOAT, vSpectraSplit_L[indexInputFits], sendcountsSpectro_L[indexInputFits][idProc], MPI_FLOAT, root, MPI_COMM_WORLD,&vMpiRequestScatter[indexInputFits]);
 				}
@@ -1091,7 +1094,7 @@ int main(int argc, char **argv)
 			clock_t t, timeTotal;
 			t = clock();
 			timeTotal = clock();
-			if(configCrontrolFile.subx1 !=0 || configCrontrolFile.subx2 !=0 || configCrontrolFile.suby1 != 0 || configCrontrolFile.suby2!=0){
+			if(configCrontrolFile.subx1 > 0 && configCrontrolFile.subx2 >0 && configCrontrolFile.suby1 > 0 && configCrontrolFile.suby2>0){
 				fitsImage = readFitsSpectroImageRectangular(vInputFileSpectraLocal[indexInputFits].name,&configCrontrolFile,0);
 			}
 			else
@@ -1297,11 +1300,12 @@ int main(int argc, char **argv)
 			
 			clock_t t = clock();
 			timeTotal = clock();
-			if(configCrontrolFile.subx1 !=0 || configCrontrolFile.subx2 !=0 || configCrontrolFile.suby1 != 0 || configCrontrolFile.suby2!=0){
+			if(configCrontrolFile.subx1 > 0 && configCrontrolFile.subx2 >0 && configCrontrolFile.suby1 > 0 && configCrontrolFile.suby2>0){
 				fitsImage = readFitsSpectroImageRectangular(vInputFileSpectraDiv2Parallel[myGroup].name,&configCrontrolFile,1);
 			}
 			else
-			fitsImage = readFitsSpectroImage(vInputFileSpectraDiv2Parallel[myGroup].name,1);
+				fitsImage = readFitsSpectroImage(vInputFileSpectraDiv2Parallel[myGroup].name,1);
+				
 			t = clock() - t;
 			PRECISION timeReadImage = ((PRECISION)t)/CLOCKS_PER_SEC; // in seconds 
 			printf("\n TIME TO READ FITS IMAGE %s:  %f seconds to execute . NUMBER OF PIXELS READ: %d \n",vInputFileSpectraDiv2Parallel[myGroup].name, timeReadImage,fitsImage->numPixels); 

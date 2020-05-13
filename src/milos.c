@@ -135,7 +135,7 @@ int main(int argc, char **argv)
 	//----------------------------------------------
 
 	REAL * slight = NULL;
-	int dimStrayLight;
+	int nl_straylight, ns_straylight;
 	const char  * nameInputFileSpectra ;
 	char nameOutputFilePerfiles [4096];
 	const char	* nameInputFileLines;
@@ -769,11 +769,11 @@ int main(int argc, char **argv)
 			
 			configCrontrolFile.subx1 = 1;
 			configCrontrolFile.suby1 = 1;
-			configCrontrolFile.subx2 = 894;
-			configCrontrolFile.suby2 = 500;
+			configCrontrolFile.subx2 = 800;
+			configCrontrolFile.suby2 = 800;
 			
-			//fitsImage = readFitsSpectroImageRectangular(configCrontrolFile.ObservedProfiles,&configCrontrolFile,0);
-			fitsImage = readFitsSpectroImage(nameInputFileSpectra,0);
+			fitsImage = readFitsSpectroImageRectangular(configCrontrolFile.ObservedProfiles,&configCrontrolFile,0);
+			//fitsImage = readFitsSpectroImage(nameInputFileSpectra,0);
 			t = clock() - t;
 			timeReadImage = ((PRECISION)t)/CLOCKS_PER_SEC; // in seconds 
 			
@@ -805,8 +805,8 @@ int main(int argc, char **argv)
 					}
 				}				
 				// check if read stray light
-				if(access(configCrontrolFile.StrayLightFile,F_OK)!=-1){ //  IF NOT EMPTY READ stray light file 
-					readFitsStrayLightFile(configCrontrolFile.StrayLightFile,nlambda,fitsSlight,slight);
+				if(configCrontrolFile.fix[10] && access(configCrontrolFile.StrayLightFile,F_OK)!=-1){ //  IF NOT EMPTY READ stray light file 
+					readFitsStrayLightFile(configCrontrolFile.StrayLightFile,fitsSlight,slight,&nl_straylight,&ns_straylight);
 				}
 
 				//***************************************** INIT MEMORY WITH SIZE OF LAMBDA ****************************************************//
