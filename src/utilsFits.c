@@ -2055,6 +2055,7 @@ int writeFitsImageModelsSubSet(const char * fitsFile, int numRowsOriginal, int n
 	
 	// initialize image to 0 
 	float * vModel = calloc(naxes[0] * naxes[1] * naxes[2], sizeof(float));
+	indexModel=naxes[0] * naxes[1] * naxes[2];
 	fpixel = 1;                               /* first pixel to write      */
 	//nelements = naxes[0] * naxes[1] * naxes[2];          /* number of pixels to write */
 	if ( fits_write_img(fptr, TFLOAT, fpixel, indexModel, vModel, &status) ){
@@ -2076,6 +2077,7 @@ int writeFitsImageModelsSubSet(const char * fitsFile, int numRowsOriginal, int n
 	fpixelEnd[1] = configCrontrolFile.suby2;
 	fpixelEnd[2] = naxes[2];
 	
+	indexModel=0;
 	for( i=0;i<naxes[2];i++){
 		for( j=0;j<numRowsSub;j++){
 			for( h=0; h<numColsSub;h++){
@@ -2083,43 +2085,43 @@ int writeFitsImageModelsSubSet(const char * fitsFile, int numRowsOriginal, int n
 				switch (i)
 				{
 				case 0:
-					vModelSub[indexModel++] = vInitModel[( j*naxes[1]) + h].eta0;
+					vModelSub[indexModel++] = vInitModel[( j*numColsSub) + h].eta0;
 					break;
 				case 1:
-					vModelSub[indexModel++] = vInitModel[( j*naxes[1]) + h].B;
+					vModelSub[indexModel++] = vInitModel[( j*numColsSub) + h].B;
 					break;
 				case 2:
-					vModelSub[indexModel++] = vInitModel[( j*naxes[1]) + h].vlos;
+					vModelSub[indexModel++] = vInitModel[( j*numColsSub) + h].vlos;
 					break;
 				case 3:
-					vModelSub[indexModel++] = vInitModel[( j*naxes[1]) + h].dopp;
+					vModelSub[indexModel++] = vInitModel[( j*numColsSub) + h].dopp;
 					break;
 				case 4:
-					vModelSub[indexModel++] = vInitModel[( j*naxes[1]) + h].aa;
+					vModelSub[indexModel++] = vInitModel[( j*numColsSub) + h].aa;
 					break;
 				case 5:
-					vModelSub[indexModel++] = vInitModel[( j*naxes[1]) + h].gm;
+					vModelSub[indexModel++] = vInitModel[( j*numColsSub) + h].gm;
 					break;					
 				case 6:
-					vModelSub[indexModel++] = vInitModel[( j*naxes[1]) + h].az;
+					vModelSub[indexModel++] = vInitModel[( j*numColsSub) + h].az;
 					break;					
 				case 7:
-					vModelSub[indexModel++] = vInitModel[( j*naxes[1]) + h].S0;
+					vModelSub[indexModel++] = vInitModel[( j*numColsSub) + h].S0;
 					break;					
 				case 8:
-					vModelSub[indexModel++] = vInitModel[( j*naxes[1]) + h].S1;
+					vModelSub[indexModel++] = vInitModel[( j*numColsSub) + h].S1;
 					break;					
 				case 9:
-					vModelSub[indexModel++] = vInitModel[( j*naxes[1]) + h].mac;
+					vModelSub[indexModel++] = vInitModel[( j*numColsSub) + h].mac;
 					break;					
 				case 10:
-					vModelSub[indexModel++] = vInitModel[( j*naxes[1]) + h].alfa;
+					vModelSub[indexModel++] = vInitModel[( j*numColsSub) + h].alfa;
 					break;
 				case 11: // NUMBER OF ITERATIONS
-					vModelSub[indexModel++] = vNumIterPixel[( j*naxes[1]) + h];
+					vModelSub[indexModel++] = vNumIterPixel[( j*numColsSub) + h];
 					break;
 				case 12: // CHISQR 
-					vModelSub[indexModel++] = vChisqrf[( j*naxes[1]) + h];
+					vModelSub[indexModel++] = vChisqrf[( j*numColsSub) + h];
 					break;										
 				default:
 					break;
