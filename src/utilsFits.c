@@ -2077,8 +2077,8 @@ int writeFitsImageModelsSubSet(const char * fitsFile, int numRowsOriginal, int n
 	fpixelEnd[2] = naxes[2];
 	
 	for( i=0;i<naxes[2];i++){
-		for( j=0;j<naxes[0];j++){
-			for( h=0; h<naxes[1];h++){
+		for( j=0;j<numRowsSub;j++){
+			for( h=0; h<numColsSub;h++){
 				//[Eta0,Strength,Vlos,Lambdadopp,Damp,Gamma,Azimuth,S0,S1,Macro,Alpha]
 				switch (i)
 				{
