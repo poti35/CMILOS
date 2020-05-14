@@ -2599,8 +2599,8 @@ int writeFitsImageProfilesSubSet(const char * fitsProfileFile, const char * fits
 		}
 	}
 
-	long fpixelBegin [3] = {1,1,1,1}; 
-	long fpixelEnd [3] = {1,1,1,1}; 
+	long fpixelBegin [4] = {1,1,1,1}; 
+	long fpixelEnd [4] = {1,1,1,1}; 
 	fpixelBegin[pos_row] = configCrontrolFile.subx1;
 	fpixelEnd[pos_row] = configCrontrolFile.subx2;
 	fpixelBegin[pos_col] = configCrontrolFile.suby1;
