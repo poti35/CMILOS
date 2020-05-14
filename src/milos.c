@@ -498,8 +498,8 @@ int main(int argc, char **argv)
 			free(spectroPER);
 		}
 		else if(strcmp(file_ext(configCrontrolFile.ObservedProfiles),FITS_FILE)==0){ // invert image from fits file 
-			fitsImage = readFitsSpectroImage(configCrontrolFile.ObservedProfiles,0);
-			//fitsImage = readFitsSpectroImageRectangular(configCrontrolFile.ObservedProfiles,&configCrontrolFile,0);
+			fitsImage = readFitsSpectroImage(configCrontrolFile.ObservedProfiles,0,nlambda);
+			//fitsImage = readFitsSpectroImageRectangular(configCrontrolFile.ObservedProfiles,&configCrontrolFile,0,nlambda);
 			// ALLOCATE MEMORY FOR STORE THE RESULTS 
 			int indexPixel = 0;
 			vModels = calloc (fitsImage->numPixels , sizeof(Init_Model));
@@ -772,7 +772,7 @@ int main(int argc, char **argv)
 			configCrontrolFile.subx2 = 800;
 			configCrontrolFile.suby2 = 800;
 			
-			fitsImage = readFitsSpectroImageRectangular(configCrontrolFile.ObservedProfiles,&configCrontrolFile,0);
+			fitsImage = readFitsSpectroImageRectangular(configCrontrolFile.ObservedProfiles,&configCrontrolFile,0,nlambda);
 			//fitsImage = readFitsSpectroImage(nameInputFileSpectra,0);
 			t = clock() - t;
 			timeReadImage = ((PRECISION)t)/CLOCKS_PER_SEC; // in seconds 

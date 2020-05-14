@@ -16,7 +16,7 @@ void freeVpixels(vpixels * image, int numPixels);
  * @param fitsFileSpectra --> name of the fits file to read 
  * Return the image read or NULL if something was wrong during the lecture. 
  */
-FitsImage *  readFitsSpectroImage (const char * fitsFileSpectra, int forParallel);
+FitsImage *  readFitsSpectroImage (const char * fitsFileSpectra, int forParallel, int nLambdaGrid);
 
 
 /**
@@ -26,7 +26,7 @@ FitsImage *  readFitsSpectroImage (const char * fitsFileSpectra, int forParallel
  * @param forParallel
  * Return the image read or NULL if something was wrong during the lecture. 
  */
-FitsImage * readFitsSpectroImageRectangular (const char * fitsFileSpectra, ConfigControl * configCrontrolFile, int forParallel);
+FitsImage * readFitsSpectroImageRectangular (const char * fitsFileSpectra, ConfigControl * configCrontrolFile, int forParallel, int nLambdaGrid);
 
 /**
  * This function read the spectro image from the file "fitsFileSpectra" and store it into a struct of FitsImage
@@ -101,13 +101,28 @@ void freeFitsImage(FitsImage * image);
  * @param vInitModel --> Array with the models obtained from the inversion. Each element of the array is a stucture with the models for one
  * pixel in the image. 
  * @param vChisqrf --> Array with the chisqrf calculated for each pixel in the image. 
- * @param fixed --> array with positions to write in the file, Positions are in the following order: 
- * [Eta0,Strength,Vlos,Lambdadopp,Damp,Gamma,Azimuth,S0,S1,Macro,Alpha]
+ * @param vNumIterPixel
  * @param addChisqr -->  to know if add chisqr at output model file 
  * 
  */
 int writeFitsImageModels(const char * fitsFile, int numRows, int numCols, Init_Model * vInitModel, float * vChisqrf, int * vNumIterPixel, int addChiqr);
-int writeFitsImageModelsSubSet(const char * fitsFileName, int numRows, int numCols,int rowInit, int colInit, int numPixelsWrite,int displs, Init_Model * vInitModel, float * vChisqrf, int * vNumIterPixel, int addChiqr);
+/**
+ * Write the models resutls in a fils file with 3 dimensiones: number of models x number of cols x number of rows. 
+ * 
+ * @param fitsFile --> Name of the file to store the image. 
+ * @param numRowsOriginal --> Number of rows of original image.
+ * @param numColsOriginal --> Number of cols of original image.
+ * @param rowRowsWrite --> Number of rows to write.
+ * @param numColsWrite --> Number of cols to write.
+ * @param configCrontrolFile --> Config control structure with sub images parameters.
+ * @param vInitModel --> Array with the models obtained from the inversion. Each element of the array is a stucture with the models for one
+ * pixel in the image. 
+ * @param vChisqrf --> Array with the chisqrf calculated for each pixel in the image.
+ * @param vNumIterPixel --> Array with number of iterations to write  
+ * @param addChisqr -->  to know if add chisqr at output model file 
+ * 
+ * */
+int writeFitsImageModelsSubSet(const char * fitsFile, int numRowsOriginal, int numColsOriginal, ConfigControl configCrontrolFile, Init_Model * vInitModel, float * vChisqrf, int * vNumIterPixel, int addChiqr);
 
 int writeFitsImageModelsWithArray(char * fitsFile, int numRows, int numCols, PRECISION * eta0, PRECISION * B, PRECISION * vlos, PRECISION * dopp, PRECISION * aa, PRECISION * gm, PRECISION * az, PRECISION * S0, PRECISION * S1, PRECISION * mac, PRECISION * alfa, PRECISION * vChisqrf);
 /**
@@ -126,6 +141,16 @@ void printerror( int status);
  */
 int writeFitsImageProfiles(const char * fitsProfileFile, const char * fitsFileOrigin, FitsImage * image);
 
+
+/**
+ * Write the image of profiles in a fits file with the same header of the fits spectro file. 
+ * 
+ * @param fitsProfileFile --> Name of the file to store the fits profile Image. 
+ * @param fitsFileOrigin --> Name of the file with the origin spectro image. This image is used to copy the same header to the profile file. 
+ * @param image --> Struct with the image procesed to store in the profile file. 
+ * 
+ */
+int writeFitsImageProfilesSubSet(const char * fitsProfileFile, const char * fitsFileOrigin, FitsImage * image, ConfigControl configCrontrolFile);
 
 /**
  * 

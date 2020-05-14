@@ -264,7 +264,7 @@ void freeVpixels(vpixels * image, int numPixels){
 	return image; 
 }*/
 
-FitsImage *  readFitsSpectroImage (const char * fitsFileSpectra, int forParallel){
+FitsImage *  readFitsSpectroImage (const char * fitsFileSpectra, int forParallel, int nLambdaGrid){
 	fitsfile *fptr;   /* FITS file pointer, defined in fitsio.h */
 	FitsImage * image =  malloc(sizeof(FitsImage));
 	int status = 0, header = 1;   /* CFITSIO status value MUST be initialized to zero! */
@@ -322,11 +322,6 @@ FitsImage *  readFitsSpectroImage (const char * fitsFileSpectra, int forParallel
 				if(strcmp(image->ctype_3,CTYPE_STOKES)==0) pos_stokes_parameters = 2;
 				if(strcmp(image->ctype_4,CTYPE_STOKES)==0) pos_stokes_parameters = 3;
 			}
-			
-			
-			if(pos_row==0 && pos_col ==1 && pos_lambda == 2 && pos_stokes_parameters == 3)
-			//if(pos_row==2 && pos_col ==3 && pos_lambda == 0 && pos_stokes_parameters == 1)
-				correctOrder = 1;
 			// GET THE CURRENT POSITION OF EVERY PARAMETER
 			/*int pos_row = 2;
 			int pos_col = 3;
@@ -386,6 +381,18 @@ FitsImage *  readFitsSpectroImage (const char * fitsFileSpectra, int forParallel
 						pos_col = 1;					
 					}
 				}
+
+				if(pos_row==0 && pos_col ==1 && pos_lambda == 2 && pos_stokes_parameters == 3)
+				//if(pos_row==2 && pos_col ==3 && pos_lambda == 0 && pos_stokes_parameters == 1)
+					correctOrder = 1;
+
+
+				if(naxes[pos_lambda] != nLambdaGrid){
+					printf("\n ERROR: The dimension of wavelenght is different in FITS file  %ld to give dimension in grid file %d \n",naxes[pos_lambda],nLambdaGrid);
+					printf("\n EXITING THE PROGRAM");
+					fits_close_file(fptr, &status);
+					exit(EXIT_FAILURE);
+				}
 				fits_get_hdrspace(fptr, &nkeys, NULL, &status); 
 				image->nkeys = nkeys;
 				image->vCard = (char**) malloc( nkeys * sizeof(char*));
@@ -425,7 +432,7 @@ FitsImage *  readFitsSpectroImage (const char * fitsFileSpectra, int forParallel
 				if (!imageTemp)  {
 					printf("ERROR ALLOCATION MEMORY FOR TEMP IMAGE");
 					return NULL;
-          	}
+          		}
 				
 				
 				long fpixel [4] = {1,1,1,1}; 
@@ -878,7 +885,7 @@ FitsImage * readFitsSpectroNPixels (const char * fitsFileSpectra, int rowInit, i
 	return image; 
 }
 
-FitsImage * readFitsSpectroImageRectangular (const char * fitsFileSpectra, ConfigControl * configCrontrolFile, int forParallel){
+FitsImage * readFitsSpectroImageRectangular (const char * fitsFileSpectra, ConfigControl * configCrontrolFile, int forParallel, int nLambdaGrid){
 
 
 
@@ -940,12 +947,6 @@ FitsImage * readFitsSpectroImageRectangular (const char * fitsFileSpectra, Confi
 				if(strcmp(image->ctype_3,CTYPE_STOKES)==0) pos_stokes_parameters = 2;
 				if(strcmp(image->ctype_4,CTYPE_STOKES)==0) pos_stokes_parameters = 3;
 			}
-
-			
-			
-			if(pos_row==0 && pos_col ==1 && pos_lambda == 2 && pos_stokes_parameters == 3)
-			//if(pos_row==2 && pos_col ==3 && pos_lambda == 0 && pos_stokes_parameters == 1)
-				correctOrder = 1;
 
 			// GET THE CURRENT POSITION OF EVERY PARAMETER
 			/*int pos_row = 0;
@@ -1009,10 +1010,20 @@ FitsImage * readFitsSpectroImageRectangular (const char * fitsFileSpectra, Confi
 					}
 				}
 
+				if(naxes[pos_lambda] != nLambdaGrid){
+					printf("\n ERROR: The dimension of wavelenght is different in FITS file  %ld to give dimension in grid file %d \n",naxes[pos_lambda],nLambdaGrid);
+					printf("\n EXITING THE PROGRAM");
+					fits_close_file(fptr, &status);
+					exit(EXIT_FAILURE);
+				}
+
 				if( configCrontrolFile->subx2 > naxes[pos_row] || configCrontrolFile->subx1>configCrontrolFile->subx2 || configCrontrolFile->suby2 > naxes[pos_col] || configCrontrolFile->suby1 > configCrontrolFile->suby2){
 					printf("\n ERROR IN THE DIMENSIONS, PLEASE CHECK GIVEN VALUES \n ");
 					exit(EXIT_FAILURE);
 				}
+				if(pos_row==0 && pos_col ==1 && pos_lambda == 2 && pos_stokes_parameters == 3)
+				//if(pos_row==2 && pos_col ==3 && pos_lambda == 0 && pos_stokes_parameters == 1)
+					correctOrder = 1;
 
 				fits_get_hdrspace(fptr, &nkeys, NULL, &status); 
 				image->nkeys = nkeys;
@@ -1036,6 +1047,7 @@ FitsImage * readFitsSpectroImageRectangular (const char * fitsFileSpectra, Confi
 				}
 				else			*/
 				image->rows=(configCrontrolFile->subx2-configCrontrolFile->subx1)+1;
+				image->rows_original=naxes[pos_row];
 				
 				/*if(configCrontrolFile->suby2==0 && configCrontrolFile->suby1==0){
 					image->cols = naxes[pos_col];
@@ -1044,6 +1056,7 @@ FitsImage * readFitsSpectroImageRectangular (const char * fitsFileSpectra, Confi
 				}
 				else*/
 				image->cols= (configCrontrolFile->suby2-configCrontrolFile->suby1)+1;
+				image->cols_original=naxes[pos_col];
 
 				image->nLambdas=naxes[pos_lambda];
 				image->numStokes=naxes[pos_stokes_parameters];
@@ -1114,12 +1127,17 @@ FitsImage * readFitsSpectroImageRectangular (const char * fitsFileSpectra, Confi
 					int sizeDim2 = (fpixelEnd[2]-(fpixelBegin[2]-1));
 					int sizeDim3 = (fpixelEnd[3]-(fpixelBegin[3]-1));
 					image->naxes = calloc(4,sizeof(long));
+					image->naxes_original = calloc(4,sizeof(long));
 					image->naxes[pos_row] = (fpixelEnd[pos_row]-(fpixelBegin[pos_row]-1));
+					image->naxes_original[pos_row] = naxes[pos_row];
 					image->naxes[pos_col] = (fpixelEnd[pos_col]-(fpixelBegin[pos_col]-1));
+					image->naxes_original[pos_col] = naxes[pos_col];
+					image->naxes[pos_lambda] = (fpixelEnd[pos_lambda]-(fpixelBegin[pos_lambda]-1));
+					image->naxes_original[pos_lambda] = naxes[pos_lambda];
+					image->naxes[pos_stokes_parameters] = (fpixelEnd[pos_stokes_parameters]-(fpixelBegin[pos_stokes_parameters]-1));
+					image->naxes_original[pos_stokes_parameters] = naxes[pos_stokes_parameters];
 					printf("\n NUM ROWS %d NUM ROWS NAXES %ld ", image->rows, image->naxes[pos_row]);
 					printf("\n NUM COLS %d NUM COLS NAXES %ld ", image->cols, image->naxes[pos_col]);
-					image->naxes[pos_lambda] = (fpixelEnd[pos_lambda]-(fpixelBegin[pos_lambda]-1));
-					image->naxes[pos_stokes_parameters] = (fpixelEnd[pos_stokes_parameters]-(fpixelBegin[pos_stokes_parameters]-1));
 					printf("\n NUM lambdas %ld ", image->naxes[pos_lambda]);
 					printf("\n NUM stokes parameters %ld ", image->naxes[pos_stokes_parameters]);
 
@@ -2008,109 +2026,106 @@ int writeFitsImageModels(const char * fitsFile, int numRows, int numCols, Init_M
  * fixed = array with positions to write in the file, Positions are in the following order: 
  * [Eta0,Strength,Vlos,Lambdadopp,Damp,Gamma,Azimuth,S0,S1,Macro,Alpha]
  * */
-int writeFitsImageModelsSubSet(const char * fitsFileName, int numRows, int numCols,int rowInit, int colInit, int numPixelsWrite, int displs, Init_Model * vInitModel, float * vChisqrf, int * vNumIterPixel, int addChiqr){
+int writeFitsImageModelsSubSet(const char * fitsFile, int numRowsOriginal, int numColsOriginal, ConfigControl configCrontrolFile, Init_Model * vInitModel, float * vChisqrf, int * vNumIterPixel, int addChiqr){
 	
 	fitsfile *fptr;       /* pointer to the FITS file, defined in fitsio.h */
 	int status;
 	int i, j, h; // indexes for loops
-	
+	long  fpixel;
 	int indexModel = 0; 
 	int bitpix =  FLOAT_IMG; 
 	long naxis =   3;  /* 2-dimensional image */    
-	long naxes[3] = { numRows, numCols, NUMBER_PARAM_MODELS+1};   /* Image of numRows X numCols x 10 parameters of model and chisqrf */
+	long naxes[3] = { numRowsOriginal, numColsOriginal, NUMBER_PARAM_MODELS+1};   /* Image of numRows X numCols x 10 parameters of model and chisqrf */
 	if(addChiqr){
 		naxes[2]++;
 	}	
-	// check if the file not exist and create the image, close inmediatly to prevent another process to write
-	if(access(fitsFileName,F_OK) == -1){
-		remove(fitsFileName);               // Delete old file if it already exists 
-		status = 0;         // initialize status before calling fitsio routines 
-		if (fits_create_file(&fptr, fitsFileName, &status)) // create new FITS file 
-			printerror( status );           // call printerror if error occurs 
-		
-
-		if ( fits_create_img(fptr,  bitpix, naxis, naxes, &status) ){
-			printerror( status );
-			return 0;
-		}
-		if ( fits_close_file(fptr, &status) ){        
-			printerror( status );
-			return 0;
-		}
-		printf("\nfichero creado de nuevo y cerrado");
+	remove(fitsFile);               /* Delete old file if it already exists */
+	status = 0;         /* initialize status before calling fitsio routines */
+	if (fits_create_file(&fptr, fitsFile, &status)) /* create new FITS file */
+   		printerror( status );           /* call printerror if error occurs */
+	 /* write the required keywords for the primary array image.     */
+    /* Since bitpix = FLOAT_IMG, this will cause cfitsio to create */
+    /* a FITS image with BITPIX = -32 (float) .Note that the BSCALE  */
+    /* and BZERO keywords will be automatically written by cfitsio  */
+    /* in this case.                                                */
+	if ( fits_create_img(fptr,  bitpix, naxis, naxes, &status) ){
+		printerror( status );
+		return 0;
 	}
-
-	// open the file always like image
-	fits_open_file(&fptr, fitsFileName, READWRITE, &status);
 
 	
-	float * vModel = calloc(numPixelsWrite * naxes[2], sizeof(float));
-
-	for(i=0;i<naxes[2];i++){
-		for(j=0;j<numPixelsWrite;j++){
-			//[Eta0,Strength,Vlos,Lambdadopp,Damp,Gamma,Azimuth,S0,S1,Macro,Alpha]
-			switch (i)
-			{
-			case 0:
-				vModel[indexModel++] = vInitModel[j].eta0;
-				break;
-			case 1:
-				vModel[indexModel++] = vInitModel[j].B;
-				break;
-			case 2:
-				vModel[indexModel++] = vInitModel[j].vlos;
-				break;
-			case 3:
-				vModel[indexModel++] = vInitModel[j].dopp;
-				break;
-			case 4:
-				vModel[indexModel++] = vInitModel[j].aa;
-				break;
-			case 5:
-				vModel[indexModel++] = vInitModel[j].gm;
-				break;					
-			case 6:
-				vModel[indexModel++] = vInitModel[j].az;
-				break;					
-			case 7:
-				vModel[indexModel++] = vInitModel[j].S0;
-				break;					
-			case 8:
-				vModel[indexModel++] = vInitModel[j].S1;
-				break;					
-			case 9:
-				vModel[indexModel++] = vInitModel[j].mac;
-				break;					
-			case 10:
-				vModel[indexModel++] = vInitModel[j].alfa;
-				break;
-			case 11: // NUMBER OF ITERATIONS
-				vModel[indexModel++] = vNumIterPixel[j];
-				break;
-			case 12: // CHISQR 
-				vModel[indexModel++] = vChisqrf[j];
-				break;										
-			default:
-				break;			
+	float * vModel = calloc(naxes[0] * naxes[1] * naxes[2], sizeof(float));
+	int rowWrite, colWrite;
+	for( i=0;i<naxes[2];i++){
+		rowWrite=0;
+		for( j=0;j<naxes[0];j++){ // row
+			colWrite=0;
+			for( h=0; h<naxes[1];h++){ // cols
+				if(h>=configCrontrolFile.suby1-1 && h<configCrontrolFile.suby2 && j>= configCrontrolFile.subx1-1 && j<configCrontrolFile.subx2){
+					switch (i)
+					{
+					case 0:
+						vModel[indexModel++] = vInitModel[( rowWrite*naxes[1]) + colWrite].eta0;
+						break;
+					case 1:
+						vModel[indexModel++] = vInitModel[( rowWrite*naxes[1]) + colWrite].B;
+						break;
+					case 2:
+						vModel[indexModel++] = vInitModel[( rowWrite*naxes[1]) + colWrite].vlos;
+						break;
+					case 3:
+						vModel[indexModel++] = vInitModel[( rowWrite*naxes[1]) + colWrite].dopp;
+						break;
+					case 4:
+						vModel[indexModel++] = vInitModel[( rowWrite*naxes[1]) + colWrite].aa;
+						break;
+					case 5:
+						vModel[indexModel++] = vInitModel[( rowWrite*naxes[1]) + colWrite].gm;
+						break;					
+					case 6:
+						vModel[indexModel++] = vInitModel[( rowWrite*naxes[1]) + colWrite].az;
+						break;					
+					case 7:
+						vModel[indexModel++] = vInitModel[( rowWrite*naxes[1]) + colWrite].S0;
+						break;					
+					case 8:
+						vModel[indexModel++] = vInitModel[( rowWrite*naxes[1]) + colWrite].S1;
+						break;					
+					case 9:
+						vModel[indexModel++] = vInitModel[( rowWrite*naxes[1]) + colWrite].mac;
+						break;					
+					case 10:
+						vModel[indexModel++] = vInitModel[( rowWrite*naxes[1]) + colWrite].alfa;
+						break;
+					case 11: // NUMBER OF ITERATIONS
+						vModel[indexModel++] = vNumIterPixel[( rowWrite*naxes[1]) + colWrite];
+						break;
+					case 12: // CHISQR 
+						vModel[indexModel++] = vChisqrf[( rowWrite*naxes[1]) + colWrite];
+						break;										
+					default:
+						break;
+					}
+					if(h>=configCrontrolFile.suby1-1 && h<configCrontrolFile.suby2)
+						colWrite++;
+				}
 			}
+			if(j>= configCrontrolFile.subx1-1 && j<configCrontrolFile.subx2)
+				rowWrite++;
 		}
 	}
 
-	long fpixel=1;
-	if(displs>1){
-		fpixel = (displs * naxes[2]) +1;
-	}
-	if ( fits_write_img(fptr, TFLOAT, displs, indexModel, vModel, &status) ){
+   fpixel = 1;                               /* first pixel to write      */
+   //nelements = naxes[0] * naxes[1] * naxes[2];          /* number of pixels to write */
+
+
+   if ( fits_write_img(fptr, TFLOAT, fpixel, indexModel, vModel, &status) ){
 		printerror( status );
 		free(vModel);
 		return 0;
 	}
-	/*fits_write_pix(fptr,TFLOAT, fpixel, indexModel,vModel,&status);
-	if(status){
-		fits_report_error(stderr, status);
-		free(vModel);
-		return 0;	
-	}*/	
+
+
 	free(vModel);
 	if ( fits_close_file(fptr, &status) ){        
 		printerror( status );
@@ -2423,6 +2438,165 @@ int writeFitsImageProfiles(const char * fitsProfileFile, const char * fitsFileOr
 	}
 	return 1;
 }
+
+
+
+int writeFitsImageProfilesSubSet(const char * fitsProfileFile, const char * fitsFileOrigin, FitsImage * image, ConfigControl configCrontrolFile){
+		fitsfile *infptr, *outfptr;   /* FITS file pointers defined in fitsio.h */
+	int status = 0, ii = 1;
+	int i, j, k, h; // indexes for loops
+	int bitpix,naxis, nkeys;
+	long naxes_read [4] = {1,1,1,1}; /* The maximun number of dimension that we will read is 4*/
+	long naxes [4] = {image->naxes_original[0],image->naxes_original[1],image->naxes_original[2],image->naxes_original[3]};
+	char card[FLEN_CARD];
+	char keyname [FLEN_CARD];
+	char value [FLEN_CARD];
+	remove(fitsProfileFile);               /* Delete old file if it already exists */
+	/* Open the input file and create output file */
+   //fits_open_file(&infptr, fitsFileOrigin, READONLY, &status);
+   fits_create_file(&outfptr, fitsProfileFile, &status);
+	if (status != 0) {    
+		fits_report_error(stderr, status);
+		return(status);
+	}
+
+	// read a maximun of 4 dimensions 
+	//fits_get_img_param(infptr, 4, &bitpix, &naxis, naxes_read, &status);
+	// CREATE A NEW IMAGE 
+    fits_create_img(outfptr, image->bitpix, image->naxis, naxes, &status);
+	if (status) {
+		fits_report_error(stderr, status);
+		return(status);
+	}
+	/* copy all the user keywords (not the structural keywords) */
+	//fits_get_hdrspace(infptr, &nkeys, NULL, &status); 
+
+	/*for (ii = 1; ii <= nkeys; ii++) {
+		fits_read_record(infptr, ii, card, &status);
+		fits_read_keyn(infptr,ii,keyname, value, NULL, &status);
+		fits_update_card(outfptr, keyname,card, &status);
+	}*/
+
+	for (ii = 0; ii < image->nkeys; ii++) {
+		//printf("\n  Card %s  keyname %s",image->vCard[ii],image->vKeyname[ii]);
+		if(strcmp(image->vKeyname[ii],"NAXIS1")!=0 && strcmp(image->vKeyname[ii],"NAXIS2")!=0 && strcmp(image->vKeyname[ii],"NAXIS3")!=0 && strcmp(image->vKeyname[ii],"NAXIS4")!=0)
+			fits_update_card(outfptr, image->vKeyname[ii],image->vCard[ii], &status);
+	}
+
+	// CLOSE THE ORIGIN FILE, HE HAVE ALREADY THE INFORMATION OF KEYWORDS. 
+
+	//fits_close_file(infptr, &status);
+	if (status){
+		fits_report_error(stderr, status);
+		return 0;
+	}
+
+	// ALLOCATE MEMORY TO WRITE THE IMAGE
+	int numElemWrite = naxes[3]*naxes[2]*naxes[1]*naxes[0];
+
+	float * outputImage = calloc(numElemWrite, sizeof(float));
+	int currentLambda = 0, currentRow = 0, currentStokeParameter=0, currentCol = 0;
+	 
+	int pos_lambda = image->pos_lambda;
+	int pos_col = image->pos_col;
+	int pos_row = image->pos_row;
+	int pos_stokes_parameters = image->pos_stokes_parameters;
+	int indexPixelWrite =0;
+		
+	for( i=0; i <naxes[3]; i++){
+		for( j=0;j <naxes[2]; j++){
+			for( k=0; k<naxes[1]; k++){
+				for( h=0; h<naxes[0]; h++){
+					// I NEED TO KNOW THE CURRENT POSITION OF EACH ITERATOR 
+					switch (pos_lambda)
+					{
+						case 0:
+							currentLambda = h;
+							break;
+						case 1:
+							currentLambda = k;
+							break;
+						case 2:
+							currentLambda = j;
+							break;
+						case 3:
+							currentLambda = i;
+							break;																						
+					}
+					switch (pos_stokes_parameters)
+					{
+						case 0:
+							currentStokeParameter = h;
+							break;
+						case 1:
+							currentStokeParameter = k;
+							break;
+						case 2:
+							currentStokeParameter = j;
+							break;
+						case 3:
+							currentStokeParameter = i;
+							break;																						
+					}
+					switch (pos_row)
+					{
+						case 0:
+							currentRow = h;
+							break;
+						case 1:
+							currentRow = k;
+							break;
+						case 2:
+							currentRow = j;
+							break;
+						case 3:
+							currentRow = i;
+							break;																						
+					}
+					switch (pos_col)
+					{
+						case 0:
+							currentCol = h;
+							break;
+						case 1:
+							currentCol = k;
+							break;
+						case 2:
+							currentCol = j;
+							break;
+						case 3:
+							currentCol = i;
+							break;																						
+					}
+					if(currentCol>=configCrontrolFile.suby1 && currentCol<configCrontrolFile.suby2 && currentRow>= configCrontrolFile.subx1 && currentRow<configCrontrolFile.subx2)
+						outputImage[(i*naxes[2]*naxes[1]*naxes[0]) + (j*naxes[1]*naxes[0]) + (k*naxes[0]) + h] = image->pixels[indexPixelWrite++].spectro[currentLambda+(image->nLambdas * currentStokeParameter)];
+						//outputImage[(i*naxes[2]*naxes[1]*naxes[0]) + (j*naxes[1]*naxes[0]) + (k*naxes[0]) + h] = image->pixels[(currentCol*image->rows) + currentRow].spectro[currentLambda+(image->nLambdas * currentStokeParameter)];					
+
+				}
+			}
+		}
+	}
+
+    
+	if ( fits_write_img(outfptr, TFLOAT, 1, numElemWrite, outputImage, &status) ){
+		printerror( status );
+		free(outputImage);
+		return 0;
+	}
+
+	free(outputImage);
+	fits_close_file(outfptr,  &status);
+	if(status){
+		printerror( status );
+		return 0;
+	}
+	return 1;
+}
+
+
+
+
+
 
 int writeFitsImageModelsWithArray(char * fitsFile, int numRows, int numCols, PRECISION * eta0, PRECISION * B, PRECISION * vlos, PRECISION * dopp, PRECISION * aa, PRECISION * gm, PRECISION * az, PRECISION * S0, PRECISION * S1, PRECISION * mac, PRECISION * alfa, PRECISION * vChisqrf){
 

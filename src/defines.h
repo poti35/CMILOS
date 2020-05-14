@@ -199,8 +199,8 @@ typedef struct VPIXEL vpixels;
 
 struct FITS_IMAGE{  
 
-	int rows;  // number of rows in the image
-	int cols;  // number of cols in the image
+	int rows, rows_original;  // number of rows in the image
+	int cols, cols_original;  // number of cols in the image
 	int nLambdas; // number of lambdas in the image 
 	int numStokes; // number of stokes paramters, normally is 4
 
@@ -223,7 +223,7 @@ struct FITS_IMAGE{
 	vpixels * pixels;
 	PRECISION * vLambdaImagen;
 	float * spectroImagen;
-	long * naxes;
+	long * naxes, * naxes_original;
 	char ** vCard;
 	char ** vKeyname;
 	int nkeys;

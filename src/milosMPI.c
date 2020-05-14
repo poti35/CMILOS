@@ -772,10 +772,10 @@ int main(int argc, char **argv)
 					clock_t t = clock();
 					
 					if(configCrontrolFile.subx1 > 0 && configCrontrolFile.subx2 >0 && configCrontrolFile.suby1 > 0 && configCrontrolFile.suby2>0){
-						fitsImages[indexInputFits] = readFitsSpectroImageRectangular(vInputFileSpectraParalell[indexInputFits].name,&configCrontrolFile,1);
+						fitsImages[indexInputFits] = readFitsSpectroImageRectangular(vInputFileSpectraParalell[indexInputFits].name,&configCrontrolFile,1,nlambda);
 					}
 					else{
-						fitsImages[indexInputFits] = readFitsSpectroImage(vInputFileSpectraParalell[indexInputFits].name,1);
+						fitsImages[indexInputFits] = readFitsSpectroImage(vInputFileSpectraParalell[indexInputFits].name,1,nlambda);
 					}
 					t = clock() - t;
 					PRECISION timeReadImage = ((PRECISION)t)/CLOCKS_PER_SEC; // in seconds 
@@ -838,16 +838,14 @@ int main(int argc, char **argv)
 					vSpectraAdjustedSplit_L[indexInputFits] = calloc(sendcountsSpectro_L[indexInputFits][idProc],sizeof(float));
 				
 				local_start_scatter = MPI_Wtime();
-				printf("\n IDPROC %d  %d     %d",idProc, sendcountsSpectro_L[indexInputFits][idProc], displsSpectro_L[indexInputFits][idProc]);
-				printf("\n+++++++++++++++++++++++++++");
 				MPI_Barrier(MPI_COMM_WORLD); // Wait until all processes have their vlambda				
 				if( root == idProc){
-					MPI_Scatterv(fitsImages[indexInputFits]->spectroImagen, sendcountsSpectro_L[indexInputFits], displsSpectro_L[indexInputFits], MPI_FLOAT, vSpectraSplit_L[indexInputFits], sendcountsSpectro_L[indexInputFits][idProc], MPI_FLOAT, root, MPI_COMM_WORLD);
-					//MPI_Iscatterv(fitsImages[indexInputFits]->spectroImagen, sendcountsSpectro_L[indexInputFits], displsSpectro_L[indexInputFits], MPI_FLOAT, vSpectraSplit_L[indexInputFits], sendcountsSpectro_L[indexInputFits][idProc], MPI_FLOAT, root, MPI_COMM_WORLD,&vMpiRequestScatter[indexInputFits]);
+					//MPI_Scatterv(fitsImages[indexInputFits]->spectroImagen, sendcountsSpectro_L[indexInputFits], displsSpectro_L[indexInputFits], MPI_FLOAT, vSpectraSplit_L[indexInputFits], sendcountsSpectro_L[indexInputFits][idProc], MPI_FLOAT, root, MPI_COMM_WORLD);
+					MPI_Iscatterv(fitsImages[indexInputFits]->spectroImagen, sendcountsSpectro_L[indexInputFits], displsSpectro_L[indexInputFits], MPI_FLOAT, vSpectraSplit_L[indexInputFits], sendcountsSpectro_L[indexInputFits][idProc], MPI_FLOAT, root, MPI_COMM_WORLD,&vMpiRequestScatter[indexInputFits]);
 				}
 				else{
-					MPI_Scatterv(NULL, NULL,NULL, MPI_FLOAT, vSpectraSplit_L[indexInputFits], sendcountsSpectro_L[indexInputFits][idProc], MPI_FLOAT, root, MPI_COMM_WORLD);
-					//MPI_Iscatterv(NULL, NULL,NULL, MPI_FLOAT, vSpectraSplit_L[indexInputFits], sendcountsSpectro_L[indexInputFits][idProc], MPI_FLOAT, root, MPI_COMM_WORLD,&vMpiRequestScatter[indexInputFits]);
+					//MPI_Scatterv(NULL, NULL,NULL, MPI_FLOAT, vSpectraSplit_L[indexInputFits], sendcountsSpectro_L[indexInputFits][idProc], MPI_FLOAT, root, MPI_COMM_WORLD);
+					MPI_Iscatterv(NULL, NULL,NULL, MPI_FLOAT, vSpectraSplit_L[indexInputFits], sendcountsSpectro_L[indexInputFits][idProc], MPI_FLOAT, root, MPI_COMM_WORLD,&vMpiRequestScatter[indexInputFits]);
 				}		
 				local_finish_scatter = MPI_Wtime();
 
@@ -859,7 +857,7 @@ int main(int argc, char **argv)
 				printf("\n\n ***************************** FITS FILE CAN NOT BE READ IT %s ******************************",vInputFileSpectraParalell[indexInputFits].name);
 			}
 		}
-		//MPI_Waitall(numFilesPerProcessParallel,vMpiRequestScatter,MPI_STATUSES_IGNORE);
+		MPI_Waitall(numFilesPerProcessParallel,vMpiRequestScatter,MPI_STATUSES_IGNORE);
 		if(idProc==root){
 			t = clock() - t;
 			PRECISION timeTotalExecution = ((PRECISION)t)/CLOCKS_PER_SEC; // in seconds 
@@ -984,8 +982,15 @@ int main(int argc, char **argv)
 					clock_t t;
 					t = clock();
 
-					if(!writeFitsImageModels(vOutputNameModelsParalell[indexInputFits].name,fitsImages[indexInputFits]->rows,fitsImages[indexInputFits]->cols,resultsInitModelTotal_L[indexInputFits],chisqrfTotal_L[indexInputFits],vNumIterTotal_L[indexInputFits],configCrontrolFile.saveChisqr)){
-							printf("\n ERROR WRITING FILE OF MODELS: %s",vOutputNameModelsParalell[indexInputFits].name);
+					if(configCrontrolFile.subx1 > 0 && configCrontrolFile.subx2 >0 && configCrontrolFile.suby1 > 0 && configCrontrolFile.suby2>0){
+						if(!writeFitsImageModelsSubSet(vOutputNameModelsParalell[indexInputFits].name,fitsImages[indexInputFits]->rows_original,fitsImages[indexInputFits]->cols_original,configCrontrolFile,resultsInitModelTotal_L[indexInputFits],chisqrfTotal_L[indexInputFits],vNumIterTotal_L[indexInputFits],configCrontrolFile.saveChisqr)){
+								printf("\n ERROR WRITING FILE OF MODELS: %s",vOutputNameModelsParalell[indexInputFits].name);
+						}
+					}
+					else{
+						if(!writeFitsImageModels(vOutputNameModelsParalell[indexInputFits].name,fitsImages[indexInputFits]->rows,fitsImages[indexInputFits]->cols,resultsInitModelTotal_L[indexInputFits],chisqrfTotal_L[indexInputFits],vNumIterTotal_L[indexInputFits],configCrontrolFile.saveChisqr)){
+								printf("\n ERROR WRITING FILE OF MODELS: %s",vOutputNameModelsParalell[indexInputFits].name);
+						}
 					}
 					t = clock() - t;
 					timeWriteImage = ((double)t)/CLOCKS_PER_SEC; // in seconds 
@@ -1095,10 +1100,10 @@ int main(int argc, char **argv)
 			t = clock();
 			timeTotal = clock();
 			if(configCrontrolFile.subx1 > 0 && configCrontrolFile.subx2 >0 && configCrontrolFile.suby1 > 0 && configCrontrolFile.suby2>0){
-				fitsImage = readFitsSpectroImageRectangular(vInputFileSpectraLocal[indexInputFits].name,&configCrontrolFile,0);
+				fitsImage = readFitsSpectroImageRectangular(vInputFileSpectraLocal[indexInputFits].name,&configCrontrolFile,0,nlambda);
 			}
 			else
-				fitsImage = readFitsSpectroImage(vInputFileSpectraLocal[indexInputFits].name,0);
+				fitsImage = readFitsSpectroImage(vInputFileSpectraLocal[indexInputFits].name,0,nlambda);
 			t = clock() - t;
 			timeReadImage = ((PRECISION)t)/CLOCKS_PER_SEC; // in seconds 
 			
@@ -1301,10 +1306,10 @@ int main(int argc, char **argv)
 			clock_t t = clock();
 			timeTotal = clock();
 			if(configCrontrolFile.subx1 > 0 && configCrontrolFile.subx2 >0 && configCrontrolFile.suby1 > 0 && configCrontrolFile.suby2>0){
-				fitsImage = readFitsSpectroImageRectangular(vInputFileSpectraDiv2Parallel[myGroup].name,&configCrontrolFile,1);
+				fitsImage = readFitsSpectroImageRectangular(vInputFileSpectraDiv2Parallel[myGroup].name,&configCrontrolFile,1,nlambda);
 			}
 			else
-				fitsImage = readFitsSpectroImage(vInputFileSpectraDiv2Parallel[myGroup].name,1);
+				fitsImage = readFitsSpectroImage(vInputFileSpectraDiv2Parallel[myGroup].name,1,nlambda);
 				
 			t = clock() - t;
 			PRECISION timeReadImage = ((PRECISION)t)/CLOCKS_PER_SEC; // in seconds 
