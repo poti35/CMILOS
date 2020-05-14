@@ -2064,7 +2064,7 @@ int writeFitsImageModelsSubSet(const char * fitsFile, int numRowsOriginal, int n
 			colWrite=0;
 			for( h=0; h<naxes[1];h++){ // cols
 				if(h>=configCrontrolFile.suby1-1 && h<configCrontrolFile.suby2 && j>= configCrontrolFile.subx1-1 && j<configCrontrolFile.subx2){
-					printf("\nWRITE PIXEL %d %d , %d %d",rowWrite,colWrite, j, h);
+					//printf("\nWRITE PIXEL %d %d , %d %d",rowWrite,colWrite, j, h);
 					switch (i)
 					{
 					case 0:
