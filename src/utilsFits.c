@@ -2053,17 +2053,17 @@ int writeFitsImageModelsSubSet(const char * fitsFile, int numRowsOriginal, int n
 		return 0;
 	}
 
-	int numRowsSub = (configCrontrolFile.subx2-configCrontrolFile.subx1)+1;
-	int numColsSub = (configCrontrolFile.suby2-configCrontrolFile.suby1)+1;
+	int numRowsSub = (configCrontrolFile.subx2-configCrontrolFile.subx1);
+	int numColsSub = (configCrontrolFile.suby2-configCrontrolFile.suby1);
 	
 	float * vModel = calloc(naxes[0] * naxes[1] * naxes[2], sizeof(float));
 	int rowWrite, colWrite;
 	for( i=0;i<naxes[2];i++){
 		rowWrite=0;
-		for( j=0;j<naxes[1];j++){ // row
+		for( j=0;j<naxes[0];j++){ // row
 			colWrite=0;
-			for( h=0; h<naxes[0];h++){ // cols
-				if(j>=configCrontrolFile.suby1-1 && j<configCrontrolFile.suby2 && h>= configCrontrolFile.subx1-1 && h<configCrontrolFile.subx2){
+			for( h=0; h<naxes[1];h++){ // cols
+				if(h>=configCrontrolFile.suby1-1 && h<configCrontrolFile.suby2 && j>= configCrontrolFile.subx1-1 && j<configCrontrolFile.subx2){
 					//printf("\nWRITE PIXEL %d %d , %d %d",rowWrite,colWrite, j, h);
 					switch (i)
 					{
@@ -2071,8 +2071,8 @@ int writeFitsImageModelsSubSet(const char * fitsFile, int numRowsOriginal, int n
 						vModel[indexModel++] = vInitModel[( rowWrite*numColsSub) + colWrite].eta0;
 						break;
 					case 1:
-						//vModel[indexModel++] = vInitModel[( rowWrite*numColsSub) + colWrite].B;
-						vModel[indexModel++] = vInitModel[( colWrite*numRowsSub) +  rowWrite].B;
+						vModel[indexModel++] = vInitModel[( rowWrite*numColsSub) + colWrite].B;
+						//vModel[indexModel++] = vInitModel[( colWrite*numRowsSub) +  rowWrite].B;
 						break;
 					case 2:
 						vModel[indexModel++] = vInitModel[( rowWrite*numColsSub) + colWrite].vlos;
@@ -2115,10 +2115,10 @@ int writeFitsImageModelsSubSet(const char * fitsFile, int numRowsOriginal, int n
 				else{
 					vModel[indexModel++] = 0;
 				}
-				if(j>=configCrontrolFile.suby1-1 && j<configCrontrolFile.suby2)
+				if(h>=configCrontrolFile.suby1-1 && h<configCrontrolFile.suby2)
 					colWrite++;
 			}
-			if(h>= configCrontrolFile.subx1-1 && h<configCrontrolFile.subx2)
+			if(j>= configCrontrolFile.subx1-1 && j<configCrontrolFile.subx2)
 				rowWrite++;
 		}
 	}
