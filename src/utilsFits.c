@@ -2071,7 +2071,8 @@ int writeFitsImageModelsSubSet(const char * fitsFile, int numRowsOriginal, int n
 						vModel[indexModel++] = vInitModel[( rowWrite*numColsSub) + colWrite].eta0;
 						break;
 					case 1:
-						vModel[indexModel++] = vInitModel[( rowWrite*numColsSub) + colWrite].B;
+						//vModel[indexModel++] = vInitModel[( rowWrite*numColsSub) + colWrite].B;
+						vModel[indexModel++] = vInitModel[( colWrite*numRowsSub) +  rowWrite].B;
 						break;
 					case 2:
 						vModel[indexModel++] = vInitModel[( rowWrite*numColsSub) + colWrite].vlos;
