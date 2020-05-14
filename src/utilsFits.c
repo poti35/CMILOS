@@ -2459,6 +2459,7 @@ int writeFitsImageProfilesSubSet(const char * fitsProfileFile, const char * fits
 	int bitpix,naxis, nkeys;
 	long naxes_read [4] = {1,1,1,1}; /* The maximun number of dimension that we will read is 4*/
 	long naxes [4] = {image->naxes_original[0],image->naxes_original[1],image->naxes_original[2],image->naxes_original[3]};
+	long naxes_sub [4] = {image->naxes[0],image->naxes[1],image->naxes[2],image->naxes[3]};
 	char card[FLEN_CARD];
 	char keyname [FLEN_CARD];
 	char value [FLEN_CARD];
@@ -2506,18 +2507,29 @@ int writeFitsImageProfilesSubSet(const char * fitsProfileFile, const char * fits
 	int numElemWrite = naxes[3]*naxes[2]*naxes[1]*naxes[0];
 
 	float * outputImage = calloc(numElemWrite, sizeof(float));
+
+	if ( fits_write_img(outfptr, TFLOAT, 1, numElemWrite, outputImage, &status) ){
+		printerror( status );
+		free(outputImage);
+		return 0;
+	}
+
+	free(outputImage);
+
+
+	
+	numElemWrite = naxes_sub[3]*naxes_sub[2]*naxes_sub[1]*naxes_sub[0];
+	outputImage = calloc(numElemWrite, sizeof(float));
+
 	int currentLambda = 0, currentRow = 0, currentStokeParameter=0, currentCol = 0;
-	 
 	int pos_lambda = image->pos_lambda;
 	int pos_col = image->pos_col;
 	int pos_row = image->pos_row;
 	int pos_stokes_parameters = image->pos_stokes_parameters;
-	int indexPixelWrite =0;
-		
-	for( i=0; i <naxes[3]; i++){
-		for( j=0;j <naxes[2]; j++){
-			for( k=0; k<naxes[1]; k++){
-				for( h=0; h<naxes[0]; h++){
+	for( i=0; i <naxes_sub[3]; i++){
+		for( j=0;j <naxes_sub[2]; j++){
+			for( k=0; k<naxes_sub[1]; k++){
+				for( h=0; h<naxes_sub[0]; h++){
 					// I NEED TO KNOW THE CURRENT POSITION OF EACH ITERATOR 
 					switch (pos_lambda)
 					{
@@ -2579,23 +2591,33 @@ int writeFitsImageProfilesSubSet(const char * fitsProfileFile, const char * fits
 							currentCol = i;
 							break;																						
 					}
-					if(currentCol>=configCrontrolFile.suby1 && currentCol<configCrontrolFile.suby2 && currentRow>= configCrontrolFile.subx1 && currentRow<configCrontrolFile.subx2)
-						outputImage[(i*naxes[2]*naxes[1]*naxes[0]) + (j*naxes[1]*naxes[0]) + (k*naxes[0]) + h] = image->pixels[indexPixelWrite++].spectro[currentLambda+(image->nLambdas * currentStokeParameter)];
-						//outputImage[(i*naxes[2]*naxes[1]*naxes[0]) + (j*naxes[1]*naxes[0]) + (k*naxes[0]) + h] = image->pixels[(currentCol*image->rows) + currentRow].spectro[currentLambda+(image->nLambdas * currentStokeParameter)];					
+					
+					outputImage[(i*naxes_sub[2]*naxes_sub[1]*naxes_sub[0]) + (j*naxes_sub[1]*naxes_sub[0]) + (k*naxes_sub[0]) + h] = image->pixels[(currentCol*image->rows) + currentRow].spectro[currentLambda+(image->nLambdas * currentStokeParameter)];					
 
 				}
 			}
 		}
 	}
 
-    
-	if ( fits_write_img(outfptr, TFLOAT, 1, numElemWrite, outputImage, &status) ){
+	long fpixelBegin [3] = {1,1,1,1}; 
+	long fpixelEnd [3] = {1,1,1,1}; 
+	fpixelBegin[pos_row] = configCrontrolFile.subx1;
+	fpixelEnd[pos_row] = configCrontrolFile.subx2;
+	fpixelBegin[pos_col] = configCrontrolFile.suby1;
+	fpixelEnd[pos_col] = configCrontrolFile.suby2;
+
+	fpixelEnd[pos_lambda] = naxes[image->pos_lambda];
+	fpixelEnd[pos_stokes_parameters] = naxes[pos_stokes_parameters];
+
+	if ( fits_write_subset(outfptr, TFLOAT, fpixelBegin, fpixelEnd, outputImage, &status) ){
 		printerror( status );
 		free(outputImage);
 		return 0;
 	}
 
 	free(outputImage);
+    
+
 	fits_close_file(outfptr,  &status);
 	if(status){
 		printerror( status );
