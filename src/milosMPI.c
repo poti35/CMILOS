@@ -1251,19 +1251,26 @@ int main(int argc, char **argv)
 					if(!writeFitsImageModelsSubSet(vOutputNameModelsLocal[indexInputFits].name,fitsImage->rows_original,fitsImage->cols_original,configCrontrolFile,vModels,vChisqrf,vNumIter,configCrontrolFile.saveChisqr)){	
 							printf("\n ERROR WRITING FILE OF MODELS: %s",vOutputNameModelsParalell[indexInputFits].name);
 					}
+					if(configCrontrolFile.SaveSynthesisAdjusted){
+					// WRITE SINTHETIC PROFILES TO FITS FILE
+						if(!writeFitsImageProfilesSub(vOutputNameSynthesisAdjustedLocal[indexInputFits].name,vInputFileSpectraLocal[indexInputFits].name,imageStokesAdjust,configCrontrolFile)){
+							printf("\n ERROR WRITING FILE OF SINTHETIC PROFILES: %s",vOutputNameSynthesisAdjustedLocal[indexInputFits].name);
+						}
+					}					
 				}
 				else{
 					if(!writeFitsImageModels(vOutputNameModelsLocal[indexInputFits].name,fitsImage->rows,fitsImage->cols,vModels,vChisqrf,vNumIter,configCrontrolFile.saveChisqr)){
 						printf("\n ERROR WRITING FILE OF MODELS: %s",vOutputNameModelsLocal[indexInputFits].name);
 					}
-				}
-				// PROCESS FILE OF SYNTETIC PROFILES
-				if(configCrontrolFile.SaveSynthesisAdjusted){
+					if(configCrontrolFile.SaveSynthesisAdjusted){
 					// WRITE SINTHETIC PROFILES TO FITS FILE
-					if(!writeFitsImageProfiles(vOutputNameSynthesisAdjustedLocal[indexInputFits].name,vInputFileSpectraLocal[indexInputFits].name,imageStokesAdjust)){
-						printf("\n ERROR WRITING FILE OF SINTHETIC PROFILES: %s",vOutputNameSynthesisAdjustedLocal[indexInputFits].name);
+						if(!writeFitsImageProfiles(vOutputNameSynthesisAdjustedLocal[indexInputFits].name,vInputFileSpectraLocal[indexInputFits].name,imageStokesAdjust)){
+							printf("\n ERROR WRITING FILE OF SINTHETIC PROFILES: %s",vOutputNameSynthesisAdjustedLocal[indexInputFits].name);
+						}
 					}
 				}
+				// PROCESS FILE OF SYNTETIC PROFILES
+
 				timeTotal = clock() - timeTotal;
 				t_write = clock() - t_write;
 				PRECISION timeTotalExecution = ((PRECISION)timeTotal)/CLOCKS_PER_SEC; // in seconds 

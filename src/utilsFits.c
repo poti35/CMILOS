@@ -1136,10 +1136,10 @@ FitsImage * readFitsSpectroImageRectangular (const char * fitsFileSpectra, Confi
 					image->naxes_original[pos_lambda] = naxes[pos_lambda];
 					image->naxes[pos_stokes_parameters] = (fpixelEnd[pos_stokes_parameters]-(fpixelBegin[pos_stokes_parameters]-1));
 					image->naxes_original[pos_stokes_parameters] = naxes[pos_stokes_parameters];
-					printf("\n NUM ROWS %d NUM ROWS NAXES %ld ", image->rows, image->naxes[pos_row]);
+					/*printf("\n NUM ROWS %d NUM ROWS NAXES %ld ", image->rows, image->naxes[pos_row]);
 					printf("\n NUM COLS %d NUM COLS NAXES %ld ", image->cols, image->naxes[pos_col]);
 					printf("\n NUM lambdas %ld ", image->naxes[pos_lambda]);
-					printf("\n NUM stokes parameters %ld ", image->naxes[pos_stokes_parameters]);
+					printf("\n NUM stokes parameters %ld ", image->naxes[pos_stokes_parameters]);*/
 
 					if(correctOrder){
 						for( i=0; i<sizeDim3;i++){
