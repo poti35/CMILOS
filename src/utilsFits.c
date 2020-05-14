@@ -2060,10 +2060,10 @@ int writeFitsImageModelsSubSet(const char * fitsFile, int numRowsOriginal, int n
 	int rowWrite, colWrite;
 	for( i=0;i<naxes[2];i++){
 		rowWrite=0;
-		for( j=0;j<naxes[0];j++){ // row
+		for( j=0;j<naxes[1];j++){ // row
 			colWrite=0;
-			for( h=0; h<naxes[1];h++){ // cols
-				if(h>=configCrontrolFile.suby1-1 && h<configCrontrolFile.suby2 && j>= configCrontrolFile.subx1-1 && j<configCrontrolFile.subx2){
+			for( h=0; h<naxes[0];h++){ // cols
+				if(j>=configCrontrolFile.suby1-1 && j<configCrontrolFile.suby2 && h>= configCrontrolFile.subx1-1 && h<configCrontrolFile.subx2){
 					//printf("\nWRITE PIXEL %d %d , %d %d",rowWrite,colWrite, j, h);
 					switch (i)
 					{
@@ -2110,14 +2110,15 @@ int writeFitsImageModelsSubSet(const char * fitsFile, int numRowsOriginal, int n
 					default:
 						break;
 					}
+
 				}
 				else{
 					vModel[indexModel++] = 0;
 				}
-				if(h>=configCrontrolFile.suby1-1 && h<configCrontrolFile.suby2)
+				if(j>=configCrontrolFile.suby1-1 && j<configCrontrolFile.suby2)
 					colWrite++;
 			}
-			if(j>= configCrontrolFile.subx1-1 && j<configCrontrolFile.subx2)
+			if(h>= configCrontrolFile.subx1-1 && h<configCrontrolFile.subx2)
 				rowWrite++;
 		}
 	}
