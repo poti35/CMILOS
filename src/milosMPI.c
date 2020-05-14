@@ -1140,7 +1140,10 @@ int main(int argc, char **argv)
 					imageStokesAdjust->vKeyname = fitsImage->vKeyname;
 					imageStokesAdjust->nkeys = fitsImage->nkeys;
 					imageStokesAdjust->naxis = fitsImage->naxis;
-					imageStokesAdjust->bitpix = fitsImage->bitpix;					
+					imageStokesAdjust->bitpix = fitsImage->bitpix;
+					imageStokesAdjust->rows_original = fitsImage->rows_original;
+					imageStokesAdjust->cols_original = fitsImage->cols_original;
+					imageStokesAdjust->naxes_original = fitsImage->naxes_original;
 					for( i=0;i<imageStokesAdjust->numPixels;i++){
 						imageStokesAdjust->pixels[i].spectro = calloc (nlambda*NPARMS,sizeof(float));
 					}
