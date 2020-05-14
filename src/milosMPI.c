@@ -1497,8 +1497,9 @@ int main(int argc, char **argv)
 				printf("\n***********************************\n");*/
 				double timeWriteImage;
 				clock_t t;
-				t = clock();	
-				if(!writeFitsImageModels(vOutputNameModelsDiv2Parallel[myGroup].name,fitsImage->rows,fitsImage->cols,resultsInitModelTotal,chisqrfTotal,vNumIterTotal,configCrontrolFile.saveChisqr)){
+				t = clock();
+				if(!writeFitsImageModelsSubSet(vOutputNameModelsDiv2Parallel[myGroup].name,fitsImage->rows_original,fitsImage->cols_original,configCrontrolFile,resultsInitModelTotal,chisqrfTotal,vNumIterTotal,configCrontrolFile.saveChisqr)){	
+				//if(!writeFitsImageModels(vOutputNameModelsDiv2Parallel[myGroup].name,fitsImage->rows,fitsImage->cols,resultsInitModelTotal,chisqrfTotal,vNumIterTotal,configCrontrolFile.saveChisqr)){
 						printf("\n ERROR WRITING FILE OF MODELS: %s",vOutputNameModelsDiv2Parallel[myGroup].name);
 				}
 				t = clock() - t;
