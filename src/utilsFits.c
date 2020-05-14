@@ -2130,81 +2130,13 @@ int writeFitsImageModelsSubSet(const char * fitsFile, int numRowsOriginal, int n
 		}
 	}
 	
-
 	if ( fits_write_subset(fptr, TFLOAT, fpixelBegin, fpixelEnd, vModelSub, &status) ){
 		printerror( status );
 		free(vModelSub);
 		return 0;
 	}
 
-
 	free(vModelSub);
-
-	/*int rowWrite, colWrite;
-	for( i=0;i<naxes[2];i++){
-		rowWrite=0;
-		for( j=0;j<naxes[0];j++){ // row
-			colWrite=0;
-			for( h=0; h<naxes[1];h++){ // cols
-				if(h>=configCrontrolFile.suby1-1 && h<configCrontrolFile.suby2 && j>= configCrontrolFile.subx1-1 && j<configCrontrolFile.subx2){
-					//printf("\nWRITE PIXEL %d %d , %d %d",rowWrite,colWrite, j, h);
-					switch (i)
-					{
-					case 0:
-						vModel[indexModel++] = vInitModel[( rowWrite*numColsSub) + colWrite].eta0;
-						break;
-					case 1:
-						vModel[indexModel++] = vInitModel[( rowWrite*numColsSub) + colWrite].B;
-						//vModel[indexModel++] = vInitModel[( colWrite*numRowsSub) +  rowWrite].B;
-						break;
-					case 2:
-						vModel[indexModel++] = vInitModel[( rowWrite*numColsSub) + colWrite].vlos;
-						break;
-					case 3:
-						vModel[indexModel++] = vInitModel[( rowWrite*numColsSub) + colWrite].dopp;
-						break;
-					case 4:
-						vModel[indexModel++] = vInitModel[( rowWrite*numColsSub) + colWrite].aa;
-						break;
-					case 5:
-						vModel[indexModel++] = vInitModel[( rowWrite*numColsSub) + colWrite].gm;
-						break;					
-					case 6:
-						vModel[indexModel++] = vInitModel[( rowWrite*numColsSub) + colWrite].az;
-						break;					
-					case 7:
-						vModel[indexModel++] = vInitModel[( rowWrite*numColsSub) + colWrite].S0;
-						break;					
-					case 8:
-						vModel[indexModel++] = vInitModel[( rowWrite*numColsSub) + colWrite].S1;
-						break;					
-					case 9:
-						vModel[indexModel++] = vInitModel[( rowWrite*numColsSub) + colWrite].mac;
-						break;					
-					case 10:
-						vModel[indexModel++] = vInitModel[( rowWrite*numColsSub) + colWrite].alfa;
-						break;
-					case 11: // NUMBER OF ITERATIONS
-						vModel[indexModel++] = vNumIterPixel[( rowWrite*numColsSub) + colWrite];
-						break;
-					case 12: // CHISQR 
-						vModel[indexModel++] = vChisqrf[( rowWrite*numColsSub) + colWrite];
-						break;										
-					default:
-						break;
-					}
-
-				}
-				else{
-					vModel[indexModel++] = 0;
-				}
-				if(h>=configCrontrolFile.suby1-1 && h<configCrontrolFile.suby2)
-					colWrite++;
-			}
-			if(j>= configCrontrolFile.subx1-1 && j<configCrontrolFile.subx2)
-				rowWrite++;
-		}
-	}*/
 
 	if ( fits_close_file(fptr, &status) ){        
 		printerror( status );
