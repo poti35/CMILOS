@@ -2052,12 +2052,93 @@ int writeFitsImageModelsSubSet(const char * fitsFile, int numRowsOriginal, int n
 		printerror( status );
 		return 0;
 	}
-
-	int numRowsSub = (configCrontrolFile.subx2-configCrontrolFile.subx1);
-	int numColsSub = (configCrontrolFile.suby2-configCrontrolFile.suby1);
 	
+	// initialize image to 0 
 	float * vModel = calloc(naxes[0] * naxes[1] * naxes[2], sizeof(float));
-	int rowWrite, colWrite;
+	fpixel = 1;                               /* first pixel to write      */
+	//nelements = naxes[0] * naxes[1] * naxes[2];          /* number of pixels to write */
+	if ( fits_write_img(fptr, TFLOAT, fpixel, indexModel, vModel, &status) ){
+		printerror( status );
+		free(vModel);
+		return 0;
+	}
+	free(vModel);
+
+
+	int numRowsSub = (configCrontrolFile.subx2-configCrontrolFile.subx1)+1;
+	int numColsSub = (configCrontrolFile.suby2-configCrontrolFile.suby1)+1;
+	float * vModelSub = calloc(numRowsSub * numColsSub * naxes[2], sizeof(float));
+	long fpixelBegin [3] = {1,1,1}; 
+	long fpixelEnd [3] = {1,1,1}; 
+	fpixelBegin[0] = configCrontrolFile.subx1;
+	fpixelEnd[0] = configCrontrolFile.subx2;
+	fpixelBegin[1] = configCrontrolFile.suby1;
+	fpixelEnd[1] = configCrontrolFile.suby2;
+	fpixelEnd[2] = naxes[2];
+	
+	for( i=0;i<naxes[2];i++){
+		for( j=0;j<naxes[0];j++){
+			for( h=0; h<naxes[1];h++){
+				//[Eta0,Strength,Vlos,Lambdadopp,Damp,Gamma,Azimuth,S0,S1,Macro,Alpha]
+				switch (i)
+				{
+				case 0:
+					vModelSub[indexModel++] = vInitModel[( j*naxes[1]) + h].eta0;
+					break;
+				case 1:
+					vModelSub[indexModel++] = vInitModel[( j*naxes[1]) + h].B;
+					break;
+				case 2:
+					vModelSub[indexModel++] = vInitModel[( j*naxes[1]) + h].vlos;
+					break;
+				case 3:
+					vModelSub[indexModel++] = vInitModel[( j*naxes[1]) + h].dopp;
+					break;
+				case 4:
+					vModelSub[indexModel++] = vInitModel[( j*naxes[1]) + h].aa;
+					break;
+				case 5:
+					vModelSub[indexModel++] = vInitModel[( j*naxes[1]) + h].gm;
+					break;					
+				case 6:
+					vModelSub[indexModel++] = vInitModel[( j*naxes[1]) + h].az;
+					break;					
+				case 7:
+					vModelSub[indexModel++] = vInitModel[( j*naxes[1]) + h].S0;
+					break;					
+				case 8:
+					vModelSub[indexModel++] = vInitModel[( j*naxes[1]) + h].S1;
+					break;					
+				case 9:
+					vModelSub[indexModel++] = vInitModel[( j*naxes[1]) + h].mac;
+					break;					
+				case 10:
+					vModelSub[indexModel++] = vInitModel[( j*naxes[1]) + h].alfa;
+					break;
+				case 11: // NUMBER OF ITERATIONS
+					vModelSub[indexModel++] = vNumIterPixel[( j*naxes[1]) + h];
+					break;
+				case 12: // CHISQR 
+					vModelSub[indexModel++] = vChisqrf[( j*naxes[1]) + h];
+					break;										
+				default:
+					break;
+				}
+			}
+		}
+	}
+	
+
+	if ( fits_write_subset(fptr, TFLOAT, fpixelBegin, fpixelEnd, vModelSub, &status) ){
+		printerror( status );
+		free(vModelSub);
+		return 0;
+	}
+
+
+	free(vModelSub);
+
+	/*int rowWrite, colWrite;
 	for( i=0;i<naxes[2];i++){
 		rowWrite=0;
 		for( j=0;j<naxes[0];j++){ // row
@@ -2121,20 +2202,8 @@ int writeFitsImageModelsSubSet(const char * fitsFile, int numRowsOriginal, int n
 			if(j>= configCrontrolFile.subx1-1 && j<configCrontrolFile.subx2)
 				rowWrite++;
 		}
-	}
+	}*/
 
-   fpixel = 1;                               /* first pixel to write      */
-   //nelements = naxes[0] * naxes[1] * naxes[2];          /* number of pixels to write */
-
-
-   if ( fits_write_img(fptr, TFLOAT, fpixel, indexModel, vModel, &status) ){
-		printerror( status );
-		free(vModel);
-		return 0;
-	}
-
-
-	free(vModel);
 	if ( fits_close_file(fptr, &status) ){        
 		printerror( status );
 		return 0;
