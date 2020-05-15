@@ -1596,13 +1596,30 @@ void readFitsStrayLightFile (const char * fitsFileStrayLight, FitsImage * image,
 				// READ ALL FILE IN ONLY ONE ARRAY 
 				// WE ASSUME THAT DATA COMES IN THE FORMAT ROW x COL x LAMBDA
 				vStrayLight = calloc(naxes[0]*naxes[1], sizeof(REAL));
-				long fpixel [3] = {1,1,1};
+				long fpixel [3] = {1,1};
 				fits_read_pix(fptr, TFLOAT, fpixel, naxes[0]*naxes[1], &nulval, vStrayLight, &anynul, &status);
 				if(status){
 					fits_report_error(stderr, status);
 					image= NULL;
 					vStrayLight = NULL;	
 				}
+				REAL * vStrayLight_aux = calloc(naxes[0]*naxes[1], sizeof(REAL));
+				int index=0;
+				if(*nl_straylight!=naxes[0]){
+					for(i=0;i<naxes[1];i++){
+						for(j=0;j<naxes[0];j++){
+							vStrayLight_aux[index++] = vStrayLight[i + j*(naxes[1])];
+						}
+					}
+					free(vStrayLight);
+					vStrayLight = vStrayLight_aux;
+				}
+				for(i=0;i<*nl_straylight;i++){
+					printf("\n");
+					for(j=0;j<*ns_straylight;j++){
+						printf("%f\t",vStrayLight[j + (*nl_straylight*i)]);
+					}
+				}				
 				printf("\n STRAY LIGHT LEIDO: \n");
 			}
 			else if (naxis==4){
