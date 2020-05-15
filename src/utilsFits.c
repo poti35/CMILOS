@@ -322,6 +322,9 @@ FitsImage *  readFitsSpectroImage (const char * fitsFileSpectra, int forParallel
 				if(strcmp(image->ctype_3,CTYPE_STOKES)==0) pos_stokes_parameters = 2;
 				if(strcmp(image->ctype_4,CTYPE_STOKES)==0) pos_stokes_parameters = 3;
 			}
+			else{
+				status =0;
+			}
 			// GET THE CURRENT POSITION OF EVERY PARAMETER
 			/*int pos_row = 2;
 			int pos_col = 3;
@@ -1605,7 +1608,7 @@ void readFitsStrayLightFile (const char * fitsFileStrayLight, FitsImage * image,
 				}
 				REAL * vStrayLight_aux = calloc(naxes[0]*naxes[1], sizeof(REAL));
 				int index=0;
-				if(*nl_straylight!=naxes[0]){
+				/*if(*nl_straylight!=naxes[0]){
 					printf("\n");
 					for(i=0;i<*nl_straylight * (*ns_straylight);i++){					
 						printf("%f\t",vStrayLight[i]);
@@ -1630,7 +1633,7 @@ void readFitsStrayLightFile (const char * fitsFileStrayLight, FitsImage * image,
 				printf("\n");
 				for(i=0;i<*nl_straylight * (*ns_straylight);i++){					
 					printf("%f\t",vStrayLight[i]);
-				}								
+				}			*/					
 				printf("\n STRAY LIGHT LEIDO: \n");
 			}
 			else if (naxis==4){
