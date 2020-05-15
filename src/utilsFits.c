@@ -1596,7 +1596,7 @@ void readFitsStrayLightFile (const char * fitsFileStrayLight, FitsImage * image,
 				// READ ALL FILE IN ONLY ONE ARRAY 
 				// WE ASSUME THAT DATA COMES IN THE FORMAT ROW x COL x LAMBDA
 				vStrayLight = calloc(naxes[0]*naxes[1], sizeof(REAL));
-				long fpixel [3] = {1,1};
+				long fpixel [2] = {1,1};
 				fits_read_pix(fptr, TFLOAT, fpixel, naxes[0]*naxes[1], &nulval, vStrayLight, &anynul, &status);
 				if(status){
 					fits_report_error(stderr, status);
@@ -1619,7 +1619,11 @@ void readFitsStrayLightFile (const char * fitsFileStrayLight, FitsImage * image,
 					for(j=0;j<*ns_straylight;j++){
 						printf("%f\t",vStrayLight[j + (*ns_straylight*i)]);
 					}
-				}				
+				}
+				printf("\n");
+				for(i=0;i<*nl_straylight * (*ns_straylight);i++){					
+					printf("%f\t",vStrayLight[i]);
+				}								
 				printf("\n STRAY LIGHT LEIDO: \n");
 			}
 			else if (naxis==4){
