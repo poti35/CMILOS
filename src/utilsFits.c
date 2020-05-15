@@ -288,7 +288,7 @@ FitsImage *  readFitsSpectroImage (const char * fitsFileSpectra, int forParallel
 			if(fits_read_key(fptr, TSTRING, CTYPE2, image->ctype_2, comment, &status)) header=0;
 			if(fits_read_key(fptr, TSTRING, CTYPE3, image->ctype_3, comment, &status)) header=0;
 			if(fits_read_key(fptr, TSTRING, CTYPE4, image->ctype_4, comment, &status)) header=0;
-
+			printf("\n HEADER %d", header);
 			// ORDER MUST BE CTYPE1->'HPLN-TAN',CTYPE2->'HPLT-TAN',CTYPE3->'WAVE-GRI',CTYPE4->'STOKES'
 			// int pos_row = 0, pos_col = 1, pos_lambda = 2, pos_stokes_parameters = 3;
 			int correctOrder =0;
@@ -346,6 +346,7 @@ FitsImage *  readFitsSpectroImage (const char * fitsFileSpectra, int forParallel
 							num_stokes = naxes[i];
 						}
 					}
+					printf("\n  STOKES %d ",pos_stokes_parameters);
 					int num_lambda = 10000;
 					for(i=0;i<naxis;i++){
 						if(i!=pos_stokes_parameters){
@@ -355,7 +356,8 @@ FitsImage *  readFitsSpectroImage (const char * fitsFileSpectra, int forParallel
 							}
 						}
 					}
-
+					printf("\n  NLAMBDA %d ", pos_lambda);
+					
 					if( (pos_stokes_parameters == 0 && pos_lambda == 1) || (pos_stokes_parameters == 1 && pos_lambda == 0) ){ 
 						pos_row = 2;
 						pos_col = 3;
@@ -387,6 +389,10 @@ FitsImage *  readFitsSpectroImage (const char * fitsFileSpectra, int forParallel
 					printf("\n POS STOKES %d",pos_stokes_parameters);
 					printf("\n POS LAMBDA %d",pos_lambda);
 				}
+				printf("\n POS ROW %d",pos_row);
+				printf("\n POS COL %d",pos_col);
+				printf("\n POS STOKES %d",pos_stokes_parameters);
+				printf("\n POS LAMBDA %d",pos_lambda);
 
 				if(pos_row==0 && pos_col ==1 && pos_lambda == 2 && pos_stokes_parameters == 3)
 				//if(pos_row==2 && pos_col ==3 && pos_lambda == 0 && pos_stokes_parameters == 1)
