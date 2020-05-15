@@ -766,14 +766,8 @@ int main(int argc, char **argv)
 			PRECISION timeReadImage;
 			clock_t t;
 			t = clock();
-			
-			configCrontrolFile.subx1 = 1;
-			configCrontrolFile.suby1 = 1;
-			configCrontrolFile.subx2 = 800;
-			configCrontrolFile.suby2 = 800;
-			
-			fitsImage = readFitsSpectroImageRectangular(configCrontrolFile.ObservedProfiles,&configCrontrolFile,0,nlambda);
-			//fitsImage = readFitsSpectroImage(nameInputFileSpectra,0);
+
+			fitsImage = readFitsSpectroImage(nameInputFileSpectra,0,nlambda);
 			t = clock() - t;
 			timeReadImage = ((PRECISION)t)/CLOCKS_PER_SEC; // in seconds 
 			

@@ -380,6 +380,12 @@ FitsImage *  readFitsSpectroImage (const char * fitsFileSpectra, int forParallel
 						pos_row = 0;
 						pos_col = 1;					
 					}
+
+
+					printf("\n POS ROW %d",pos_row);
+					printf("\n POS COL %d",pos_col);
+					printf("\n POS STOKES %d",pos_stokes_parameters);
+					printf("\n POS LAMBDA %d",pos_lambda);
 				}
 
 				if(pos_row==0 && pos_col ==1 && pos_lambda == 2 && pos_stokes_parameters == 3)
