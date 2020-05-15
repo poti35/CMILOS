@@ -613,6 +613,9 @@ FitsImage *  readFitsSpectroImage (const char * fitsFileSpectra, int forParallel
 					return NULL;
 				}				
 			}
+			else{
+				printf("\n IMPOSIBLE LEER IMAGEN \n ");
+			}
 		}
 		else{
 			return NULL;  // we are interested only in FITS image
