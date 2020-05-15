@@ -321,7 +321,7 @@ int main(int argc, char **argv)
 	if(idProc==root && access(configCrontrolFile.MaskFile,F_OK)!=-1){ //  IF NOT EMPTY READ MASK FILE
 
 		if(configCrontrolFile.subx1 > 0 && configCrontrolFile.subx2 >0 && configCrontrolFile.suby1 > 0 && configCrontrolFile.suby2>0){
-			vMask=readFitsMaskFileSubSet (configCrontrolFile.MaskFile,&numRowsMask,&numColsMask,configCrontrolFile);	
+			vMask=readFitsMaskFileSubSet (configCrontrolFile.MaskFile,&numRowsMask,&numColsMask,&configCrontrolFile);	
 		}
 		else{
 			vMask=readFitsMaskFile (configCrontrolFile.MaskFile,&numRowsMask,&numColsMask);
@@ -784,8 +784,8 @@ int main(int argc, char **argv)
 						fitsImages[indexInputFits] = readFitsSpectroImage(vInputFileSpectraParalell[indexInputFits].name,1,nlambda);
 					}
 
-					if(vMask!=NULL && ((numRowsMask!=fitsImages[indexInputFits]->rows || numColsMask!=fitsImages[indexInputFits]->cols)){
-						printf("\n DIMENSIONS OF IMAGE %s [rows: %d , cols: %d ] AND MASK FILE %s  [rows: %d , cols: %d ] ARE DIFFERENT. ", fitsImages[indexInputFits]->rows, fitsImages[indexInputFits]->cols,numRowsMask,numColsMask);
+					if(vMask!=NULL && (numRowsMask!=fitsImages[indexInputFits]->rows || numColsMask!=fitsImages[indexInputFits]->cols) ){
+						printf("\n DIMENSIONS OF IMAGE %s [rows: %d , cols: %d ] AND MASK FILE %s  [rows: %d , cols: %d ] ARE DIFFERENT. ",vInputFileSpectraParalell[indexInputFits].name, fitsImages[indexInputFits]->rows, fitsImages[indexInputFits]->cols,configCrontrolFile.MaskFile,numRowsMask,numColsMask);
 						exit(EXIT_FAILURE);
 					}
 					t = clock() - t;
@@ -1123,8 +1123,8 @@ int main(int argc, char **argv)
 			else
 				fitsImage = readFitsSpectroImage(vInputFileSpectraLocal[indexInputFits].name,0,nlambda);
 
-			if(vMask!=NULL && ((numRowsMask!=fitsImage->rows || numColsMask!=fitsImage->cols)){
-				printf("\n DIMENSIONS OF IMAGE %s [rows: %d , cols: %d ] AND MASK FILE %s  [rows: %d , cols: %d ] ARE DIFFERENT. ", fitsImage->rows, fitsImage->cols,numRowsMask,numColsMask);
+			if(vMask!=NULL && (numRowsMask!=fitsImage->rows || numColsMask!=fitsImage->cols)){
+				printf("\n DIMENSIONS OF IMAGE %s [rows: %d , cols: %d ] AND MASK FILE %s  [rows: %d , cols: %d ] ARE DIFFERENT. ",vInputFileSpectraLocal[indexInputFits].name, fitsImage->rows, fitsImage->cols,configCrontrolFile.MaskFile,numRowsMask,numColsMask);
 				exit(EXIT_FAILURE);
 			}
 			t = clock() - t;
@@ -1349,8 +1349,8 @@ int main(int argc, char **argv)
 			else
 				fitsImage = readFitsSpectroImage(vInputFileSpectraDiv2Parallel[myGroup].name,1,nlambda);
 			
-			if(vMask!=NULL && ((numRowsMask!=fitsImage->rows || numColsMask!=fitsImage->cols)){
-				printf("\n DIMENSIONS OF IMAGE %s [rows: %d , cols: %d ] AND MASK FILE %s  [rows: %d , cols: %d ] ARE DIFFERENT. ", fitsImage->rows, fitsImage->cols,numRowsMask,numColsMask);
+			if(vMask!=NULL && (numRowsMask!=fitsImage->rows || numColsMask!=fitsImage->cols)){
+				printf("\n DIMENSIONS OF IMAGE %s [rows: %d , cols: %d ] AND MASK FILE %s  [rows: %d , cols: %d ] ARE DIFFERENT. ",vInputFileSpectraDiv2Parallel[myGroup].name, fitsImage->rows, fitsImage->cols,configCrontrolFile.MaskFile,numRowsMask,numColsMask);
 				exit(EXIT_FAILURE);
 			}
 			t = clock() - t;
