@@ -330,7 +330,7 @@ FitsImage *  readFitsSpectroImage (const char * fitsFileSpectra, int forParallel
 
 			// READ IMAGE AND STORAGE IN STRUCTURE IMAGE 
 			if (!fits_get_img_param(fptr, 4, &bitpix, &naxis, naxes, &status) ){
-
+				printf("\n reading image\n");
 				if(bitpix != FLOAT_IMG){
 					printf("\n ERROR: the datatype of FITS spectro image must be FLOAT\n");
 					printf("\n EXITING THE PROGRAM");
@@ -357,7 +357,7 @@ FitsImage *  readFitsSpectroImage (const char * fitsFileSpectra, int forParallel
 						}
 					}
 					printf("\n  NLAMBDA %d ", pos_lambda);
-					
+
 					if( (pos_stokes_parameters == 0 && pos_lambda == 1) || (pos_stokes_parameters == 1 && pos_lambda == 0) ){ 
 						pos_row = 2;
 						pos_col = 3;
