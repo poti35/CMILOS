@@ -155,8 +155,8 @@ int main(int argc, char **argv)
 	//INIT_MODEL=[eta0,magnet,vlos,landadopp,aa,gamma,azi,B1,B2,macro,alfa]
 	//----------------------------------------------
 
-	REAL * slight = NULL;
-	int nl_straylight, ns_straylight;
+	float * slight = NULL;
+	int nl_straylight, ns_straylight, nx_straylight=0,ny_straylight=0;
 	int * vMask = NULL, numRowsMask, numColsMask;
 	int nRowsMask, nColsMask;
 
@@ -179,7 +179,7 @@ int main(int argc, char **argv)
 	
 	const char	* nameInputFilePSF ;
 
-	FitsImage * fitsImage = NULL, *fitsSlight = NULL;
+	FitsImage * fitsImage = NULL;
 	PRECISION  dat[7];
 
 	double local_start, local_finish, local_elapsed, elapsed;
@@ -240,8 +240,8 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
-	if(configCrontrolFile.fix[10]==0) NTERMS--;
-	if(configCrontrolFile.fix[9]==0 && INITIAL_MODEL.mac==0 ) NTERMS--;
+	/*if(configCrontrolFile.fix[10]==0) NTERMS--;
+	if(configCrontrolFile.fix[9]==0 && INITIAL_MODEL.mac==0 ) NTERMS--;*/
 
 	// allocate memory for eigen values
 	eval = gsl_vector_alloc (NTERMS);
@@ -312,7 +312,12 @@ int main(int argc, char **argv)
 	/**************************************** READ FITS  STRAY LIGHT ******************************/
 	
 	if( configCrontrolFile.fix[10] && access(configCrontrolFile.StrayLightFile,F_OK)!=-1){ //  IF NOT EMPTY READ stray light file 
-		readFitsStrayLightFile(configCrontrolFile.StrayLightFile,fitsSlight,slight,&nl_straylight,&ns_straylight);
+		if(configCrontrolFile.subx1 > 0 && configCrontrolFile.subx2 >0 && configCrontrolFile.suby1 > 0 && configCrontrolFile.suby2>0){
+			slight= readFitsStrayLightFileSubSet(&configCrontrolFile,&nl_straylight,&ns_straylight,&nx_straylight, &ny_straylight);	
+		}
+		else{
+			slight= readFitsStrayLightFile(&configCrontrolFile,&nl_straylight,&ns_straylight,&nx_straylight, &ny_straylight);	
+		}
 	}
 
 	
@@ -919,17 +924,18 @@ int main(int argc, char **argv)
 							initModel.az = 1;
 						// INVERSION RTE
 						
-						REAL * slightPixel;
-						if(slight==NULL && fitsSlight==NULL) 
+						float * slightPixel;
+						if(slight==NULL) 
 							slightPixel = NULL;
 						else{
-							if(slight!=NULL) 
+							if(nx_straylight && ny_straylight){
+								slightPixel = slight+ (nlambda*NPARMS*indexPixel)+displsSpectro_L[indexInputFits][idProc];
+							}
+							else {
 								slightPixel = slight;
-							else 
-								slightPixel = fitsSlight->spectroImagen+ (nlambda*indexPixel);
+								
+							}
 						}
-						
-						
 						lm_mils(cuantic, wlines, vGlobalLambda, nlambda, vAuxSpectraSplit+(indexPixel*(nlambda*NPARMS)), nlambda, &initModel, spectra, &(vChisqrf_L[indexInputFits][indexPixel]), slightPixel, configCrontrolFile.toplim, configCrontrolFile.NumberOfCycles,
 							configCrontrolFile.WeightForStokes, configCrontrolFile.fix, vSigma, configCrontrolFile.noise, configCrontrolFile.InitialDiagonalElement,&configCrontrolFile.ConvolveWithPSF,&(vNumIter_L[indexInputFits][indexPixel]),configCrontrolFile.mu,configCrontrolFile.logclambda);																		
 						
@@ -1214,14 +1220,16 @@ int main(int argc, char **argv)
 						// INVERSION RTE
 
 
-						REAL * slightPixel;
-						if(slight==NULL && fitsSlight==NULL) 
+						float * slightPixel;
+						if(slight==NULL) 
 							slightPixel = NULL;
 						else{
-							if(slight!=NULL) 
+							if(nx_straylight && ny_straylight){
+								slightPixel = slight+ (nlambda*NPARMS*indexPixel);
+							}
+							else {
 								slightPixel = slight;
-							else 
-								slightPixel = fitsSlight->spectroImagen+ (nlambda*indexPixel);
+							}
 						}
 						lm_mils(cuantic, wlines, vGlobalLambda, nlambda, fitsImage->pixels[indexPixel].spectro, nlambda, &initModel, spectra, &vChisqrf[indexPixel], slightPixel, configCrontrolFile.toplim, configCrontrolFile.NumberOfCycles,
 								configCrontrolFile.WeightForStokes, configCrontrolFile.fix, vSigma, configCrontrolFile.noise, configCrontrolFile.InitialDiagonalElement,&configCrontrolFile.ConvolveWithPSF,&vNumIter[indexPixel],configCrontrolFile.mu,configCrontrolFile.logclambda);						
@@ -1458,14 +1466,16 @@ int main(int argc, char **argv)
 
 					// INVERSION RTE
 					
-					REAL * slightPixel;
-					if(slight==NULL && fitsSlight==NULL) 
+					float * slightPixel;
+					if(slight==NULL) 
 						slightPixel = NULL;
 					else{
-						if(slight!=NULL) 
+						if(nx_straylight && ny_straylight){
+							slightPixel = slight+ (nlambda*NPARMS* indexPixel) + displsDiv2Spectro[myGroupRank];
+						}
+						else {
 							slightPixel = slight;
-						else 
-							slightPixel = fitsSlight->spectroImagen+ (nlambda*indexPixel);
+						}
 					}
 					
 					lm_mils(cuantic, wlines, vGlobalLambda, nlambda, vSpectraSplit+(indexPixel*(nlambda*NPARMS)), nlambda, &initModel, spectra, &vChisqrf[indexPixel], slightPixel, configCrontrolFile.toplim, configCrontrolFile.NumberOfCycles,

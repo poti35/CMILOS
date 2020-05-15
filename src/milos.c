@@ -134,13 +134,13 @@ int main(int argc, char **argv)
 	int posWL=0;
 	//----------------------------------------------
 
-	REAL * slight = NULL;
-	int nl_straylight, ns_straylight;
+	float * slight = NULL;
+	int nl_straylight, ns_straylight, nx_straylight=0,ny_straylight=0;
 	const char  * nameInputFileSpectra ;
 	char nameOutputFilePerfiles [4096];
 	const char	* nameInputFileLines;
 	const char	* nameInputFilePSF ;	
-    FitsImage * fitsImage, *fitsSlight = NULL;
+    FitsImage * fitsImage;
 	PRECISION  dat[7];
 
 	/********************* Read data input from file ******************************/
@@ -764,7 +764,10 @@ int main(int argc, char **argv)
 
 			// check if read stray light
 			if(configCrontrolFile.fix[10] && access(configCrontrolFile.StrayLightFile,F_OK)!=-1){ //  IF NOT EMPTY READ stray light file 
-				readFitsStrayLightFile(configCrontrolFile.StrayLightFile,fitsSlight,slight,&nl_straylight,&ns_straylight);
+				slight = readFitsStrayLightFile(&configCrontrolFile,&nl_straylight,&ns_straylight,&nx_straylight, &ny_straylight);
+			}
+			if(slight!=NULL){
+				printf("\n SLIGHT NO ES NULL \n");
 			}
 			// READ PIXELS FROM IMAGE 
 			PRECISION timeReadImage;
@@ -844,14 +847,16 @@ int main(int argc, char **argv)
 						initModel.az = 1;
 					// INVERSION RTE
 
-					REAL * slightPixel;
-					if(slight==NULL && fitsSlight==NULL) 
+					float * slightPixel;
+					if(slight==NULL) 
 						slightPixel = NULL;
 					else{
-						if(slight!=NULL) 
+						if(nx_straylight && ny_straylight){
+							slightPixel = slight+ (nlambda*NPARMS*indexPixel);
+						}
+						else {
 							slightPixel = slight;
-						else 
-							slightPixel = fitsSlight->spectroImagen+ (nlambda*indexPixel);
+						}
 					}
 					lm_mils(cuantic, wlines, vLambda, nlambda, fitsImage->pixels[indexPixel].spectro, nlambda, &initModel, spectra, &vChisqrf[indexPixel], slightPixel, configCrontrolFile.toplim, configCrontrolFile.NumberOfCycles,
 							configCrontrolFile.WeightForStokes, configCrontrolFile.fix, vSigma,  configCrontrolFile.noise,configCrontrolFile.InitialDiagonalElement,&configCrontrolFile.ConvolveWithPSF,&vNumIter[indexPixel],configCrontrolFile.mu,configCrontrolFile.logclambda);						

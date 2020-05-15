@@ -284,11 +284,23 @@ FitsImage *  readFitsSpectroImage (const char * fitsFileSpectra, int forParallel
 		// We want only fits image 
 		if(hdutype==IMAGE_HDU){
 			// We assume that we have only on HDU as primary 
-			if(fits_read_key(fptr, TSTRING, CTYPE1, image->ctype_1, comment, &status)) header=0;
-			if(fits_read_key(fptr, TSTRING, CTYPE2, image->ctype_2, comment, &status)) header=0;
-			if(fits_read_key(fptr, TSTRING, CTYPE3, image->ctype_3, comment, &status)) header=0;
-			if(fits_read_key(fptr, TSTRING, CTYPE4, image->ctype_4, comment, &status)) header=0;
-			printf("\n HEADER %d", header);
+			if(fits_read_key(fptr, TSTRING, CTYPE1, image->ctype_1, comment, &status)){
+				header = 0 ;
+				status = 0;
+			} 
+			if(fits_read_key(fptr, TSTRING, CTYPE2, image->ctype_2, comment, &status)){ 
+				header = 0 ;
+				status = 0;
+			}
+			if(fits_read_key(fptr, TSTRING, CTYPE3, image->ctype_3, comment, &status)){
+				header = 0 ;
+				status = 0;
+			}
+			if(fits_read_key(fptr, TSTRING, CTYPE4, image->ctype_4, comment, &status)){
+				header = 0 ;
+				status = 0;
+			}
+			
 			// ORDER MUST BE CTYPE1->'HPLN-TAN',CTYPE2->'HPLT-TAN',CTYPE3->'WAVE-GRI',CTYPE4->'STOKES'
 			// int pos_row = 0, pos_col = 1, pos_lambda = 2, pos_stokes_parameters = 3;
 			int correctOrder =0;
@@ -322,9 +334,7 @@ FitsImage *  readFitsSpectroImage (const char * fitsFileSpectra, int forParallel
 				if(strcmp(image->ctype_3,CTYPE_STOKES)==0) pos_stokes_parameters = 2;
 				if(strcmp(image->ctype_4,CTYPE_STOKES)==0) pos_stokes_parameters = 3;
 			}
-			else{
-				status =0;
-			}
+
 			// GET THE CURRENT POSITION OF EVERY PARAMETER
 			/*int pos_row = 2;
 			int pos_col = 3;
@@ -333,7 +343,7 @@ FitsImage *  readFitsSpectroImage (const char * fitsFileSpectra, int forParallel
 
 			// READ IMAGE AND STORAGE IN STRUCTURE IMAGE 
 			if (!fits_get_img_param(fptr, 4, &bitpix, &naxis, naxes, &status) ){
-				printf("\n reading image\n");
+				
 				if(bitpix != FLOAT_IMG){
 					printf("\n ERROR: the datatype of FITS spectro image must be FLOAT\n");
 					printf("\n EXITING THE PROGRAM");
@@ -349,7 +359,7 @@ FitsImage *  readFitsSpectroImage (const char * fitsFileSpectra, int forParallel
 							num_stokes = naxes[i];
 						}
 					}
-					printf("\n  STOKES %d ",pos_stokes_parameters);
+					
 					int num_lambda = 10000;
 					for(i=0;i<naxis;i++){
 						if(i!=pos_stokes_parameters){
@@ -359,7 +369,7 @@ FitsImage *  readFitsSpectroImage (const char * fitsFileSpectra, int forParallel
 							}
 						}
 					}
-					printf("\n  NLAMBDA %d ", pos_lambda);
+					
 
 					if( (pos_stokes_parameters == 0 && pos_lambda == 1) || (pos_stokes_parameters == 1 && pos_lambda == 0) ){ 
 						pos_row = 2;
@@ -386,16 +396,7 @@ FitsImage *  readFitsSpectroImage (const char * fitsFileSpectra, int forParallel
 						pos_col = 1;					
 					}
 
-
-					printf("\n POS ROW %d",pos_row);
-					printf("\n POS COL %d",pos_col);
-					printf("\n POS STOKES %d",pos_stokes_parameters);
-					printf("\n POS LAMBDA %d",pos_lambda);
 				}
-				printf("\n POS ROW %d",pos_row);
-				printf("\n POS COL %d",pos_col);
-				printf("\n POS STOKES %d",pos_stokes_parameters);
-				printf("\n POS LAMBDA %d",pos_lambda);
 
 				if(pos_row==0 && pos_col ==1 && pos_lambda == 2 && pos_stokes_parameters == 3)
 				//if(pos_row==2 && pos_col ==3 && pos_lambda == 0 && pos_stokes_parameters == 1)
@@ -927,10 +928,22 @@ FitsImage * readFitsSpectroImageRectangular (const char * fitsFileSpectra, Confi
 		if(hdutype==IMAGE_HDU){
 			// We assume that we have only on HDU as primary 
 
-			if(fits_read_key(fptr, TSTRING, CTYPE1, image->ctype_1, comment, &status)) headers=0;
-			if(fits_read_key(fptr, TSTRING, CTYPE2, image->ctype_2, comment, &status)) headers=0;
-			if(fits_read_key(fptr, TSTRING, CTYPE3, image->ctype_3, comment, &status)) headers=0;
-			if(fits_read_key(fptr, TSTRING, CTYPE4, image->ctype_4, comment, &status)) headers=0;
+			if(fits_read_key(fptr, TSTRING, CTYPE1, image->ctype_1, comment, &status)){
+				headers=0;
+				status = 0;
+			}
+			if(fits_read_key(fptr, TSTRING, CTYPE2, image->ctype_2, comment, &status)){ 
+				headers=0;
+				status = 0;
+			}
+			if(fits_read_key(fptr, TSTRING, CTYPE3, image->ctype_3, comment, &status)){
+				headers=0;
+				status = 0;
+			} 
+			if(fits_read_key(fptr, TSTRING, CTYPE4, image->ctype_4, comment, &status)){
+				headers=0;
+				status = 0;
+			}
 
 			// ORDER MUST BE CTYPE1->'HPLN-TAN',CTYPE2->'HPLT-TAN',CTYPE3->'WAVE-GRI',CTYPE4->'STOKES'
 			// int pos_row = 0, pos_col = 1, pos_lambda = 2, pos_stokes_parameters = 3;
@@ -1174,99 +1187,85 @@ FitsImage * readFitsSpectroImageRectangular (const char * fitsFileSpectra, Confi
 								}
 							}
 						}						
-					}						
-					int currentLambda = 0, currentRow = 0, currentStokeParameter=0, currentCol = 0, currentPixel;
-					for( i=0; i<sizeDim3;i++){
-						for( j=0; j<sizeDim2;j++){
-							for( k=0;k<sizeDim1;k++){
-								for( h=0;h<sizeDim0;h++){
-									PRECISION pixel = 0.0;
-									//fits_read_pix(fptr, datatype, fpixel, 1, &nulval, &pixel, &anynul, &status);
-									// I NEED TO KNOW THE CURRENT POSITION OF EACH ITERATOR 
-									switch (pos_lambda)
-									{
-										case 0:
-											currentLambda = h;
-											//currentLambda = fpixel[0]-1;
-											break;
-										case 1:
-											currentLambda = k;
-											//currentLambda = fpixel[1]-1;
-											break;
-										case 2:
-											currentLambda = j;
-											//currentLambda = fpixel[2]-1;
-											break;
-										case 3:
-											currentLambda = i;
-											//currentLambda = fpixel[3]-1;
-											break;																						
-									}
-									switch (pos_stokes_parameters)
-									{
-										case 0:
-											currentStokeParameter = h;
-											//currentStokeParameter = fpixel[0]-1;
-											break;
-										case 1:
-											currentStokeParameter = k;
-											//currentStokeParameter = fpixel[1]-1;
-											break;
-										case 2:
-											currentStokeParameter = j;
-											//currentStokeParameter = fpixel[2]-1;
-											break;
-										case 3:
-											currentStokeParameter = i;
-											//currentStokeParameter = fpixel[3]-1;
-											break;																						
-									}
-									switch (pos_row)
-									{
-										case 0:
-											currentRow = h;
-											//currentRow = fpixel[0]-1;
-											break;
-										case 1:
-											currentRow = k;
-											//currentRow = fpixel[1]-1;
-											break;
-										case 2:
-											currentRow = j;
-											//currentRow = fpixel[2]-1;
-											break;
-										case 3:
-											currentRow = i;
-											//currentRow = fpixel[3]-1;
-											break;																						
-									}
-									switch (pos_col)
-									{
-										case 0:
-											currentCol = h;
-											//currentCol = fpixel[0]-1;
-											break;
-										case 1:
-											currentCol = k;
-											//currentCol = fpixel[1]-1;;
-											break;
-										case 2:
-											currentCol = j;
-											//currentCol = fpixel[2]-1;
-											break;
-										case 3:
-											currentCol = i;
-											//currentCol = fpixel[3]-1;
-											break;																						
-									}			
-									pixel = imageTemp [(i*sizeDim2*sizeDim1*sizeDim0) + (j*sizeDim1*sizeDim0) + (k*sizeDim0) + h];
-									currentPixel = (currentCol*(fpixelEnd[pos_row]-(fpixelBegin[pos_row]-1))) + currentRow;
-									if(forParallel){
-										image->spectroImagen[(currentPixel *(image->nLambdas*image->numStokes)) + (image->nLambdas * currentStokeParameter) + currentLambda] = pixel;
-									}
-									else
-									{
-										image->pixels[currentPixel].spectro[currentLambda + (image->nLambdas * currentStokeParameter)] = pixel;  // I =0, Q = 1, U = 2, V = 3
+					}
+					else{						
+						int currentLambda = 0, currentRow = 0, currentStokeParameter=0, currentCol = 0, currentPixel;
+						for( i=0; i<sizeDim3;i++){
+							for( j=0; j<sizeDim2;j++){
+								for( k=0;k<sizeDim1;k++){
+									for( h=0;h<sizeDim0;h++){
+										PRECISION pixel = 0.0;
+										//fits_read_pix(fptr, datatype, fpixel, 1, &nulval, &pixel, &anynul, &status);
+										// I NEED TO KNOW THE CURRENT POSITION OF EACH ITERATOR 
+										switch (pos_lambda)
+										{
+											case 0:
+												currentLambda = h;
+												break;
+											case 1:
+												currentLambda = k;
+												break;
+											case 2:
+												currentLambda = j;
+												break;
+											case 3:
+												currentLambda = i;
+												break;																						
+										}
+										switch (pos_stokes_parameters)
+										{
+											case 0:
+												currentStokeParameter = h;
+												break;
+											case 1:
+												currentStokeParameter = k;
+												break;
+											case 2:
+												currentStokeParameter = j;
+												break;
+											case 3:
+												currentStokeParameter = i;
+												break;																						
+										}
+										switch (pos_row)
+										{
+											case 0:
+												currentRow = h;
+												break;
+											case 1:
+												currentRow = k;
+												break;
+											case 2:
+												currentRow = j;
+												break;
+											case 3:
+												currentRow = i;
+												break;																						
+										}
+										switch (pos_col)
+										{
+											case 0:
+												currentCol = h;
+												break;
+											case 1:
+												currentCol = k;
+												break;
+											case 2:
+												currentCol = j;
+												break;
+											case 3:
+												currentCol = i;
+												break;																						
+										}			
+										pixel = imageTemp [(i*sizeDim2*sizeDim1*sizeDim0) + (j*sizeDim1*sizeDim0) + (k*sizeDim0) + h];
+										currentPixel = (currentCol*(fpixelEnd[pos_row]-(fpixelBegin[pos_row]-1))) + currentRow;
+										if(forParallel){
+											image->spectroImagen[(currentPixel *(image->nLambdas*image->numStokes)) + (image->nLambdas * currentStokeParameter) + currentLambda] = pixel;
+										}
+										else
+										{
+											image->pixels[currentPixel].spectro[currentLambda + (image->nLambdas * currentStokeParameter)] = pixel;  // I =0, Q = 1, U = 2, V = 3
+										}
 									}
 								}
 							}
@@ -1517,7 +1516,7 @@ PRECISION * readFitsLambdaToArray (const char * fitsFileLambda,  int * indexLine
 }
 
 
-REAL * readPerStrayLightFile (const char * perFileStrayLight, int nlambda, PRECISION *  vOffsetsLambda){
+float * readPerStrayLightFile (const char * perFileStrayLight, int nlambda, PRECISION *  vOffsetsLambda){
 
 	REAL * slightPER = NULL;
 	FILE * fReadStrayLight;
@@ -1534,7 +1533,7 @@ REAL * readPerStrayLightFile (const char * perFileStrayLight, int nlambda, PRECI
 		fclose(fReadStrayLight);
 		return NULL;
 	}
-	slightPER = calloc(nlambda*NPARMS,sizeof(REAL));
+	slightPER = calloc(nlambda*NPARMS,sizeof(float));
 	float aux1, aux2,aux3,aux4,aux5,aux6;
 	int correcto = 1;
 	while ((read = getline(&line, &len, fReadStrayLight)) != -1 && contLine<nlambda && correcto) {
@@ -1554,24 +1553,28 @@ REAL * readPerStrayLightFile (const char * perFileStrayLight, int nlambda, PRECI
 		printf("\nThe observed profiles and the stray light profiles do not have the same wavelengths and/or line index\n");
 		exit(EXIT_FAILURE);
 	}
-
+	/*printf("\n");
+	for(int i=0;i<nlambda*NPARMS;i++){					
+		printf("%f\t",slightPER[i]);
+	}				
+	printf("\n");*/
 	return slightPER;
 }
 
 
-void readFitsStrayLightFile (const char * fitsFileStrayLight, FitsImage * image,REAL * vStrayLight,int * nl_straylight,int * ns_straylight){
+float * readFitsStrayLightFile (ConfigControl * configCrontrolFile,int * nl_straylight,int * ns_straylight,int * nx_straylight,int * ny_straylight){
 	
 	fitsfile *fptr;   /* FITS file pointer, defined in fitsio.h */
 	
 	int status = 0;   /* CFITSIO status value MUST be initialized to zero! */
-	PRECISION nulval = 0.; // define null value to 0 because the performance to read from fits file is better doing this. 
+	float nulval = 0.; // define null value to 0 because the performance to read from fits file is better doing this. 
 	int bitpix, naxis, anynul;
 	long naxes [4] = {1,1,1,1}; /* The maximun number of dimension that we will read is 4*/
 	int i, j, k, h;
-	
+	float * slight = NULL;
 	/*printf("\n READING IMAGE WITH LAMBDA ");
 	printf("\n**********");*/
-	if (!fits_open_file(&fptr, fitsFileStrayLight, READONLY, &status)){
+	if (!fits_open_file(&fptr, configCrontrolFile->StrayLightFile, READONLY, &status)){
 		if (!fits_get_img_param(fptr, 4, &bitpix, &naxis, naxes, &status) ){
 			if(bitpix != FLOAT_IMG){
 				printf("\n ERROR: the datatype of FITS spectro image must be FLOAT\n");
@@ -1581,11 +1584,6 @@ void readFitsStrayLightFile (const char * fitsFileStrayLight, FitsImage * image,
 			}
 
 			if(naxis==2){
-				/*if( naxes[0]!= numLambda || naxes[1]!= NPARMS){ // stray light has different size of spectra image 
-					printf("\n STRAY LIGHT FILE HAS DIFFERENT SIZE OF SPECTRA IMAGE. SIZE SPECTRA %d X %d X . STRAY LIGHT SIZE %ld X %ld ", numLambda, NPARMS , naxes[0], naxes[1]);
-					image= NULL;
-					vStrayLight = NULL;
-				}*/
 				if(naxes[0]>naxes[1]){
 					*nl_straylight = naxes[0];
 					*ns_straylight = naxes[1];
@@ -1598,52 +1596,48 @@ void readFitsStrayLightFile (const char * fitsFileStrayLight, FitsImage * image,
 				
 				// READ ALL FILE IN ONLY ONE ARRAY 
 				// WE ASSUME THAT DATA COMES IN THE FORMAT ROW x COL x LAMBDA
-				vStrayLight = calloc(naxes[0]*naxes[1], sizeof(REAL));
+				slight = calloc(naxes[0]*naxes[1], sizeof(float));
 				long fpixel [2] = {1,1};
-				fits_read_pix(fptr, TFLOAT, fpixel, naxes[0]*naxes[1], &nulval, vStrayLight, &anynul, &status);
+				fits_read_pix(fptr, TFLOAT, fpixel, naxes[0]*naxes[1], &nulval, slight, &anynul, &status);
 				if(status){
 					fits_report_error(stderr, status);
-					image= NULL;
-					vStrayLight = NULL;	
+					slight = NULL;	
 				}
-				REAL * vStrayLight_aux = calloc(naxes[0]*naxes[1], sizeof(REAL));
+				
 				int index=0;
-				/*if(*nl_straylight!=naxes[0]){
-					printf("\n");
-					for(i=0;i<*nl_straylight * (*ns_straylight);i++){					
-						printf("%f\t",vStrayLight[i]);
-					}					
-										printf("\n");
+				if(*nl_straylight!=naxes[0]){
+					float * vStrayLight_aux = calloc(naxes[0]*naxes[1], sizeof(float));
 					for(i=0;i<naxes[0];i++){
 						for(j=0;j<naxes[1];j++){
-							vStrayLight_aux[index++] = vStrayLight[i + j*(naxes[0])];
+							vStrayLight_aux[index++] = slight[i + j*(naxes[0])];
 						}
 					}
-					free(vStrayLight);
-					vStrayLight = vStrayLight_aux;
+					free(slight);
+					slight = vStrayLight_aux;
 				}
-				for(i=0;i<*nl_straylight;i++){
-					printf("\n");
-					for(j=0;j<*ns_straylight;j++){
-						printf("%f\t",vStrayLight[i + (*nl_straylight*j)]);
-					}
-				}
-				printf("\n");
-				printf("\n");
-				printf("\n");
-				for(i=0;i<*nl_straylight * (*ns_straylight);i++){					
-					printf("%f\t",vStrayLight[i]);
-				}			*/					
 				printf("\n STRAY LIGHT LEIDO: \n");
 			}
 			else if (naxis==4){
-				image =  malloc(sizeof(FitsImage));
+				FitsImage * image =  malloc(sizeof(FitsImage));
 				char comment[FLEN_CARD];   /* Standard string lengths defined in fitsio.h */
 				// We assume that we have only on HDU as primary 
-				if(fits_read_key(fptr, TSTRING, CTYPE1, image->ctype_1, comment, &status)) return ;
-				if(fits_read_key(fptr, TSTRING, CTYPE2, image->ctype_2, comment, &status)) return ;
-				if(fits_read_key(fptr, TSTRING, CTYPE3, image->ctype_3, comment, &status)) return ;
-				if(fits_read_key(fptr, TSTRING, CTYPE4, image->ctype_4, comment, &status)) return ;
+				int header = 1;
+				if(fits_read_key(fptr, TSTRING, CTYPE1, image->ctype_1, comment, &status)){
+					header = 0 ;
+					status = 0;
+				} 
+				if(fits_read_key(fptr, TSTRING, CTYPE2, image->ctype_2, comment, &status)){ 
+					header = 0 ;
+					status = 0;
+				}
+				if(fits_read_key(fptr, TSTRING, CTYPE3, image->ctype_3, comment, &status)){
+					header = 0 ;
+					status = 0;
+				}
+				if(fits_read_key(fptr, TSTRING, CTYPE4, image->ctype_4, comment, &status)){
+					header = 0 ;
+					status = 0;
+				}
 				// ORDER MUST BE CTYPE1->'HPLN-TAN',CTYPE2->'HPLT-TAN',CTYPE3->'WAVE-GRI',CTYPE4->'STOKES'
 				// int pos_row = 0, pos_col = 1, pos_lambda = 2, pos_stokes_parameters = 3;
 				int correctOrder =0;
@@ -1652,35 +1646,78 @@ void readFitsStrayLightFile (const char * fitsFileStrayLight, FitsImage * image,
 				int pos_row;
 				int pos_col;
 				int pos_stokes_parameters;
-				// LAMBDA POSITION
-				if(strcmp(image->ctype_1,CTYPE_WAVE)==0) pos_lambda = 0;
-				if(strcmp(image->ctype_2,CTYPE_WAVE)==0) pos_lambda = 1;
-				if(strcmp(image->ctype_3,CTYPE_WAVE)==0) pos_lambda = 2;
-				if(strcmp(image->ctype_4,CTYPE_WAVE)==0) pos_lambda = 3;
+				if(header){
+					// LAMBDA POSITION
+					if(strcmp(image->ctype_1,CTYPE_WAVE)==0) pos_lambda = 0;
+					if(strcmp(image->ctype_2,CTYPE_WAVE)==0) pos_lambda = 1;
+					if(strcmp(image->ctype_3,CTYPE_WAVE)==0) pos_lambda = 2;
+					if(strcmp(image->ctype_4,CTYPE_WAVE)==0) pos_lambda = 3;
 
-				// HPLN TAN 
-				if(strcmp(image->ctype_1,CTYPE_HPLN_TAN)==0) pos_row = 0;
-				if(strcmp(image->ctype_2,CTYPE_HPLN_TAN)==0) pos_row = 1;
-				if(strcmp(image->ctype_3,CTYPE_HPLN_TAN)==0) pos_row = 2;
-				if(strcmp(image->ctype_4,CTYPE_HPLN_TAN)==0) pos_row = 3;
+					// HPLN TAN 
+					if(strcmp(image->ctype_1,CTYPE_HPLN_TAN)==0) pos_row = 0;
+					if(strcmp(image->ctype_2,CTYPE_HPLN_TAN)==0) pos_row = 1;
+					if(strcmp(image->ctype_3,CTYPE_HPLN_TAN)==0) pos_row = 2;
+					if(strcmp(image->ctype_4,CTYPE_HPLN_TAN)==0) pos_row = 3;
 
-				// HPLT TAN 
-				if(strcmp(image->ctype_1,CTYPE_HPLT_TAN)==0) pos_col = 0;
-				if(strcmp(image->ctype_2,CTYPE_HPLT_TAN)==0) pos_col = 1;
-				if(strcmp(image->ctype_3,CTYPE_HPLT_TAN)==0) pos_col = 2;
-				if(strcmp(image->ctype_4,CTYPE_HPLT_TAN)==0) pos_col = 3;			
+					// HPLT TAN 
+					if(strcmp(image->ctype_1,CTYPE_HPLT_TAN)==0) pos_col = 0;
+					if(strcmp(image->ctype_2,CTYPE_HPLT_TAN)==0) pos_col = 1;
+					if(strcmp(image->ctype_3,CTYPE_HPLT_TAN)==0) pos_col = 2;
+					if(strcmp(image->ctype_4,CTYPE_HPLT_TAN)==0) pos_col = 3;			
 
-				// Stokes paramter position , 
-				if(strcmp(image->ctype_1,CTYPE_STOKES)==0) pos_stokes_parameters = 0;
-				if(strcmp(image->ctype_2,CTYPE_STOKES)==0) pos_stokes_parameters = 1;
-				if(strcmp(image->ctype_3,CTYPE_STOKES)==0) pos_stokes_parameters = 2;
-				if(strcmp(image->ctype_4,CTYPE_STOKES)==0) pos_stokes_parameters = 3;
-
-				
-				
+					// Stokes paramter position , 
+					if(strcmp(image->ctype_1,CTYPE_STOKES)==0) pos_stokes_parameters = 0;
+					if(strcmp(image->ctype_2,CTYPE_STOKES)==0) pos_stokes_parameters = 1;
+					if(strcmp(image->ctype_3,CTYPE_STOKES)==0) pos_stokes_parameters = 2;
+					if(strcmp(image->ctype_4,CTYPE_STOKES)==0) pos_stokes_parameters = 3;
+				}
+				else{
+					int num_stokes = 10000;
+					for(i=0;i<naxis;i++){
+						if(naxes[i]<num_stokes){
+							pos_stokes_parameters =i;
+							num_stokes = naxes[i];
+						}
+					}
+					int num_lambda = 10000;
+					for(i=0;i<naxis;i++){
+						if(i!=pos_stokes_parameters){
+							if(naxes[i]<num_lambda){
+								pos_lambda =i;
+								num_lambda = naxes[i];
+							}
+						}
+					}
+					if( (pos_stokes_parameters == 0 && pos_lambda == 1) || (pos_stokes_parameters == 1 && pos_lambda == 0) ){ 
+						pos_row = 2;
+						pos_col = 3;
+					}
+					if( (pos_stokes_parameters == 0 && pos_lambda == 2) || (pos_stokes_parameters == 2 && pos_lambda == 0) ){ 
+						pos_row = 1;
+						pos_col = 3;
+					} 
+					if( (pos_stokes_parameters == 0 && pos_lambda == 3) || (pos_stokes_parameters == 3 && pos_lambda == 0) ){ 
+						pos_row = 1;
+						pos_col = 2;					
+					}
+					if( (pos_stokes_parameters == 1 && pos_lambda == 2) || (pos_stokes_parameters == 2 && pos_lambda == 1) ){ 
+						pos_row = 0;
+						pos_col = 3;					
+					}
+					if( (pos_stokes_parameters == 1 && pos_lambda == 3) || (pos_stokes_parameters == 3 && pos_lambda == 1) ){ 
+						pos_row = 0;
+						pos_col = 2;					
+					}
+					if( (pos_stokes_parameters == 2 && pos_lambda == 3) || (pos_stokes_parameters == 3 && pos_lambda == 2) ){ 
+						pos_row = 0;
+						pos_col = 1;					
+					}					
+				}
 				if(pos_row==0 && pos_col ==1 && pos_lambda == 2 && pos_stokes_parameters == 3)
 				//if(pos_row==2 && pos_col ==3 && pos_lambda == 0 && pos_stokes_parameters == 1)
-					correctOrder = 1;	
+					correctOrder = 1;
+
+				float * imageTemp;
 				
 				image->rows=naxes[pos_row];
 				image->cols=naxes[pos_col];
@@ -1690,34 +1727,41 @@ void readFitsStrayLightFile (const char * fitsFileStrayLight, FitsImage * image,
 					printf("\n************** PLEASE REVIEW THE ORDER OF HEADER NAXIS. DIMENSION OF STOKES MUST HAVE AS VALUE: 4 . STRAY LIGHT FILE \n");
 					exit(EXIT_FAILURE);
 				}
-				image->numPixels = naxes[pos_col] * naxes[pos_row]; // we will read the image by columns 
+				image->numPixels = image->cols * image->rows; // we will read the image by columns 
 				image->pos_lambda = pos_lambda;
 				image->pos_col = pos_col;
 				image->pos_row = pos_row;
 				image->pos_stokes_parameters = pos_stokes_parameters;
-				int numPixelsFitsFile = naxes[pos_row]*naxes[pos_col]*naxes[pos_lambda]*naxes[pos_stokes_parameters];
-				float * imageTemp = calloc(numPixelsFitsFile, sizeof(float));
+				int numPixelsFitsFile = image->rows*image->cols*image->nLambdas*image->numStokes;
+				imageTemp = calloc(numPixelsFitsFile, sizeof(float));
 				if (!imageTemp)  {
 					printf("ERROR ALLOCATION MEMORY FOR TEMP IMAGE");
 					image= NULL;
-					vStrayLight = NULL;
+					slight = NULL;
           		}
 				long fpixel [4] = {1,1,1,1}; 
 				fits_read_pix(fptr, TFLOAT, fpixel, numPixelsFitsFile, &nulval, imageTemp, &anynul, &status);
 				if(status){
 					fits_report_error(stderr, status);
                		image= NULL;
-					vStrayLight = NULL;	
+					slight = NULL;	
 				}
-				image->spectroImagen = calloc(image->numPixels*image->nLambdas*image->numStokes, sizeof(float));
+				//image->spectroImagen = calloc(image->numPixels*image->nLambdas*image->numStokes, sizeof(float));
+				slight = calloc(image->numPixels*image->nLambdas*image->numStokes, sizeof(float));
 				
+				*nx_straylight = image->rows;
+				*ny_straylight = image->cols;
+				*ns_straylight = image->numStokes;
+				*nl_straylight = image->nLambdas;
+
 				if(correctOrder){
 					// i = cols, j = rows, k = stokes, h = lambda
 					for( i=0; i<naxes[3];i++){
 						for( j=0; j<naxes[2];j++){
 							for( k=0;k<naxes[1];k++){
 								for( h=0;h<naxes[0];h++){
-									image->spectroImagen[ (((i*naxes[2]) + j)*(image->nLambdas*image->numStokes)) + (image->nLambdas * k) + h] = imageTemp [(i*naxes[2]*naxes[1]*naxes[0]) + (j*naxes[1]*naxes[0]) + (k*naxes[0]) + h];  // I =0, Q = 1, U = 2, V = 3
+									//image->spectroImagen[ (((i*naxes[2]) + j)*(image->nLambdas*image->numStokes)) + (image->nLambdas * k) + h] = imageTemp [(i*naxes[2]*naxes[1]*naxes[0]) + (j*naxes[1]*naxes[0]) + (k*naxes[0]) + h];  // I =0, Q = 1, U = 2, V = 3
+									slight[ (((i*naxes[2]) + j)*(image->nLambdas*image->numStokes)) + (image->nLambdas * k) + h] = imageTemp [(i*naxes[2]*naxes[1]*naxes[0]) + (j*naxes[1]*naxes[0]) + (k*naxes[0]) + h];  // I =0, Q = 1, U = 2, V = 3
 								}
 							}
 						}
@@ -1729,6 +1773,347 @@ void readFitsStrayLightFile (const char * fitsFileStrayLight, FitsImage * image,
 						for( j=0; j<naxes[2];j++){
 							for( k=0;k<naxes[1];k++){
 								for( h=0;h<naxes[0];h++){
+									float pixel = 0.0;
+									//fits_read_pix(fptr, datatype, fpixel, 1, &nulval, &pixel, &anynul, &status);
+									// I NEED TO KNOW THE CURRENT POSITION OF EACH ITERATOR 
+									switch (pos_lambda)
+									{
+										case 0:
+											currentLambda = h;
+											break;
+										case 1:
+											currentLambda = k;
+											break;
+										case 2:
+											currentLambda = j;
+											break;
+										case 3:
+											currentLambda = i;
+											break;																						
+									}
+									switch (pos_stokes_parameters)
+									{
+										case 0:
+											currentStokeParameter = h;
+											break;
+										case 1:
+											currentStokeParameter = k;
+											break;
+										case 2:
+											currentStokeParameter = j;
+											break;
+										case 3:
+											currentStokeParameter = i;
+											break;																						
+									}
+									switch (pos_row)
+									{
+										case 0:
+											currentRow = h;
+											break;
+										case 1:
+											currentRow = k;
+											break;
+										case 2:
+											currentRow = j;
+											break;
+										case 3:
+											currentRow = i;
+											break;																						
+									}
+									switch (pos_col)
+									{
+										case 0:
+											currentCol = h;
+											break;
+										case 1:
+											currentCol = k;
+											break;
+										case 2:
+											currentCol = j;
+											break;
+										case 3:
+											currentCol = i;
+											break;																						
+									}			
+									pixel = imageTemp [(i*naxes[2]*naxes[1]*naxes[0]) + (j*naxes[1]*naxes[0]) + (k*naxes[0]) + h];
+									currentPixel = (currentCol*naxes[pos_row]) + currentRow;
+									slight[(currentPixel *(image->nLambdas*image->numStokes)) + (image->nLambdas * currentStokeParameter) + currentLambda] = pixel;
+								}
+							}
+						}
+					}
+				}
+
+				free(imageTemp);
+				if (status){
+					fits_close_file(fptr, &status);
+					fits_report_error(stderr, status);
+					image= NULL;
+					slight = NULL;
+				}	
+			}
+			else {
+				printf("\n NAXIS FROM STRAY LIGHT FILE IS NOT VALID %d ** \n", naxis);
+				slight = NULL;
+			}
+			// CLOSE FILE FITS LAMBDAS
+			fits_close_file(fptr, &status);
+			if (status){
+				fits_report_error(stderr, status);
+				slight = NULL;
+			}
+		}
+		else {
+			printf("\n WE CAN NOT OPEN FILE OF STRAY LIGHT ** \n");
+			if (status) fits_report_error(stderr, status); /* print any error message */
+			slight = NULL;
+		}
+	}
+	else {
+		printf("\n WE CAN NOT READ PARAMETERS FROM THE FILE  %s \n", configCrontrolFile->StrayLightFile);
+		if (status) fits_report_error(stderr, status); /* print any error message */
+		slight = NULL;
+	}
+	printf("\n STRAY LIGHT FILE READ");
+	printf("\n**********");
+
+	return slight;
+	
+}
+
+
+float * readFitsStrayLightFileSubSet (ConfigControl * configCrontrolFile,int * nl_straylight,int * ns_straylight,int * nx_straylight,int * ny_straylight){
+	
+	fitsfile *fptr;   /* FITS file pointer, defined in fitsio.h */
+	
+	int status = 0;   /* CFITSIO status value MUST be initialized to zero! */
+	float nulval = 0.; // define null value to 0 because the performance to read from fits file is better doing this. 
+	int bitpix, naxis, anynul;
+	long naxes [4] = {1,1,1,1}; /* The maximun number of dimension that we will read is 4*/
+	int i, j, k, h;
+	float * slight = NULL;
+	/*printf("\n READING IMAGE WITH LAMBDA ");
+	printf("\n**********");*/
+	if (!fits_open_file(&fptr, configCrontrolFile->StrayLightFile, READONLY, &status)){
+		if (!fits_get_img_param(fptr, 4, &bitpix, &naxis, naxes, &status) ){
+			if(bitpix != FLOAT_IMG){
+				printf("\n ERROR: the datatype of FITS spectro image must be FLOAT\n");
+				printf("\n EXITING THE PROGRAM");
+				fits_close_file(fptr, &status);
+				exit(EXIT_FAILURE);
+			}
+
+			if(naxis==2){
+				if(naxes[0]>naxes[1]){
+					*nl_straylight = naxes[0];
+					*ns_straylight = naxes[1];
+				}
+				else
+				{
+					*nl_straylight = naxes[1];
+					*ns_straylight = naxes[0];
+				}
+				
+				// READ ALL FILE IN ONLY ONE ARRAY 
+				// WE ASSUME THAT DATA COMES IN THE FORMAT ROW x COL x LAMBDA
+				slight = calloc(naxes[0]*naxes[1], sizeof(float));
+				long fpixel [2] = {1,1};
+				fits_read_pix(fptr, TFLOAT, fpixel, naxes[0]*naxes[1], &nulval, slight, &anynul, &status);
+				if(status){
+					fits_report_error(stderr, status);
+					slight = NULL;	
+				}
+				
+				int index=0;
+				if(*nl_straylight!=naxes[0]){
+					float * vStrayLight_aux = calloc(naxes[0]*naxes[1], sizeof(float));
+					for(i=0;i<naxes[0];i++){
+						for(j=0;j<naxes[1];j++){
+							vStrayLight_aux[index++] = slight[i + j*(naxes[0])];
+						}
+					}
+					free(slight);
+					slight = vStrayLight_aux;
+				}
+				printf("\n STRAY LIGHT LEIDO: \n");
+			}
+			else if (naxis==4){
+				FitsImage * image =  malloc(sizeof(FitsImage));
+				char comment[FLEN_CARD];   /* Standard string lengths defined in fitsio.h */
+				// We assume that we have only on HDU as primary 
+				int header = 1;
+				if(fits_read_key(fptr, TSTRING, CTYPE1, image->ctype_1, comment, &status)){
+					header = 0 ;
+					status = 0;
+				} 
+				if(fits_read_key(fptr, TSTRING, CTYPE2, image->ctype_2, comment, &status)){ 
+					header = 0 ;
+					status = 0;
+				}
+				if(fits_read_key(fptr, TSTRING, CTYPE3, image->ctype_3, comment, &status)){
+					header = 0 ;
+					status = 0;
+				}
+				if(fits_read_key(fptr, TSTRING, CTYPE4, image->ctype_4, comment, &status)){
+					header = 0 ;
+					status = 0;
+				}
+				// ORDER MUST BE CTYPE1->'HPLN-TAN',CTYPE2->'HPLT-TAN',CTYPE3->'WAVE-GRI',CTYPE4->'STOKES'
+				// int pos_row = 0, pos_col = 1, pos_lambda = 2, pos_stokes_parameters = 3;
+				int correctOrder =0;
+				// GET THE CURRENT POSITION OF EVERY PARAMETER
+				int pos_lambda; 
+				int pos_row;
+				int pos_col;
+				int pos_stokes_parameters;
+				if(header){
+					// LAMBDA POSITION
+					if(strcmp(image->ctype_1,CTYPE_WAVE)==0) pos_lambda = 0;
+					if(strcmp(image->ctype_2,CTYPE_WAVE)==0) pos_lambda = 1;
+					if(strcmp(image->ctype_3,CTYPE_WAVE)==0) pos_lambda = 2;
+					if(strcmp(image->ctype_4,CTYPE_WAVE)==0) pos_lambda = 3;
+
+					// HPLN TAN 
+					if(strcmp(image->ctype_1,CTYPE_HPLN_TAN)==0) pos_row = 0;
+					if(strcmp(image->ctype_2,CTYPE_HPLN_TAN)==0) pos_row = 1;
+					if(strcmp(image->ctype_3,CTYPE_HPLN_TAN)==0) pos_row = 2;
+					if(strcmp(image->ctype_4,CTYPE_HPLN_TAN)==0) pos_row = 3;
+
+					// HPLT TAN 
+					if(strcmp(image->ctype_1,CTYPE_HPLT_TAN)==0) pos_col = 0;
+					if(strcmp(image->ctype_2,CTYPE_HPLT_TAN)==0) pos_col = 1;
+					if(strcmp(image->ctype_3,CTYPE_HPLT_TAN)==0) pos_col = 2;
+					if(strcmp(image->ctype_4,CTYPE_HPLT_TAN)==0) pos_col = 3;			
+
+					// Stokes paramter position , 
+					if(strcmp(image->ctype_1,CTYPE_STOKES)==0) pos_stokes_parameters = 0;
+					if(strcmp(image->ctype_2,CTYPE_STOKES)==0) pos_stokes_parameters = 1;
+					if(strcmp(image->ctype_3,CTYPE_STOKES)==0) pos_stokes_parameters = 2;
+					if(strcmp(image->ctype_4,CTYPE_STOKES)==0) pos_stokes_parameters = 3;
+				}
+				else{
+					int num_stokes = 10000;
+					for(i=0;i<naxis;i++){
+						if(naxes[i]<num_stokes){
+							pos_stokes_parameters =i;
+							num_stokes = naxes[i];
+						}
+					}
+					int num_lambda = 10000;
+					for(i=0;i<naxis;i++){
+						if(i!=pos_stokes_parameters){
+							if(naxes[i]<num_lambda){
+								pos_lambda =i;
+								num_lambda = naxes[i];
+							}
+						}
+					}
+					if( (pos_stokes_parameters == 0 && pos_lambda == 1) || (pos_stokes_parameters == 1 && pos_lambda == 0) ){ 
+						pos_row = 2;
+						pos_col = 3;
+					}
+					if( (pos_stokes_parameters == 0 && pos_lambda == 2) || (pos_stokes_parameters == 2 && pos_lambda == 0) ){ 
+						pos_row = 1;
+						pos_col = 3;
+					} 
+					if( (pos_stokes_parameters == 0 && pos_lambda == 3) || (pos_stokes_parameters == 3 && pos_lambda == 0) ){ 
+						pos_row = 1;
+						pos_col = 2;					
+					}
+					if( (pos_stokes_parameters == 1 && pos_lambda == 2) || (pos_stokes_parameters == 2 && pos_lambda == 1) ){ 
+						pos_row = 0;
+						pos_col = 3;					
+					}
+					if( (pos_stokes_parameters == 1 && pos_lambda == 3) || (pos_stokes_parameters == 3 && pos_lambda == 1) ){ 
+						pos_row = 0;
+						pos_col = 2;					
+					}
+					if( (pos_stokes_parameters == 2 && pos_lambda == 3) || (pos_stokes_parameters == 3 && pos_lambda == 2) ){ 
+						pos_row = 0;
+						pos_col = 1;					
+					}					
+				}
+				if(pos_row==0 && pos_col ==1 && pos_lambda == 2 && pos_stokes_parameters == 3)
+				//if(pos_row==2 && pos_col ==3 && pos_lambda == 0 && pos_stokes_parameters == 1)
+					correctOrder = 1;
+
+				float * imageTemp;
+				
+				if( configCrontrolFile->subx2 > naxes[pos_row] || configCrontrolFile->subx1>configCrontrolFile->subx2 || configCrontrolFile->suby2 > naxes[pos_col] || configCrontrolFile->suby1 > configCrontrolFile->suby2){
+					printf("\n ERROR IN THE DIMENSIONS, PLEASE CHECK GIVEN VALUES \n ");
+					exit(EXIT_FAILURE);
+				}
+				
+	
+				
+				image->rows=(configCrontrolFile->subx2-configCrontrolFile->subx1)+1;
+				image->cols= (configCrontrolFile->suby2-configCrontrolFile->suby1)+1;
+				image->nLambdas=naxes[pos_lambda];
+				image->numStokes=naxes[pos_stokes_parameters];
+				if(image->numStokes!=4){
+					printf("\n************** PLEASE REVIEW THE ORDER OF HEADER NAXIS. DIMENSION OF STOKES MUST HAVE AS VALUE: 4 . STRAY LIGHT FILE \n");
+					exit(EXIT_FAILURE);
+				}
+				image->numPixels = image->cols * image->rows; // we will read the image by columns 
+				image->pos_lambda = pos_lambda;
+				image->pos_col = pos_col;
+				image->pos_row = pos_row;
+				image->pos_stokes_parameters = pos_stokes_parameters;
+				int numPixelsFitsFile = image->rows*image->cols*image->nLambdas*image->numStokes;
+				imageTemp = calloc(numPixelsFitsFile, sizeof(float));
+				if (!imageTemp)  {
+					printf("ERROR ALLOCATION MEMORY FOR TEMP IMAGE");
+					image= NULL;
+					slight = NULL;
+          		}
+				long fpixelBegin [4] = {1,1,1,1}; 
+				long fpixelEnd [4] = {1,1,1,1}; 
+				long inc [4] = {1,1,1,1};
+				fpixelBegin[pos_row] = configCrontrolFile->subx1;
+				fpixelEnd[pos_row] = configCrontrolFile->subx2;
+				fpixelBegin[pos_col] = configCrontrolFile->suby1;
+				fpixelEnd[pos_col] = configCrontrolFile->suby2;
+
+				fpixelEnd[pos_lambda] = naxes[pos_lambda];
+				fpixelEnd[pos_stokes_parameters] = naxes[pos_stokes_parameters];
+
+				fits_read_subset(fptr, TFLOAT, fpixelBegin, fpixelEnd, inc, &nulval, imageTemp, &anynul, &status);
+				if(status){
+					fits_report_error(stderr, status);
+               		image= NULL;
+					slight = NULL;	
+				}
+				//image->spectroImagen = calloc(image->numPixels*image->nLambdas*image->numStokes, sizeof(float));
+				slight = calloc(image->numPixels*image->nLambdas*image->numStokes, sizeof(float));
+				
+				*nx_straylight = image->rows;
+				*ny_straylight = image->cols;
+				*ns_straylight = image->numStokes;
+				*nl_straylight = image->nLambdas;
+				int sizeDim0 = (fpixelEnd[0]-(fpixelBegin[0]-1));
+				int sizeDim1 = (fpixelEnd[1]-(fpixelBegin[1]-1));
+				int sizeDim2 = (fpixelEnd[2]-(fpixelBegin[2]-1));
+				int sizeDim3 = (fpixelEnd[3]-(fpixelBegin[3]-1));
+
+				if(correctOrder){
+					// i = cols, j = rows, k = stokes, h = lambda
+					for( i=0; i<sizeDim3;i++){
+						for( j=0; j<sizeDim2;j++){
+							for( k=0;k<sizeDim1;k++){
+								for( h=0;h<sizeDim0;h++){
+									slight[ (((i*sizeDim2) + j)*(image->nLambdas*image->numStokes)) + (image->nLambdas * k) + h] = imageTemp [(i*sizeDim2*sizeDim1*sizeDim1) + (j*sizeDim1*sizeDim0) + (k*sizeDim0) + h];  // I =0, Q = 1, U = 2, V = 3
+								}
+							}
+						}
+					}
+				}
+				else{
+					int currentLambda = 0, currentRow = 0, currentStokeParameter=0, currentCol = 0, currentPixel;
+					for( i=0; i<sizeDim3;i++){
+						for( j=0; j<sizeDim2;j++){
+							for( k=0;k<sizeDim1;k++){
+								for( h=0;h<sizeDim0;h++){
 									PRECISION pixel = 0.0;
 									//fits_read_pix(fptr, datatype, fpixel, 1, &nulval, &pixel, &anynul, &status);
 									// I NEED TO KNOW THE CURRENT POSITION OF EACH ITERATOR 
@@ -1736,81 +2121,65 @@ void readFitsStrayLightFile (const char * fitsFileStrayLight, FitsImage * image,
 									{
 										case 0:
 											currentLambda = h;
-											//currentLambda = fpixel[0]-1;
 											break;
 										case 1:
 											currentLambda = k;
-											//currentLambda = fpixel[1]-1;
 											break;
 										case 2:
 											currentLambda = j;
-											//currentLambda = fpixel[2]-1;
 											break;
 										case 3:
 											currentLambda = i;
-											//currentLambda = fpixel[3]-1;
 											break;																						
 									}
 									switch (pos_stokes_parameters)
 									{
 										case 0:
 											currentStokeParameter = h;
-											//currentStokeParameter = fpixel[0]-1;
 											break;
 										case 1:
 											currentStokeParameter = k;
-											//currentStokeParameter = fpixel[1]-1;
 											break;
 										case 2:
 											currentStokeParameter = j;
-											//currentStokeParameter = fpixel[2]-1;
 											break;
 										case 3:
 											currentStokeParameter = i;
-											//currentStokeParameter = fpixel[3]-1;
 											break;																						
 									}
 									switch (pos_row)
 									{
 										case 0:
 											currentRow = h;
-											//currentRow = fpixel[0]-1;
 											break;
 										case 1:
 											currentRow = k;
-											//currentRow = fpixel[1]-1;
 											break;
 										case 2:
 											currentRow = j;
-											//currentRow = fpixel[2]-1;
 											break;
 										case 3:
 											currentRow = i;
-											//currentRow = fpixel[3]-1;
 											break;																						
 									}
 									switch (pos_col)
 									{
 										case 0:
 											currentCol = h;
-											//currentCol = fpixel[0]-1;
 											break;
 										case 1:
 											currentCol = k;
-											//currentCol = fpixel[1]-1;;
 											break;
 										case 2:
 											currentCol = j;
-											//currentCol = fpixel[2]-1;
 											break;
 										case 3:
 											currentCol = i;
-											//currentCol = fpixel[3]-1;
 											break;																						
 									}			
-									pixel = imageTemp [(i*naxes[2]*naxes[1]*naxes[0]) + (j*naxes[1]*naxes[0]) + (k*naxes[0]) + h];
-									currentPixel = (currentCol*naxes[pos_row]) + currentRow;
-									image->spectroImagen[(currentPixel *(image->nLambdas*image->numStokes)) + (image->nLambdas * currentStokeParameter) + currentLambda] = pixel;										
+									pixel = imageTemp [(i*sizeDim2*sizeDim1*sizeDim0) + (j*sizeDim1*sizeDim0) + (k*sizeDim0) + h];
+									currentPixel = (currentCol*(fpixelEnd[pos_row]-(fpixelBegin[pos_row]-1))) + currentRow;
+									slight[(currentPixel *(image->nLambdas*image->numStokes)) + (image->nLambdas * currentStokeParameter) + currentLambda] = pixel;
 								}
 							}
 						}
@@ -1822,38 +2191,35 @@ void readFitsStrayLightFile (const char * fitsFileStrayLight, FitsImage * image,
 					fits_close_file(fptr, &status);
 					fits_report_error(stderr, status);
 					image= NULL;
-					vStrayLight = NULL;
+					slight = NULL;
 				}	
 			}
 			else {
 				printf("\n NAXIS FROM STRAY LIGHT FILE IS NOT VALID %d ** \n", naxis);
-				image= NULL;
-				vStrayLight = NULL;
+				slight = NULL;
 			}
 			// CLOSE FILE FITS LAMBDAS
 			fits_close_file(fptr, &status);
 			if (status){
 				fits_report_error(stderr, status);
-				image= NULL;
-				vStrayLight = NULL;
+				slight = NULL;
 			}
 		}
 		else {
 			printf("\n WE CAN NOT OPEN FILE OF STRAY LIGHT ** \n");
 			if (status) fits_report_error(stderr, status); /* print any error message */
-			image= NULL;
-			vStrayLight = NULL;
+			slight = NULL;
 		}
 	}
 	else {
-		printf("\n WE CAN NOT READ PARAMETERS FROM THE FILE  %s \n",fitsFileStrayLight);
+		printf("\n WE CAN NOT READ PARAMETERS FROM THE FILE  %s \n", configCrontrolFile->StrayLightFile);
 		if (status) fits_report_error(stderr, status); /* print any error message */
-		image= NULL;
-		vStrayLight = NULL;
+		slight = NULL;
 	}
 	printf("\n STRAY LIGHT FILE READ");
 	printf("\n**********");
 
+	return slight;
 	
 }
 

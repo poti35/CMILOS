@@ -59,7 +59,7 @@ PRECISION * readFitsLambdaToArray (const char * fitsFileLambda,  int * indexLine
  * @param nlambda --> struct of image 
  * Return 1 If the image has been read corectly if not return 0 
  */
-REAL * readPerStrayLightFile (const char * perFileStrayLight, int nlambda, PRECISION *  vOffsetsLambda);
+float * readPerStrayLightFile (const char * perFileStrayLight, int nlambda, PRECISION *  vOffsetsLambda);
 
 
 /**
@@ -70,9 +70,9 @@ REAL * readPerStrayLightFile (const char * perFileStrayLight, int nlambda, PRECI
  * @param fitsImage --> struct of image 
  * Return 1 If the image has been read corectly if not return 0 
  */
-void readFitsStrayLightFile (const char * fitsFileStrayLight, FitsImage * image,REAL * vStrayLight,int * nl_straylight,int * ns_straylight);
+float * readFitsStrayLightFile (ConfigControl * configCrontrolFile,int * nl_straylight,int * ns_straylight,int * nx_straylight,int * ny_straylight);
 
-
+float * readFitsStrayLightFileSubSet (ConfigControl * configCrontrolFile,int * nl_straylight,int * ns_straylight,int * nx_straylight,int * ny_straylight);
 /**
  * This function read from a fits file a mask matrix with the same size of spectral image. 
  * If size is different to the spectral imgen return a null value showing this issue, in normal case return 

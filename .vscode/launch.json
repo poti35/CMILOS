@@ -28,7 +28,7 @@
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/milos",
-      "args": ["${workspaceFolder}/run/cmilos15.mtrol"],
+      "args": ["${workspaceFolder}/run/cmilos_2.mtrol"],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],
