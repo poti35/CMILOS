@@ -1617,7 +1617,7 @@ void readFitsStrayLightFile (const char * fitsFileStrayLight, FitsImage * image,
 				for(i=0;i<*nl_straylight;i++){
 					printf("\n");
 					for(j=0;j<*ns_straylight;j++){
-						printf("%f\t",vStrayLight[i + (*ns_straylight*j)]);
+						printf("%f\t",vStrayLight[i + (*nl_straylight*j)]);
 					}
 				}
 				printf("\n");
