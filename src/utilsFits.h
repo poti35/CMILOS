@@ -86,6 +86,9 @@ void readFitsStrayLightFile (const char * fitsFileStrayLight, FitsImage * image,
  */
 int * readFitsMaskFile (const char * fitsMask, int * numRows, int * numCols);
 
+
+int * readFitsMaskFileSubSet (const char * fitsMask, int * numRows, int * numCols,  ConfigControl * configCrontrolFile);
+
 /**
  * Clean the memory reserved for the image
  * @param image --> Image to clean memory . 

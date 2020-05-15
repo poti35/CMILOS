@@ -1873,6 +1873,81 @@ int * readFitsMaskFile (const char * fitsMask, int * numRows, int * numCols){
 	return vMask;
 }
 
+/**
+ * 
+ * 
+ * 
+ * 
+ * 
+ * */
+int * readFitsMaskFileSubSet (const char * fitsMask, int * numRows, int * numCols,  ConfigControl * configCrontrolFile){
+	
+	fitsfile *fptr;   /* FITS file pointer, defined in fitsio.h */
+	int status = 0;   /* CFITSIO status value MUST be initialized to zero! */
+	int nulval = 0; // define null value to 0 because the performance to read from fits file is better doing this. 
+	int bitpix, naxis, anynul;
+	long naxes [2] = {1,1}; /* The maximun number of dimension that we will read is 4*/
+	
+	int * vMask = NULL;
+	/*printf("\n READING IMAGE WITH LAMBDA ");
+	printf("\n**********");*/
+	if (!fits_open_file(&fptr, fitsMask, READONLY, &status)){
+		if (!fits_get_img_param(fptr, 2, &bitpix, &naxis, naxes, &status) ){
+
+			if(naxis==2){
+
+				if( configCrontrolFile->subx2 > naxes[0] || configCrontrolFile->subx1>configCrontrolFile->subx2 || configCrontrolFile->suby2 > naxes[1] || configCrontrolFile->suby1 > configCrontrolFile->suby2){
+					printf("\n ERROR IN THE DIMENSIONS FOR SUBSET WHEN READ MASK FILE \n ");
+					exit(EXIT_FAILURE);
+				}
+				// READ ALL FILE IN ONLY ONE ARRAY 
+				// WE ASSUME THAT DATA COMES IN THE FORMAT ROW x COL x LAMBDA
+				*numRows = (configCrontrolFile->subx2-configCrontrolFile->subx1)+1;
+				*numCols = (configCrontrolFile->suby2-configCrontrolFile->suby1)+1;
+
+				int dimMask = (*numRows)*(*numCols);
+				vMask = calloc(dimMask, sizeof(int));
+				long fpixelBegin [4] = {1,1}; 
+				long fpixelEnd [4] = {1,1}; 
+				long inc [4] = {1,1};
+				fpixelBegin[0] = configCrontrolFile->subx1;
+				fpixelEnd[0] = configCrontrolFile->subx2;
+				fpixelBegin[1] = configCrontrolFile->suby1;
+				fpixelEnd[1] = configCrontrolFile->suby2;
+				fits_read_subset(fptr, TINT, fpixelBegin, fpixelEnd, inc, &nulval, vMask, &anynul, &status);
+				
+				if(status){
+					fits_report_error(stderr, status);
+					return NULL;	
+				}
+				
+			}
+			else{
+				printf("\n Naxis for MASK file must be 2, current naxis %d ** \n", naxis);
+				return 0;
+			}
+			// CLOSE FILE FITS LAMBDAS
+			fits_close_file(fptr, &status);
+			if (status){
+				fits_report_error(stderr, status);
+				return  NULL;
+			}
+		}
+		else {
+			printf("\n WE CAN NOT OPEN FILE OF STRAY LIGHT ** \n");
+			if (status) fits_report_error(stderr, status); /* print any error message */
+			return NULL;
+		}
+	}
+	else {
+		printf("\n WE CAN NOT READ PARAMETERS FROM THE FILE  %s \n",fitsMask);
+		if (status) fits_report_error(stderr, status); /* print any error message */
+		return NULL;
+	}
+
+
+	return vMask;
+}
 
 void freeFitsImage(FitsImage * image){
 	int i;
