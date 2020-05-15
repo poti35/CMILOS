@@ -1611,9 +1611,9 @@ void readFitsStrayLightFile (const char * fitsFileStrayLight, FitsImage * image,
 						printf("%f\t",vStrayLight[i]);
 					}					
 										printf("\n");
-					for(i=0;i<naxes[1];i++){
-						for(j=0;j<naxes[0];j++){
-							vStrayLight_aux[index++] = vStrayLight[i + j*(naxes[1])];
+					for(i=0;i<naxes[0];i++){
+						for(j=0;j<naxes[1];j++){
+							vStrayLight_aux[index++] = vStrayLight[i + j*(naxes[0])];
 						}
 					}
 					free(vStrayLight);
@@ -1625,6 +1625,8 @@ void readFitsStrayLightFile (const char * fitsFileStrayLight, FitsImage * image,
 						printf("%f\t",vStrayLight[i + (*nl_straylight*j)]);
 					}
 				}
+				printf("\n");
+				printf("\n");
 				printf("\n");
 				for(i=0;i<*nl_straylight * (*ns_straylight);i++){					
 					printf("%f\t",vStrayLight[i]);
