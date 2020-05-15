@@ -662,7 +662,7 @@ int main(int argc, char **argv)
 			}
 			fclose(fReadSpectro);
 
-			if(access(configCrontrolFile.StrayLightFile,F_OK)!=-1){ //  IF NOT EMPTY READ stray light file 
+			if(configCrontrolFile.fix[10] &&  access(configCrontrolFile.StrayLightFile,F_OK)!=-1){ //  IF NOT EMPTY READ stray light file 
 				slight = readPerStrayLightFile(configCrontrolFile.StrayLightFile,nlambda,vOffsetsLambda);
 				printf("\n STRAY LIGHT READ \n");
 			}
@@ -762,11 +762,14 @@ int main(int argc, char **argv)
 		}
 		else if(strcmp(file_ext(configCrontrolFile.ObservedProfiles),FITS_FILE)==0){ // invert image from fits file 
 
+			// check if read stray light
+			if(configCrontrolFile.fix[10] && access(configCrontrolFile.StrayLightFile,F_OK)!=-1){ //  IF NOT EMPTY READ stray light file 
+				readFitsStrayLightFile(configCrontrolFile.StrayLightFile,fitsSlight,slight,&nl_straylight,&ns_straylight);
+			}
 			// READ PIXELS FROM IMAGE 
 			PRECISION timeReadImage;
 			clock_t t;
 			t = clock();
-
 			fitsImage = readFitsSpectroImage(nameInputFileSpectra,0,nlambda);
 			t = clock() - t;
 			timeReadImage = ((PRECISION)t)/CLOCKS_PER_SEC; // in seconds 
@@ -798,10 +801,7 @@ int main(int argc, char **argv)
 						imageStokesAdjust->pixels[i].spectro = calloc ((imageStokesAdjust->numStokes*imageStokesAdjust->nLambdas),sizeof(float));
 					}
 				}				
-				// check if read stray light
-				if(configCrontrolFile.fix[10] && access(configCrontrolFile.StrayLightFile,F_OK)!=-1){ //  IF NOT EMPTY READ stray light file 
-					readFitsStrayLightFile(configCrontrolFile.StrayLightFile,fitsSlight,slight,&nl_straylight,&ns_straylight);
-				}
+
 
 				//***************************************** INIT MEMORY WITH SIZE OF LAMBDA ****************************************************//
 				AllocateMemoryDerivedSynthesis(nlambda);
