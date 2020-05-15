@@ -1404,9 +1404,7 @@ int main(int argc, char **argv)
 			// SCATTER VPIXELS 
 			local_start = MPI_Wtime();
 			local_start_scatter = MPI_Wtime();
-			printf("\n pid %d sendcountsDiv2Spectro %d",myGroupRank,sendcountsDiv2Spectro[myGroupRank]);
-			printf("\n pid %d displsDiv2Spectro %d",myGroupRank,displsDiv2Spectro[myGroupRank]);
-			printf("\n*******************");
+
 			vSpectraSplit = calloc(sendcountsDiv2Spectro[myGroupRank],sizeof(float));
 			
 			if(configCrontrolFile.SaveSynthesisAdjusted)
