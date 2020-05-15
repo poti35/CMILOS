@@ -1606,6 +1606,11 @@ void readFitsStrayLightFile (const char * fitsFileStrayLight, FitsImage * image,
 				REAL * vStrayLight_aux = calloc(naxes[0]*naxes[1], sizeof(REAL));
 				int index=0;
 				if(*nl_straylight!=naxes[0]){
+					printf("\n");
+					for(i=0;i<*nl_straylight * (*ns_straylight);i++){					
+						printf("%f\t",vStrayLight[i]);
+					}					
+										printf("\n");
 					for(i=0;i<naxes[1];i++){
 						for(j=0;j<naxes[0];j++){
 							vStrayLight_aux[index++] = vStrayLight[i + j*(naxes[1])];
