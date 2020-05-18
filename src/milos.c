@@ -83,7 +83,6 @@ PRECISION * G = NULL;
 REAL * opa;
 int FGlobal, HGlobal, uuGlobal;
 
-
 REAL *d_spectra, *spectra, *spectra_mac, *spectra_slight;
 
 
@@ -156,16 +155,16 @@ int main(int argc, char **argv)
 	nameInputFilePSF = configCrontrolFile.PSFFile;
 	FWHM = configCrontrolFile.FWHM;
 
-
-
 	/***************** READ INIT MODEL ********************************/
 	if(configCrontrolFile.InitialGuessModel[0]!='\0' && !readInitialModel(&INITIAL_MODEL,configCrontrolFile.InitialGuessModel)){
 		printf("\nERROR READING GUESS MODEL 1 FILE\n");
 		exit(EXIT_FAILURE);
 	}
 	
-	/*if(configCrontrolFile.fix[10]==0) NTERMS--;
-	if(configCrontrolFile.fix[9]==0 && INITIAL_MODEL.mac==0 ) NTERMS--;*/
+	if(configCrontrolFile.fix[10]==0) NTERMS--;
+	if(INITIAL_MODEL.mac ==0 && configCrontrolFile.fix[9]==0){
+		 NTERMS--;
+	}
 
 	
 	// allocate memory for eigen values
@@ -416,7 +415,6 @@ int main(int argc, char **argv)
 		planBackwardPSF_MAC_DERIV = fftw_plan_dft_1d(numln, inMulMacPSFDeriv, outConvFiltersDeriv, FFT_BACKWARD, FFTW_MEASURE );			
 
 	}		
-
 	/****************************************************************************************************/
 	//  IF NUMBER OF CYCLES IS LES THAN 0 THEN --> WE USE CLASSICAL ESTIMATES 
 	//  IF NUMBER OF CYCLES IS 0 THEN -->  DO SYNTHESIS FROM THE INIT MODEL 
@@ -548,11 +546,8 @@ int main(int argc, char **argv)
 	
 		if(access(configCrontrolFile.StrayLightFile,F_OK)!=-1){ //  IF NOT EMPTY READ stray light file 
 			slight = readPerStrayLightFile(configCrontrolFile.StrayLightFile,nlambda,vOffsetsLambda);
-			printf("\n STRAY LIGHT READ \n");
 		}
-		else{
-			printf("\n STRAY LIGHT NOT USED \n");
-		}      
+
 		Init_Model initModel;
 		initModel.eta0 = INITIAL_MODEL.eta0;
 		initModel.B = INITIAL_MODEL.B; //200 700
@@ -664,10 +659,6 @@ int main(int argc, char **argv)
 
 			if(configCrontrolFile.fix[10] &&  access(configCrontrolFile.StrayLightFile,F_OK)!=-1){ //  IF NOT EMPTY READ stray light file 
 				slight = readPerStrayLightFile(configCrontrolFile.StrayLightFile,nlambda,vOffsetsLambda);
-				printf("\n STRAY LIGHT READ \n");
-			}
-			else{
-				printf("\n STRAY LIGHT NOT USED \n");
 			}
       
       	

@@ -154,6 +154,7 @@ void AplicaDelta(Init_Model *model, PRECISION *delta, int *fixed, Init_Model *mo
 	if (fixed[0])  // ETHA 0 
 	{
 		modelout->eta0 = model->eta0 - delta[0]; // 0
+		//modelout->eta0 = model->eta0 - delta[index++]; // 0
 	}
 	if (fixed[1]) // B
 	{
@@ -162,6 +163,7 @@ void AplicaDelta(Init_Model *model, PRECISION *delta, int *fixed, Init_Model *mo
 		else if (delta[1] > 300)
 			delta[1] = 300;
 		modelout->B = model->B - delta[1]; //magnetic field
+		//modelout->B = model->B - delta[index++]; //magnetic field
 	}
 	if (fixed[2]) // VLOS
 	{
@@ -171,6 +173,7 @@ void AplicaDelta(Init_Model *model, PRECISION *delta, int *fixed, Init_Model *mo
 		if (delta[2] < -2)
 			delta[2] = -2;		*/
 		modelout->vlos = model->vlos - delta[2];
+		//modelout->vlos = model->vlos - delta[index++];
 	}
 
 	if (fixed[3]) // DOPPLER WIDTH
@@ -181,10 +184,12 @@ void AplicaDelta(Init_Model *model, PRECISION *delta, int *fixed, Init_Model *mo
 		else if (delta[3] < -1e-2)
 			delta[3] = -1e-2;*/
 		modelout->dopp = model->dopp - delta[3];
+		//modelout->dopp = model->dopp - delta[index++];
 	}
 
 	if (fixed[4]) // DAMPING 
 		modelout->aa = model->aa - delta[4];
+		//modelout->aa = model->aa - delta[index++];
 
 	if (fixed[5])  // GAMMA 
 	{
@@ -194,6 +199,7 @@ void AplicaDelta(Init_Model *model, PRECISION *delta, int *fixed, Init_Model *mo
 			delta[5] = 30;
 
 		modelout->gm = model->gm - delta[5]; //5
+		//modelout->gm = model->gm - delta[index++]; //5
 	}
 	if (fixed[6]) // AZIMUTH
 	{
@@ -208,16 +214,26 @@ void AplicaDelta(Init_Model *model, PRECISION *delta, int *fixed, Init_Model *mo
 			delta[6] = 30;
 
 		modelout->az = model->az - delta[6];
+		//modelout->az = model->az - delta[index++];
 	}
 	if (fixed[7])
 		modelout->S0 = model->S0 - delta[7];
+		//modelout->S0 = model->S0 - delta[index++];
 	if (fixed[8])
 		modelout->S1 = model->S1 - delta[8];
+		//modelout->S1 = model->S1 - delta[index++];
 	if (fixed[9]){
 		modelout->mac = model->mac - delta[9]; //9
+		//modelout->mac = model->mac - delta[index++]; //9
 	}
-	if (fixed[10])
-		modelout->alfa = model->alfa - delta[10];
+	if (fixed[10]){
+		if(NTERMS==11)
+			modelout->alfa = model->alfa - delta[10];
+		else
+		{
+			modelout->alfa = model->alfa - delta[9];
+		}
+	}
 }
 
 
@@ -307,11 +323,35 @@ void FijaACeroDerivadasNoNecesarias(REAL *d_spectra, int *fixed, int nlambda)
 {
 
 	int In, j, i;
-	for (In = 0; In < NTERMS; In++)
+	/*for (In = 0; In < NTERMS; In++)
 		if (fixed[In] == 0)
 			for (j = 0; j < NPARMS; j++)
 				for (i = 0; i < nlambda; i++)
-					d_spectra[i + nlambda * In + j * nlambda * NTERMS] = 0;
+					d_spectra[i + nlambda * In + j * nlambda * NTERMS] = 0;*/
+
+	if(NTERMS==9 || NTERMS==11){
+		for (In = 0; In < NTERMS; In++)
+			if (fixed[In] == 0)
+				for (j = 0; j < NPARMS; j++)
+					for (i = 0; i < nlambda; i++)
+						d_spectra[i + nlambda * In + j * nlambda * NTERMS] = 0;
+	}
+	else if (NTERMS==10){
+		for (In = 0; In < NTERMS; In++){
+			if(In<9){
+				if (fixed[In] == 0)
+					for (j = 0; j < NPARMS; j++)
+						for (i = 0; i < nlambda; i++)
+							d_spectra[i + nlambda * In + j * nlambda * NTERMS] = 0;
+			}
+			else{
+				if (fixed[9] == 0 && fixed[10] == 0)
+					for (j = 0; j < NPARMS; j++)
+						for (i = 0; i < nlambda; i++)
+							d_spectra[i + nlambda * In + j * nlambda * NTERMS] = 0;
+			}
+		}
+	}
 }
 
 
@@ -362,6 +402,14 @@ int mil_svd(PRECISION *h, PRECISION *beta, PRECISION *delta, int * fix)
 		//h2[j] = h[j];
  	}
 
+	/*printf("\n H1 MATRIX\n");
+	for(i=0;i<NTERMS;i++){
+		int j;
+		for(j=0;j<NTERMS;j++){
+			printf("%le\t",h1[i*NTERMS+j]);
+		}
+		printf("\n");
+	}*/
 
 	/*printf("\n h2 MATRIX\n");
 	
@@ -398,8 +446,8 @@ int mil_svd(PRECISION *h, PRECISION *beta, PRECISION *delta, int * fix)
 			printf("%le\t",v[i*NTERMS+j]);
 		}
 		printf("\n");
-	}
-
+	}*/
+/*
 	printf("\nAUTOVALORES V2: \n");
 	for(i=0;i<nter;i++)
 		printf(" %le",w2[i]);
@@ -773,7 +821,7 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 	PRECISION delta[NTERMS];
 	
 	for(i=0;i<nlambda*NPARMS;i++){
-		if(spectro[i]<-1){ 
+		if(spectro[i]<=-1){ 
 			//printf("\n sigma %i cambiada",i);
 			vSigma[i]= 1000000000000000000000.0;
 			//vSigma[i]= FLT_MAX;
@@ -917,11 +965,22 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 				printf("\n");
 			}
 			printf("\n");
-		}*/	
+		}*/
 		mil_svd(covar, betad, delta,fixed);
 		AplicaDelta(initModel, delta, fixed, &model);
 
 		check(&model);
+		/*		printf("eta_0               :%lf\n",model.eta0);
+				printf("magnetic field [G]  :%lf\n",model.B);
+				printf("LOS velocity[km/s]  :%lf\n",model.vlos);
+				printf("Doppler width [A]   :%lf\n",model.dopp);
+				printf("damping             :%lf\n",model.aa);
+				printf("gamma [deg]         :%lf\n",model.gm);
+				printf("phi  [deg]          :%lf\n",model.az);
+				printf("S_0                 :%lf\n",model.S0);
+				printf("S_1                 :%lf\n",model.S1);
+				printf("v_mac               :%lf\n",model.mac);
+				printf("filling factor      :%lf\n",model.alfa);*/
 		mil_sinrf(cuantic, &model, wlines, lambda, nlambda, spectra, ah,slight,spectra_mac,spectra_slight,*INSTRUMENTAL_CONVOLUTION);
 	
 		chisqr = fchisqr(spectra, nspectro, spectro, weight, vSigma, nfree);

@@ -48,9 +48,6 @@ int readFitsLambdaFile (const char * fitsFileLambda, FitsImage * fitsImage);
  * 
  * */
 PRECISION * readFitsLambdaToArray (const char * fitsFileLambda,  int * indexLine, int * nLambda);
-
-
-
 /**
  * This function read the Stray Light values from the file "perFileStrayLight" and store it into an array of length nlambda * NPARAMS
  *  
@@ -60,7 +57,6 @@ PRECISION * readFitsLambdaToArray (const char * fitsFileLambda,  int * indexLine
  * Return 1 If the image has been read corectly if not return 0 
  */
 float * readPerStrayLightFile (const char * perFileStrayLight, int nlambda, PRECISION *  vOffsetsLambda);
-
 
 /**
  * This function read the Stray Light values from the file "fitsFileStrayLight" and store it into a vector , in dimStrayLight will be stored the tam of fits file:

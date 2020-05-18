@@ -11,15 +11,12 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-//#include <omp.h>
-//#include "mkl_cblas.h"
 
 
 
 
 extern REAL * opa;
 extern int NTERMS;
-
 /*
 
  el tamaño de w es 	nlambda*NPARMS;

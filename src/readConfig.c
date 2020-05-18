@@ -1968,9 +1968,6 @@ int readTrolFile(char * fileParameters,  ConfigControl * trolConfig, int printLo
 	//if(printLog) printf("Stray light Factor  to apply: %d\n", trolConfig->fix[10]);
 	if(printLog) printf("%s", LINE);
 
-
-
-
 	/*************************** MU ********************************************/
 	
 	returnLine = fgets(LINE,4096,fReadParameters);
@@ -2094,7 +2091,6 @@ int readInitFile(char * fileParameters,  ConfigControl * trolConfig, int printLo
 		return 0;
 	}
 	int rfscanf; 
-
 	/***************************  TROL FILE  ********************************************/
 
 	returnLine = fgets(LINE,4096,fReadParameters);
@@ -2133,7 +2129,6 @@ int readInitFile(char * fileParameters,  ConfigControl * trolConfig, int printLo
 	}
 	//if(printLog) printf("Type input stray light to apply: %s\n", trolConfig->typeInputStrayLight);
 	if(printLog) printf("%s", LINE);
-
 	/*************************** NX ********************************************/
 	
 	/*returnLine = fgets(LINE,4096,fReadParameters);
@@ -2275,8 +2270,8 @@ int readInitFile(char * fileParameters,  ConfigControl * trolConfig, int printLo
 		printf("\n ******* THIS IS THE NAME OF THE FILE RECEVIED : %s \n", fileParameters);
 		return 0;		
 	}
-	if(printLog) printf("Save Synthesis Profile to apply: %d\n", trolConfig->SaveSynthesisAdjusted);
-	//if(printLog) printf("%s", LINE);
+	//if(printLog) printf("Save Synthesis Profile to apply: %d\n", trolConfig->SaveSynthesisAdjusted);
+	if(printLog) printf("%s", LINE);
 
 
 	return 1;

@@ -334,7 +334,6 @@ FitsImage *  readFitsSpectroImage (const char * fitsFileSpectra, int forParallel
 				if(strcmp(image->ctype_3,CTYPE_STOKES)==0) pos_stokes_parameters = 2;
 				if(strcmp(image->ctype_4,CTYPE_STOKES)==0) pos_stokes_parameters = 3;
 			}
-
 			// GET THE CURRENT POSITION OF EVERY PARAMETER
 			/*int pos_row = 2;
 			int pos_col = 3;
@@ -618,7 +617,7 @@ FitsImage *  readFitsSpectroImage (const char * fitsFileSpectra, int forParallel
 				}				
 			}
 			else{
-				printf("\n IMPOSIBLE LEER IMAGEN \n ");
+				printf("\n IMPOSSIBLE READ IMAGE \n ");
 			}
 		}
 		else{
@@ -1114,7 +1113,6 @@ FitsImage * readFitsSpectroImageRectangular (const char * fitsFileSpectra, Confi
 				long fpixelBegin [4] = {1,1,1,1}; 
 				long fpixelEnd [4] = {1,1,1,1}; 
 				long inc [4] = {1,1,1,1};
-
 				fpixelBegin[pos_row] = configCrontrolFile->subx1;
 				fpixelEnd[pos_row] = configCrontrolFile->subx2;
 				fpixelBegin[pos_col] = configCrontrolFile->suby1;
@@ -1124,7 +1122,6 @@ FitsImage * readFitsSpectroImageRectangular (const char * fitsFileSpectra, Confi
 				fpixelEnd[pos_stokes_parameters] = naxes[pos_stokes_parameters];
 
 				fits_read_subset(fptr, TFLOAT, fpixelBegin, fpixelEnd, inc, &nulval, imageTemp, &anynul, &status);
-
 				if(status){
 					fits_report_error(stderr, status);
                		return NULL;	
@@ -1615,7 +1612,7 @@ float * readFitsStrayLightFile (ConfigControl * configCrontrolFile,int * nl_stra
 					free(slight);
 					slight = vStrayLight_aux;
 				}
-				printf("\n STRAY LIGHT LEIDO: \n");
+				
 			}
 			else if (naxis==4){
 				FitsImage * image =  malloc(sizeof(FitsImage));
@@ -1875,8 +1872,7 @@ float * readFitsStrayLightFile (ConfigControl * configCrontrolFile,int * nl_stra
 		if (status) fits_report_error(stderr, status); /* print any error message */
 		slight = NULL;
 	}
-	printf("\n STRAY LIGHT FILE READ");
-	printf("\n**********");
+	
 
 	return slight;
 	
@@ -1936,7 +1932,7 @@ float * readFitsStrayLightFileSubSet (ConfigControl * configCrontrolFile,int * n
 					free(slight);
 					slight = vStrayLight_aux;
 				}
-				printf("\n STRAY LIGHT LEIDO: \n");
+				
 			}
 			else if (naxis==4){
 				FitsImage * image =  malloc(sizeof(FitsImage));
@@ -2216,8 +2212,7 @@ float * readFitsStrayLightFileSubSet (ConfigControl * configCrontrolFile,int * n
 		if (status) fits_report_error(stderr, status); /* print any error message */
 		slight = NULL;
 	}
-	printf("\n STRAY LIGHT FILE READ");
-	printf("\n**********");
+
 
 	return slight;
 	
@@ -2622,7 +2617,6 @@ int writeFitsImageModelsSubSet(const char * fitsFile, int numRowsOriginal, int n
 		free(vModelSub);
 		return 0;
 	}
-
 	free(vModelSub);
 
 	if ( fits_close_file(fptr, &status) ){        

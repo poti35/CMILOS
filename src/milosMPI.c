@@ -17,7 +17,6 @@
 #include "mpi.h"
 #include <time.h>
 #include "defines.h"
-//#include "nrutil.h"
 #include <string.h>
 #include <stdio.h>
 #include <stddef.h>
@@ -41,8 +40,6 @@
 
 int NTERMS=11;
 Cuantic *cuantic; // Global variable with cuantic information 
-
-
 REAL *dtaux, *etai_gp3, *ext1, *ext2, *ext3, *ext4;
 REAL *gp1, *gp2, *dt, *dti, *gp3, *gp4, *gp5, *gp6, *etai_2;
 REAL *gp4_gp2_rhoq, *gp5_gp2_rhou, *gp6_gp2_rhov;
@@ -66,7 +63,6 @@ PRECISION *dirConvPar; // AUX GLOBAL VECTOR for calculate direct convolutions
 
 REAL * opa;
 int FGlobal, HGlobal, uuGlobal;
-
 
 REAL *d_spectra, *spectra, *spectra_mac, *spectra_slight;
 
@@ -176,7 +172,6 @@ int main(int argc, char **argv)
 	nameFile * vOutputNameModelsLocal = NULL;
 	nameFile * vOutputNameSynthesisAdjustedLocal = NULL;
 
-	
 	const char	* nameInputFilePSF ;
 
 	FitsImage * fitsImage = NULL;
@@ -233,15 +228,16 @@ int main(int argc, char **argv)
 	
 	nameInputFilePSF = configCrontrolFile.PSFFile;
 	FWHM = configCrontrolFile.FWHM;
-
 	/***************** READ INIT MODEL ********************************/
 	if(!readInitialModel(&INITIAL_MODEL,configCrontrolFile.InitialGuessModel)){
 		printf("\n\n ¡¡¡ ERROR READING INIT MODEL !!! \n\n");
 		exit(EXIT_FAILURE);
 	}
 
-	/*if(configCrontrolFile.fix[10]==0) NTERMS--;
-	if(configCrontrolFile.fix[9]==0 && INITIAL_MODEL.mac==0 ) NTERMS--;*/
+	if(configCrontrolFile.fix[10]==0) NTERMS--;
+	if(INITIAL_MODEL.mac ==0 && configCrontrolFile.fix[9]==0){
+		 NTERMS--;
+	}
 
 	// allocate memory for eigen values
 	eval = gsl_vector_alloc (NTERMS);
@@ -332,7 +328,7 @@ int main(int argc, char **argv)
 			vMask=readFitsMaskFile (configCrontrolFile.MaskFile,&numRowsMask,&numColsMask);
 		}
 		if(vMask==NULL){
-			printf("\n El fichero de máscara  no ha podido ser leido correctamente o tiene dimensiones incorrectas. No se aplicará a la inversión. ");
+			printf("\n Mask file can not be read or its dimensions are incorrect. Mask will not be applied to the inversion. ");
 		}
 		else{
 			// readsub set of VMAS
@@ -346,7 +342,6 @@ int main(int argc, char **argv)
 	MPI_Bcast(&numColsMask, 1, MPI_INT, root , MPI_COMM_WORLD);
 	MPI_Bcast(&shareVMask, 1, MPI_INT, root , MPI_COMM_WORLD);
 	MPI_Barrier(MPI_COMM_WORLD);
-
 	if(shareVMask){
 		if(idProc!=root)
 			vMask = calloc(numRowsMask*numColsMask,sizeof(int));
@@ -610,6 +605,7 @@ int main(int argc, char **argv)
 		}
 	}
 	// Create the new communicator from that group of processes.
+	
 	MPI_Comm vCommunicators[numGroups];
 	for(i=0;i<numGroups;i++){
 		MPI_Comm_create(MPI_COMM_WORLD, vGroups[i], &vCommunicators[i]);
@@ -623,10 +619,11 @@ int main(int argc, char **argv)
 	int myGroupRank;
 	int groupRoot = 0; // process 0 of group will be the root 
 	int myGroupSize;
-	MPI_Group_rank(vGroups[myGroup], &myGroupRank);		
-	MPI_Group_size(vGroups[myGroup], &myGroupSize);
+	if(numGroups>0){
+		MPI_Group_rank(vGroups[myGroup], &myGroupRank);		
+		MPI_Group_size(vGroups[myGroup], &myGroupSize);
+	}
 	MPI_Barrier(MPI_COMM_WORLD);
-	
 	//**************************************** END OF CREATE GROUPS FOR DIVIDE IMAGE IN 2 ********************************************/
 
 	if(idProc == root){
@@ -789,10 +786,30 @@ int main(int argc, char **argv)
 						fitsImages[indexInputFits] = readFitsSpectroImage(vInputFileSpectraParalell[indexInputFits].name,1,nlambda);
 					}
 
+					// CHECK SIZE MASK FILE 
 					if(vMask!=NULL && (numRowsMask!=fitsImages[indexInputFits]->rows || numColsMask!=fitsImages[indexInputFits]->cols) ){
 						printf("\n DIMENSIONS OF IMAGE %s [rows: %d , cols: %d ] AND MASK FILE %s  [rows: %d , cols: %d ] ARE DIFFERENT. ",vInputFileSpectraParalell[indexInputFits].name, fitsImages[indexInputFits]->rows, fitsImages[indexInputFits]->cols,configCrontrolFile.MaskFile,numRowsMask,numColsMask);
 						exit(EXIT_FAILURE);
 					}
+
+					// CHECK SIZE STRAY LIGHT 
+
+
+
+					if(slight!=NULL){
+
+						if(nl_straylight!=nlambda){
+							printf("\n Number of wavelenghts in Straylight file %d is different to Malla Grid file %d",nl_straylight,nlambda);
+							exit(EXIT_FAILURE);
+						}
+						if(nx_straylight!=0 && ny_straylight!=0){
+							if(nx_straylight!= fitsImages[indexInputFits]->rows || ny_straylight !=fitsImages[indexInputFits]->cols ){
+								printf("\n DIMENSIONS OF IMAGE %s [rows: %d , cols: %d ] AND STRAYLIGHT FILE %s  [rows: %d , cols: %d ] ARE DIFFERENT. ",vInputFileSpectraParalell[indexInputFits].name, fitsImages[indexInputFits]->rows, fitsImages[indexInputFits]->cols,configCrontrolFile.StrayLightFile,nx_straylight,ny_straylight);
+								exit(EXIT_FAILURE);
+							}
+						}
+					}
+					
 					t = clock() - t;
 					PRECISION timeReadImage = ((PRECISION)t)/CLOCKS_PER_SEC; // in seconds 
 					printf("\n TIME TO READ FITS IMAGE %s:  %f seconds to execute . NUMBER OF PIXELS READ: %d \n",vInputFileSpectraParalell[indexInputFits].name, timeReadImage,fitsImages[indexInputFits]->numPixels); 
@@ -856,12 +873,12 @@ int main(int argc, char **argv)
 				local_start_scatter = MPI_Wtime();
 				MPI_Barrier(MPI_COMM_WORLD); // Wait until all processes have their vlambda				
 				if( root == idProc){
-					MPI_Scatterv(fitsImages[indexInputFits]->spectroImagen, sendcountsSpectro_L[indexInputFits], displsSpectro_L[indexInputFits], MPI_FLOAT, vSpectraSplit_L[indexInputFits], sendcountsSpectro_L[indexInputFits][idProc], MPI_FLOAT, root, MPI_COMM_WORLD);
-					//MPI_Iscatterv(fitsImages[indexInputFits]->spectroImagen, sendcountsSpectro_L[indexInputFits], displsSpectro_L[indexInputFits], MPI_FLOAT, vSpectraSplit_L[indexInputFits], sendcountsSpectro_L[indexInputFits][idProc], MPI_FLOAT, root, MPI_COMM_WORLD,&vMpiRequestScatter[indexInputFits]);
+					//MPI_Scatterv(fitsImages[indexInputFits]->spectroImagen, sendcountsSpectro_L[indexInputFits], displsSpectro_L[indexInputFits], MPI_FLOAT, vSpectraSplit_L[indexInputFits], sendcountsSpectro_L[indexInputFits][idProc], MPI_FLOAT, root, MPI_COMM_WORLD);
+					MPI_Iscatterv(fitsImages[indexInputFits]->spectroImagen, sendcountsSpectro_L[indexInputFits], displsSpectro_L[indexInputFits], MPI_FLOAT, vSpectraSplit_L[indexInputFits], sendcountsSpectro_L[indexInputFits][idProc], MPI_FLOAT, root, MPI_COMM_WORLD,&vMpiRequestScatter[indexInputFits]);
 				}
 				else{
-					MPI_Scatterv(NULL, NULL,NULL, MPI_FLOAT, vSpectraSplit_L[indexInputFits], sendcountsSpectro_L[indexInputFits][idProc], MPI_FLOAT, root, MPI_COMM_WORLD);
-					//MPI_Iscatterv(NULL, NULL,NULL, MPI_FLOAT, vSpectraSplit_L[indexInputFits], sendcountsSpectro_L[indexInputFits][idProc], MPI_FLOAT, root, MPI_COMM_WORLD,&vMpiRequestScatter[indexInputFits]);
+					//MPI_Scatterv(NULL, NULL,NULL, MPI_FLOAT, vSpectraSplit_L[indexInputFits], sendcountsSpectro_L[indexInputFits][idProc], MPI_FLOAT, root, MPI_COMM_WORLD);
+					MPI_Iscatterv(NULL, NULL,NULL, MPI_FLOAT, vSpectraSplit_L[indexInputFits], sendcountsSpectro_L[indexInputFits][idProc], MPI_FLOAT, root, MPI_COMM_WORLD,&vMpiRequestScatter[indexInputFits]);
 				}		
 				local_finish_scatter = MPI_Wtime();
 
@@ -873,7 +890,7 @@ int main(int argc, char **argv)
 				printf("\n\n ***************************** FITS FILE CAN NOT BE READ IT %s ******************************",vInputFileSpectraParalell[indexInputFits].name);
 			}
 		}
-		//MPI_Waitall(numFilesPerProcessParallel,vMpiRequestScatter,MPI_STATUSES_IGNORE);
+		MPI_Waitall(numFilesPerProcessParallel,vMpiRequestScatter,MPI_STATUSES_IGNORE);
 		if(idProc==root){
 			t = clock() - t;
 			PRECISION timeTotalExecution = ((PRECISION)t)/CLOCKS_PER_SEC; // in seconds 
@@ -1133,6 +1150,19 @@ int main(int argc, char **argv)
 				printf("\n DIMENSIONS OF IMAGE %s [rows: %d , cols: %d ] AND MASK FILE %s  [rows: %d , cols: %d ] ARE DIFFERENT. ",vInputFileSpectraLocal[indexInputFits].name, fitsImage->rows, fitsImage->cols,configCrontrolFile.MaskFile,numRowsMask,numColsMask);
 				exit(EXIT_FAILURE);
 			}
+			// CHECK SIZE STRAY LIGHT 
+			if(slight!=NULL){
+				if(nl_straylight!=nlambda){
+					printf("\n Number of wavelenghts in Straylight file %d is different to Malla Grid file %d",nl_straylight,nlambda);
+					exit(EXIT_FAILURE);
+				}
+				if(nx_straylight!=0 && ny_straylight!=0){
+					if(nx_straylight!= fitsImage->rows || ny_straylight !=fitsImage->cols ){
+						printf("\n DIMENSIONS OF IMAGE %s [rows: %d , cols: %d ] AND STRAYLIGHT FILE %s  [rows: %d , cols: %d ] ARE DIFFERENT. ",vInputFileSpectraParalell[indexInputFits].name, fitsImage->rows, fitsImage->cols,configCrontrolFile.StrayLightFile,nx_straylight,ny_straylight);
+						exit(EXIT_FAILURE);
+					}
+				}
+			}			
 			t = clock() - t;
 			timeReadImage = ((PRECISION)t)/CLOCKS_PER_SEC; // in seconds 
 			
@@ -1219,7 +1249,6 @@ int main(int argc, char **argv)
 							initModel.az = 1;
 						// INVERSION RTE
 
-
 						float * slightPixel;
 						if(slight==NULL) 
 							slightPixel = NULL;
@@ -1267,9 +1296,7 @@ int main(int argc, char **argv)
 					}
 					
 				}
-
 				clock_t t_write = clock();
-
 				if(configCrontrolFile.subx1 > 0 && configCrontrolFile.subx2 >0 && configCrontrolFile.suby1 > 0 && configCrontrolFile.suby2>0){
 					if(!writeFitsImageModelsSubSet(vOutputNameModelsLocal[indexInputFits].name,fitsImage->rows_original,fitsImage->cols_original,configCrontrolFile,vModels,vChisqrf,vNumIter,configCrontrolFile.saveChisqr)){	
 							printf("\n ERROR WRITING FILE OF MODELS: %s",vOutputNameModelsParalell[indexInputFits].name);
@@ -1361,6 +1388,19 @@ int main(int argc, char **argv)
 				printf("\n DIMENSIONS OF IMAGE %s [rows: %d , cols: %d ] AND MASK FILE %s  [rows: %d , cols: %d ] ARE DIFFERENT. ",vInputFileSpectraDiv2Parallel[myGroup].name, fitsImage->rows, fitsImage->cols,configCrontrolFile.MaskFile,numRowsMask,numColsMask);
 				exit(EXIT_FAILURE);
 			}
+			// CHECK SIZE STRAY LIGHT 
+			if(slight!=NULL){
+				if(nl_straylight!=nlambda){
+					printf("\n Number of wavelenghts in Straylight file %d is different to Malla Grid file %d",nl_straylight,nlambda);
+					exit(EXIT_FAILURE);
+				}
+				if(nx_straylight!=0 && ny_straylight!=0){
+					if(nx_straylight!= fitsImage->rows || ny_straylight !=fitsImage->cols ){
+						printf("\n DIMENSIONS OF IMAGE %s [rows: %d , cols: %d ] AND STRAYLIGHT FILE %s  [rows: %d , cols: %d ] ARE DIFFERENT. ",vInputFileSpectraParalell[indexInputFits].name, fitsImage->rows, fitsImage->cols,configCrontrolFile.StrayLightFile,nx_straylight,ny_straylight);
+						exit(EXIT_FAILURE);
+					}
+				}
+			}				
 			t = clock() - t;
 			PRECISION timeReadImage = ((PRECISION)t)/CLOCKS_PER_SEC; // in seconds 
 			printf("\n TIME TO READ FITS IMAGE %s:  %f seconds to execute . NUMBER OF PIXELS READ: %d \n",vInputFileSpectraDiv2Parallel[myGroup].name, timeReadImage,fitsImage->numPixels); 
@@ -1412,7 +1452,6 @@ int main(int argc, char **argv)
 			// SCATTER VPIXELS 
 			local_start = MPI_Wtime();
 			local_start_scatter = MPI_Wtime();
-
 			vSpectraSplit = calloc(sendcountsDiv2Spectro[myGroupRank],sizeof(float));
 			
 			if(configCrontrolFile.SaveSynthesisAdjusted)
@@ -1432,7 +1471,6 @@ int main(int argc, char **argv)
 
 			local_start_execution = MPI_Wtime();
 			for(indexPixel = 0; indexPixel < sendcountsDiv2Pixels[myGroupRank]; indexPixel++){
-
 				int invertir = 1;
 				if(vMask!=NULL && !vMask[ displsDiv2Pixels[myGroupRank] + indexPixel]){
 					invertir=0;
