@@ -12,9 +12,9 @@ extern REAL *etain, *etaqn, *etaun, *etavn, *rhoqn, *rhoun, *rhovn;
 extern REAL *etai, *etaq, *etau, *etav, *rhoq, *rhou, *rhov;
 extern REAL *parcial1, *parcial2, *parcial3;
 extern REAL *nubB, *nupB, *nurB;
-REAL **uuGlobalInicial;
-REAL **HGlobalInicial;
-REAL **FGlobalInicial;
+REAL *uuGlobalInicial;
+REAL *HGlobalInicial;
+REAL *FGlobalInicial;
 extern int FGlobal, HGlobal, uuGlobal;
 extern PRECISION *GMAC,*GMAC_DERIV;
 extern Cuantic *cuantic;
@@ -121,26 +121,26 @@ void AllocateMemoryDerivedSynthesis(int numl)
 	nurB = calloc(cuantic[0].N_SIG, sizeof(REAL));
 	nupB = calloc(cuantic[0].N_PI, sizeof(REAL));
 
-	uuGlobalInicial = calloc((int)(cuantic[0].N_PI + cuantic[0].N_SIG * 2), sizeof(REAL *));
+	uuGlobalInicial = calloc( ((int)(cuantic[0].N_PI + cuantic[0].N_SIG * 2))*numl, sizeof(REAL ));
 	uuGlobal = 0;
-	int i = 0;
+	/*int i = 0;
 	for (i = 0; i < (int)(cuantic[0].N_PI + cuantic[0].N_SIG * 2); i++)
 	{
 		uuGlobalInicial[i] = calloc(numl, sizeof(REAL));
-	}
+	}*/
 
-	HGlobalInicial = calloc((int)(cuantic[0].N_PI + cuantic[0].N_SIG * 2), sizeof(REAL *));
+	HGlobalInicial = calloc( ((int)(cuantic[0].N_PI + cuantic[0].N_SIG * 2)) * numl, sizeof(REAL ));
 	HGlobal = 0;
-	for (i = 0; i < (int)(cuantic[0].N_PI + cuantic[0].N_SIG * 2); i++)
+	/*for (i = 0; i < (int)(cuantic[0].N_PI + cuantic[0].N_SIG * 2); i++)
 	{
 		HGlobalInicial[i] = calloc(numl, sizeof(REAL));
-	}
+	}*/
 
-	FGlobalInicial = calloc((int)(cuantic[0].N_PI + cuantic[0].N_SIG * 2), sizeof(REAL *));
-	for (i = 0; i < (int)(cuantic[0].N_PI + cuantic[0].N_SIG * 2); i++)
+	FGlobalInicial = calloc( ((int)(cuantic[0].N_PI + cuantic[0].N_SIG * 2)) * numl, sizeof(REAL));
+	/*for (i = 0; i < (int)(cuantic[0].N_PI + cuantic[0].N_SIG * 2); i++)
 	{
 		FGlobalInicial[i] = calloc(numl, sizeof(REAL));
-	}
+	}*/
 	FGlobal = 0;
 }
 
@@ -237,7 +237,7 @@ void FreeMemoryDerivedSynthesis()
 	free(gp5_gp2_rhou);
 	free(gp6_gp2_rhov);
 
-	int i;
+	/*int i;
 	for (i = 0; i < (int)(cuantic[0].N_PI + cuantic[0].N_SIG * 2); i++)
 	{
 		free(uuGlobalInicial[i]);
@@ -251,7 +251,7 @@ void FreeMemoryDerivedSynthesis()
 	for (i = 0; i < (int)(cuantic[0].N_PI + cuantic[0].N_SIG * 2); i++)
 	{
 		free(FGlobalInicial[i]);
-	}
+	}*/
 
 	free(uuGlobalInicial);
 	free(HGlobalInicial);

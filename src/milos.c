@@ -67,9 +67,9 @@ REAL *etain, *etaqn, *etaun, *etavn, *rhoqn, *rhoun, *rhovn;
 REAL *etai, *etaq, *etau, *etav, *rhoq, *rhou, *rhov;
 REAL *parcial1, *parcial2, *parcial3;
 REAL *nubB, *nupB, *nurB;
-REAL **uuGlobalInicial;
-REAL **HGlobalInicial;
-REAL **FGlobalInicial;
+REAL *uuGlobalInicial;
+REAL *HGlobalInicial;
+REAL *FGlobalInicial;
 
 
 PRECISION *GMAC,* GMAC_DERIV;

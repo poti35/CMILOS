@@ -34,9 +34,9 @@ extern REAL *etain,*etaqn,*etaun,*etavn,*rhoqn,*rhoun,*rhovn;
 extern REAL *etai,*etaq,*etau,*etav,*rhoq,*rhou,*rhov;
 extern REAL *parcial1,*parcial2,*parcial3;
 extern REAL *nubB,*nupB,*nurB;
-REAL **uuGlobalInicial;
-REAL **HGlobalInicial;
-REAL **FGlobalInicial;
+REAL *uuGlobalInicial;
+REAL *HGlobalInicial;
+REAL *FGlobalInicial;
 extern int FGlobal,HGlobal,uuGlobal;
 
 
@@ -482,9 +482,9 @@ int funcionComponentFor_sinrf(REAL *u,int n_pi,int numl,REAL *wex,REAL *nuxB,REA
 	//component
 	for(i=0;i<n_pi;i++){
 
-		uu=uuGlobalInicial[uuGlobal+i];
-		F=FGlobalInicial[HGlobal+i];
-		H=HGlobalInicial[FGlobal+i];
+		uu=uuGlobalInicial + (uuGlobal*numl);
+		F=FGlobalInicial + (HGlobal*numl);
+		H=HGlobalInicial + (FGlobal*numl);
 
 		for(j=0;j<numl;j++){
 			uu[j]=u[j]-nuxB[i]*MF;
@@ -500,11 +500,14 @@ int funcionComponentFor_sinrf(REAL *u,int n_pi,int numl,REAL *wex,REAL *nuxB,REA
 			shi_x[j]=(shi_x[j]+(wex[i]*F[j]*2));
 		}
 
+		uuGlobal=uuGlobal+1;
+		HGlobal=HGlobal+1;
+		FGlobal=FGlobal+1;
 
 	}//end for 
-	uuGlobal=uuGlobal+n_pi;
+	/*uuGlobal=uuGlobal+n_pi;
 	HGlobal=HGlobal+n_pi;
-	FGlobal=FGlobal+n_pi;
+	FGlobal=FGlobal+n_pi;*/
 
 	return 1;	
 }
