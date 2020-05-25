@@ -1,26 +1,26 @@
 Number of cycles          (*):100         		! 0 = synthesis, n= max num of iterations, -1 = use classical estimates
-Observed profiles          (*):/mnt/d/IAA/StrayLight/obs_psf.per    !   
+Observed profiles          (*):/mnt/d/IAA/StrayLight/obs.per    !   
 Stray light file             :/mnt/d/IAA/StrayLight/stray.per                  ! (none=no stray light contam)
-PSF file                     :run/CRISP_6173_1mA.psf            ! .psf file -> read file; number -> FWHM (mA) of gaussian filter; empty -> NO FILTER
+PSF file                     :            ! .psf file -> read file; number -> FWHM (mA) of gaussian filter; empty -> NO FILTER
 Wavelength grid file      (s):run/malla.grid 	! (automatic selection, grid, or wavelength file)
 Atomic parameters file       :run/LINES      	! 
 Abundances file		         : 					    ! not used
-Initial guess model 1     (*):/mnt/d/IAA/StrayLight/guess2.mod !                  
+Initial guess model 1     (*):/mnt/d/IAA/StrayLight/guess.mod !                  
 Initial guess model 2        :					! not used for the moment
 Weight for Stokes I          :1               	! (DEFAULT=1; 0=not inverted)
 Weight for Stokes Q          :1                 ! (DEFAULT=1; 0=not inverted)
 Weight for Stokes U          :1                 ! (DEFAULT=1; 0=not inverted)
 Weight for Stokes V          :1                 ! (DEFAULT=1; 0=not inverted)
 AUTOMATIC SELECT. OF NODES?  :					! not used for the moment
-Nodes for S_0 1     	     :0                 ! (0 or blank=no, 1=yes)
-Nodes for S_1 1		         :0                 ! (0 or blank=no, 1=yes)
-Nodes for eta0 1             :                 ! (0 or blank=no, 1=yes)
-Nodes for magnetic field 1   :0	                ! (0 or blank=no, 1=yes)
+Nodes for S_0 1     	     :1                 ! (0 or blank=no, 1=yes)
+Nodes for S_1 1		         :1                 ! (0 or blank=no, 1=yes)
+Nodes for eta0 1             :1                 ! (0 or blank=no, 1=yes)
+Nodes for magnetic field 1   :1	                ! (0 or blank=no, 1=yes)
 Nodes for LOS velocity 1     :1                 ! (0 or blank=no, 1=yes)
-Nodes for gamma 1            :0                 ! (0 or blank=no, 1=yes)
-Nodes for phi 1              :0                 ! (0 or blank=no, 1=yes)
-Nodes for lambda_doppler 1   :0                 ! (0 or blank=no, 1=yes)
-Nodes for damping 1	         :0                 ! (0 or blank=no, 1=yes)
+Nodes for gamma 1            :1                 ! (0 or blank=no, 1=yes)
+Nodes for phi 1              :1                 ! (0 or blank=no, 1=yes)
+Nodes for lambda_doppler 1   :1                 ! (0 or blank=no, 1=yes)
+Nodes for damping 1	         :1                 ! (0 or blank=no, 1=yes)
 Invert macroturbulence 1     :0                	! (0 or blank=no, 1=yes)
 Nodes for S_0 2     	     :                 ! not used for the moment
 Nodes for S_1 2  	         :                 ! not used for the moment                     

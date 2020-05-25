@@ -15,7 +15,7 @@ CFLAGS+=-O3
 ifdef develop
 	ifeq ($(develop),yes)
 		CFLAGS+=-g 
-		CFLAGS+=-Wall -Wextra		
+		#CFLAGS+=-Wall -Wextra		
 	endif
 endif
 ifdef use_double

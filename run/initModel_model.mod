@@ -1,14 +1,15 @@
-MODEL_ETHA0: 36.990565
-MODEL_B: 1203.017671
-MODEL_VLOS: -0.330994
-MODEL_LAMBDADOPP: 0.021876
-MODEL_AA: 0.324245
-MODEL_GM: 118.369353
-MODEL_AZI: 152.358729
-MODEL_S0: 0.317961
-MODEL_S1: 0.490952
-MODEL_MAC: 1.728015
-MODEL_ALFA: 1.000000
-NUMBER ITERATIONS TO CONVERGE: 10
-Chisqrf 2.434787e+01
+eta_0               :10.487278
+magnetic field [G]  :1190.643310
+LOS velocity[km/s]  :-0.071635
+Doppler width [A]   :0.073340
+damping             :0.081926
+gamma [deg]         :129.386374
+phi  [deg]          :24.056419
+S_0                 :0.241353
+S_1                 :0.761464
+v_mac [km/s]        :0.000000
+filling factor      :1.000000
+# Iterations        :25
+chisqr              :3.989233e+00
+
 

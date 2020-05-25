@@ -8,8 +8,7 @@
 #include <fftw3.h> //siempre a continuacion de complex.h
 #include "readConfig.h"
 
-int funcionComponentFor_sinrf(REAL *u,int n_pi,int numl,REAL *wex,REAL *nuxB,REAL *fi_x,
-												REAL *shi_x,PRECISION A,PRECISION MF);
+int funcionComponentFor_sinrf(REAL *u,int n_pi,int numl,REAL *wex,REAL *nuxB,REAL *fi_x,REAL *shi_x,PRECISION A,PRECISION MF);
 
 /*
 	E00	int eta0; // 0
