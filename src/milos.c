@@ -604,12 +604,12 @@ int main(int argc, char **argv)
 			printf("\n ERROR !!! The output file can not be open: %s",nameAux);
 		}
 
-		/*int number_parametros = 0;
+		int number_parametros = 0;
 		for (number_parametros = 0; number_parametros < NTERMS; number_parametros++)
 		{
 			strcpy(nameAux,get_basefilename(configCrontrolFile.InitialGuessModel));
 			strcat(nameAux,"_C_");
-			char extension[10];
+			char extension[100];
 			sprintf(extension, "%d%s", number_parametros,".per");
 			strcat(nameAux,extension);
 			FILE *fptr = fopen(nameAux, "w");
@@ -625,7 +625,7 @@ int main(int argc, char **argv)
 			}
 			fclose(fptr);
 		}
-		printf("\n");*/
+		printf("\n");
 
 	}
 	else{ // INVERT PIXEL FROM PER FILE OR IMAGE FROM FITS FILE 
