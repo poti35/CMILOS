@@ -44,7 +44,7 @@
 #include <gsl/gsl_spline.h>
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_eigen.h>
-
+#include <libgen.h>
 
 int NTERMS = 11;
 Cuantic *cuantic; // Variable global, está hecho así, de momento,para parecerse al original
@@ -123,7 +123,7 @@ int main(int argc, char **argv)
 	Init_Model *vModels;
 	float chisqrf, * vChisqrf;
 	int * vNumIter; // to store the number of iterations used to converge for each pixel
-	int indexLine; // index to identify central line to read it 
+	int indexLine, free_params; // index to identify central line to read it 
 
 	//*****
 	Init_Model INITIAL_MODEL;
@@ -160,12 +160,17 @@ int main(int argc, char **argv)
 		printf("\nERROR READING GUESS MODEL 1 FILE\n");
 		exit(EXIT_FAILURE);
 	}
+	checkInitialModel(&INITIAL_MODEL);
+
+	if(INITIAL_MODEL.alfa<1 && access(configCrontrolFile.StrayLightFile,F_OK)){
+		printf("\nERROR. Filling factor in Initial model is less than 1 and Stray Light file  %s can not be accessed\n",configCrontrolFile.StrayLightFile);
+		exit(EXIT_FAILURE);
+	}
 	
 	if(configCrontrolFile.fix[10]==0) NTERMS--;
 	if(INITIAL_MODEL.mac ==0 && configCrontrolFile.fix[9]==0){
 		 NTERMS--;
 	}
-
 	
 	// allocate memory for eigen values
 	eval = gsl_vector_alloc (NTERMS);
@@ -176,40 +181,62 @@ int main(int argc, char **argv)
 	PRECISION * vLambda, *vOffsetsLambda;
 
 	if(configCrontrolFile.useMallaGrid){ // read lambda from grid file
-      indexLine = readMallaGrid(configCrontrolFile.MallaGrid, &initialLambda, &step, &finalLambda, 1);      
-      nlambda = ((finalLambda-initialLambda)/step)+1;
+		printf("\n--------------------------------------------------------------------------------");
+		printf("\nMALLA GRID FILE READ: %s",configCrontrolFile.MallaGrid);
+		printf("\n--------------------------------------------------------------------------------");
+		indexLine = readMallaGrid(configCrontrolFile.MallaGrid, &initialLambda, &step, &finalLambda, 1);      
+		printf("--------------------------------------------------------------------------------\n");
+		nlambda = ((finalLambda-initialLambda)/step)+1;
 		vOffsetsLambda = calloc(nlambda,sizeof(PRECISION));
 		vOffsetsLambda[0] = initialLambda;
 		for(i=1;i<nlambda;i++){
 			vOffsetsLambda[i] = vOffsetsLambda[i-1]+step;
 		}
-      // pass to armstrong 
-      initialLambda = initialLambda/1000.0;
-      step = step/1000.0;
-      finalLambda = finalLambda/1000.0;
-	   vLambda = calloc(nlambda,sizeof(PRECISION));
+		// pass to armstrong 
+		initialLambda = initialLambda/1000.0;
+		step = step/1000.0;
+		finalLambda = finalLambda/1000.0;
+		vLambda = calloc(nlambda,sizeof(PRECISION));
+		
+		printf("Number of wavelengths in the wavelength grid: %d",nlambda);
+		printf("\n--------------------------------------------------------------------------------\n");
+		printf("\n--------------------------------------------------------------------------------");
+		printf("\nATMOSPHERE LINES FILE READ: %s",nameInputFileLines);
 		configCrontrolFile.CentralWaveLenght = readFileCuanticLines(nameInputFileLines,dat,indexLine,1);
 		if(configCrontrolFile.CentralWaveLenght==0){
 			printf("\n QUANTUM LINE NOT FOUND, REVIEW IT. INPUT CENTRAL WAVE LENGHT: %f",configCrontrolFile.CentralWaveLenght);
 			exit(1);
 		}
 		vLambda[0]=configCrontrolFile.CentralWaveLenght+(initialLambda);
-   	for(i=1;i<nlambda;i++){
-        	vLambda[i]=vLambda[i-1]+step;
-     	}
+		for(i=1;i<nlambda;i++){
+			vLambda[i]=vLambda[i-1]+step;
+		}
+		/******************* CREATE CUANTINC AND INITIALIZE DINAMYC MEMORY*******************/
+		cuantic = create_cuantic(dat,1);
+
 	}
 	else{ // read lambda from fits file
+		printf("\n--------------------------------------------------------------------------------");
+		printf("\nWAVELENGTH FILE READ: %s",configCrontrolFile.WavelengthFile);
 		vLambda = readFitsLambdaToArray(configCrontrolFile.WavelengthFile,&indexLine,&nlambda);
 		if(vLambda==NULL){
 			printf("\n FILE WITH WAVELENGHT HAS NOT BEEN READ PROPERLY, please check it.\n");
 			free(vLambda);
 			exit(EXIT_FAILURE);
 		}
+		printf("--------------------------------------------------------------------------------\n");
+		printf("Number of wavelengths in the wavelength file: %d",nlambda);
+		printf("\n--------------------------------------------------------------------------------\n");
+		printf("\n--------------------------------------------------------------------------------");
+		printf("\nATMOSPHERE LINES FILE READ: %s",nameInputFileLines);
 		configCrontrolFile.CentralWaveLenght = readFileCuanticLines(nameInputFileLines,dat,indexLine,1);
 		if(configCrontrolFile.CentralWaveLenght==0){
 			printf("\n QUANTUM LINE NOT FOUND, REVIEW IT. INPUT CENTRAL WAVE LENGHT: %f",configCrontrolFile.CentralWaveLenght);
 			exit(1);
-		}		
+		}
+		/******************* CREATE CUANTINC AND INITIALIZE DINAMYC MEMORY*******************/
+		cuantic = create_cuantic(dat,1);
+
 	}
 
 	/*********************************************** INITIALIZE VARIABLES  *********************************/
@@ -225,9 +252,13 @@ int main(int argc, char **argv)
 	wlines[0] = 1;
 	wlines[1] = configCrontrolFile.CentralWaveLenght;
 
-	/******************* CREATE CUANTINC AND INITIALIZE DINAMYC MEMORY*******************/
-
-	cuantic = create_cuantic(dat,1);
+	// count how many free param we have
+	free_params=0;
+	for(i=0;i<11;i++){
+		if(configCrontrolFile.fix[i])
+			free_params++;
+	}
+	
 
 	/****************************************************************************************************/
 	int numln=nlambda;
@@ -252,19 +283,29 @@ int main(int argc, char **argv)
 		
 		if(configCrontrolFile.FWHM > 0){
 			G = fgauss_WL(FWHM,vLambda[1]-vLambda[0],vLambda[0],vLambda[nlambda/2],nlambda,&sizeG);
-			
-			FILE * fptr = fopen("run/gauss_35.psf", "w");
-			if(fptr!=NULL){
-				printf("\n[");
-				for(i=0;i<nlambda;i++){
-					//printf("\t%lf\t%le\n",(vLambda[i]-configCrontrolFile.CentralWaveLenght)*1000,G[i]);
-					printf("\t%le,",G[i]);
-					fprintf(fptr,"\t%lf\t%le\n",(vLambda[i]-configCrontrolFile.CentralWaveLenght)*1000,G[i]);
-				}
-				printf("]\n");
+			char nameAux [4096];
+			char obsAux [4096];
+			if(configCrontrolFile.ObservedProfiles[0]!='\0'){
+				strcpy(obsAux,configCrontrolFile.ObservedProfiles);
+				strcpy(nameAux,dirname(obsAux));
 			}
-			fclose(fptr);
-
+			else{
+				strcpy(obsAux,configCrontrolFile.InitialGuessModel);
+				strcpy(nameAux,dirname(obsAux));		
+			}
+			strcat(nameAux,"/raizperfiles.psf");
+			FILE *fptr = fopen(nameAux, "w");
+			if(fptr!=NULL){
+				int kk;
+				for (kk = 0; kk < nlambda; kk++)
+				{
+					fprintf(fptr,"\t%f\t%e\n", (vLambda[kk]-configCrontrolFile.CentralWaveLenght)*1000, G[kk]);
+				}
+				fclose(fptr);
+			}
+			else{
+				printf("\n ERROR !!! The output file can not be open: %s",nameAux);
+			}			
 		}else{
 			// read the number of lines 
 			FILE *fp;
@@ -372,7 +413,9 @@ int main(int argc, char **argv)
 				printf("\n****************** ERROR THE PSF FILE is empty or damaged.******************\n");
 				exit(EXIT_FAILURE);
 			}
-
+			printf("\n--------------------------------------------------------------------------------");
+			printf("\nPSF FILE READ: %s", nameInputFilePSF);
+			printf("\n--------------------------------------------------------------------------------\n");
 		}
 		
 		//PSF FILTER PLANS 
@@ -452,7 +495,9 @@ int main(int argc, char **argv)
 				contLine++;
 			}
 			fclose(fReadSpectro);
-
+			printf("\n--------------------------------------------------------------------------------");
+			printf("\nOBSERVED PROFILES FILE READ: %s ", configCrontrolFile.ObservedProfiles);
+			printf("\n--------------------------------------------------------------------------------\n");
 			Init_Model initModel;
 			initModel.eta0 = 0;
 			initModel.mac = 0;
@@ -497,6 +542,9 @@ int main(int argc, char **argv)
 		}
 		else if(strcmp(file_ext(configCrontrolFile.ObservedProfiles),FITS_FILE)==0){ // invert image from fits file 
 			fitsImage = readFitsSpectroImage(configCrontrolFile.ObservedProfiles,0,nlambda);
+			printf("\n--------------------------------------------------------------------------------");
+			printf("\nOBSERVED PROFILES FILE READ: %s", configCrontrolFile.ObservedProfiles);
+			printf("\n--------------------------------------------------------------------------------\n");
 			//fitsImage = readFitsSpectroImageRectangular(configCrontrolFile.ObservedProfiles,&configCrontrolFile,0,nlambda);
 			// ALLOCATE MEMORY FOR STORE THE RESULTS 
 			int indexPixel = 0;
@@ -543,10 +591,13 @@ int main(int argc, char **argv)
 		}
 	}
 	else if(configCrontrolFile.NumberOfCycles==0){ // synthesis
-	
+		
 		if(access(configCrontrolFile.StrayLightFile,F_OK)!=-1){ //  IF NOT EMPTY READ stray light file 
 			if(strcmp(file_ext(configCrontrolFile.StrayLightFile),PER_FILE)==0){
 				slight = readPerStrayLightFile(configCrontrolFile.StrayLightFile,nlambda,vOffsetsLambda);
+				printf("\n--------------------------------------------------------------------------------");
+				printf("\nSTRAY LIGHT FILE READ: %s ", configCrontrolFile.StrayLightFile);
+				printf("\n--------------------------------------------------------------------------------\n");
 			}
 			else if(strcmp(file_ext(configCrontrolFile.StrayLightFile),FITS_FILE)==0){
 				slight= readFitsStrayLightFile(&configCrontrolFile,&nl_straylight,&ns_straylight,&nx_straylight, &ny_straylight);
@@ -560,6 +611,9 @@ int main(int argc, char **argv)
 					free(slight);
 					slight= NULL;
 				}
+				printf("\n--------------------------------------------------------------------------------");
+				printf("\nSTRAY LIGHT FILE READ: %s ", configCrontrolFile.StrayLightFile);
+				printf("\n--------------------------------------------------------------------------------\n");
 			}
 			else{
 				printf("\n Stray light file hasn't extension .PER or .FITS, review it. \n. Stray light will not used for synthesis.\n");
@@ -580,28 +634,47 @@ int main(int argc, char **argv)
 		initModel.alfa = INITIAL_MODEL.alfa; //0.38; //stray light factor
 		initModel.S0 = INITIAL_MODEL.S0;
 		initModel.S1 = INITIAL_MODEL.S1;
-		printf("\n MODEL ATMOSPHERE: \n");
+		printf("\n--------------------------------------------------------------------------------");
+		printf("\nATMOSPHERE MODEL FILE READ: %s ",configCrontrolFile.InitialGuessModel);
+		printf("\n--------------------------------------------------------------------------------");
+		printf("\nINITAL MODEL ATMOSPHERE: \n\n");
 		printf("eta_0               :%lf\n",initModel.eta0);
 		printf("magnetic field [G]  :%lf\n",initModel.B);
 		printf("LOS velocity[km/s]  :%lf\n",initModel.vlos);
 		printf("Doppler width [A]   :%lf\n",initModel.dopp);
 		printf("damping             :%lf\n",initModel.aa);
 		printf("gamma [deg]         :%lf\n",initModel.gm);
-		printf("phi  [deg]          :%lf\n",initModel.az);
+		printf("phi   [deg]         :%lf\n",initModel.az);
 		printf("S_0                 :%lf\n",initModel.S0);
 		printf("S_1                 :%lf\n",initModel.S1);
 		printf("v_mac [km/s]        :%lf\n",initModel.mac);
 		printf("filling factor      :%lf\n",initModel.alfa);
-		printf("\n");
+		printf("--------------------------------------------------------------------------------\n");
 
 		AllocateMemoryDerivedSynthesis(nlambda);
 
+		if(configCrontrolFile.ConvolveWithPSF && initModel.mac>0){
+			printf("\n--------------------------------------------------------------------------------");
+			printf("\nThe program needs to use convolution. Filter PSF actived and macroturbulence greater than zero. ");
+			printf("\n--------------------------------------------------------------------------------\n");
+		}
+		else if(configCrontrolFile.ConvolveWithPSF){
+			printf("\n--------------------------------------------------------------------------------");
+			printf("\nThe program needs to use convolution. Filter PSF actived. ");
+			printf("\n--------------------------------------------------------------------------------\n");
+		}
+		else if(initModel.mac>0){
+			printf("\n--------------------------------------------------------------------------------");
+			printf("\nThe program needs to use convolution. Macroturbulence in initial atmosphere model greater than zero.");
+			printf("\n--------------------------------------------------------------------------------\n");
+		}
 		// synthesis
 		mil_sinrf(cuantic, &initModel, wlines, vLambda, nlambda, spectra, configCrontrolFile.mu, slight,spectra_mac,spectra_slight, configCrontrolFile.ConvolveWithPSF);
 		me_der(cuantic, &initModel, wlines, vLambda, nlambda, d_spectra, spectra_mac, spectra_slight, configCrontrolFile.mu, slight, configCrontrolFile.ConvolveWithPSF,configCrontrolFile.fix);	
 
 		// in this case basenamefile is from initmodel
 		char nameAux [4096];
+		
 		if(configCrontrolFile.ObservedProfiles[0]!='\0')
 			strcpy(nameAux,get_basefilename(configCrontrolFile.ObservedProfiles));
 		else
@@ -616,9 +689,9 @@ int main(int argc, char **argv)
 				fprintf(fptr,"%d\t%f\t%e\t%e\t%e\t%e\n", indexLine, (vLambda[kk]-configCrontrolFile.CentralWaveLenght)*1000, spectra[kk], spectra[kk + nlambda], spectra[kk + nlambda * 2], spectra[kk + nlambda * 3]);
 			}
 			fclose(fptr);
-			printf("\n*******************************************************************************************");
-			printf("\n******************SYNTHESIS DONE: %s",nameAux);
-			printf("\n*******************************************************************************************\n");
+			printf("\n--------------------------------------------------------------------------------");
+			printf("\n------------------SYNTHESIS DONE: %s",nameAux);
+			printf("\n--------------------------------------------------------------------------------\n");
 		}
 		else{
 			printf("\n ERROR !!! The output file can not be open: %s",nameAux);
@@ -648,7 +721,8 @@ int main(int argc, char **argv)
 		printf("\n");*/
 
 	}
-	else{ // INVERT PIXEL FROM PER FILE OR IMAGE FROM FITS FILE 
+	else{ // INVERT PIXEL FROM PER FILE OR IMAGE FROM FITS FILE
+
 		if(strcmp(file_ext(configCrontrolFile.ObservedProfiles),PER_FILE)==0){ // invert only per file
 			float * spectroPER = calloc(nlambda*NPARMS,sizeof(float));
 			FILE * fReadSpectro;
@@ -667,19 +741,33 @@ int main(int argc, char **argv)
 			}
 			
 			float aux1, aux2, aux3, aux4, aux5, aux6;
-			while ((read = getline(&line, &len, fReadSpectro)) != -1 && contLine<nlambda) {
+			while ((read = getline(&line, &len, fReadSpectro)) != -1) {
 				sscanf(line,"%e %e %e %e %e %e",&aux1,&aux2,&aux3,&aux4,&aux5,&aux6);
-				spectroPER[contLine] = aux3;
-				spectroPER[contLine + nlambda] = aux4;
-				spectroPER[contLine + nlambda * 2] = aux5;
-				spectroPER[contLine + nlambda * 3] = aux6;
+				if(contLine<nlambda){
+					spectroPER[contLine] = aux3;
+					spectroPER[contLine + nlambda] = aux4;
+					spectroPER[contLine + nlambda * 2] = aux5;
+					spectroPER[contLine + nlambda * 3] = aux6;
+				}
 				contLine++;
 			}
 			fclose(fReadSpectro);
-
+			printf("\n--------------------------------------------------------------------------------");
+			printf("\nOBSERVED PROFILES FILE READ: %s ", configCrontrolFile.ObservedProfiles);
+			printf("\n--------------------------------------------------------------------------------");
+			printf("\nNumber of wavelengths in the observed profiles: %d",contLine);
+			printf("\n--------------------------------------------------------------------------------\n");
+			if(nlambda!=contLine){
+				printf("\n--------------------------------------------------------------------------------\n");
+				printf("\nERROR: The number of wavelenghts in observed profiles file  %d is different to number of wavelengths in malla grid %d\n",contLine,nlambda);
+				exit(EXIT_FAILURE);
+			}
 			if(configCrontrolFile.fix[10] &&  access(configCrontrolFile.StrayLightFile,F_OK)!=-1){ //  IF NOT EMPTY READ stray light file 
 				if(strcmp(file_ext(configCrontrolFile.StrayLightFile),PER_FILE)==0){
 					slight = readPerStrayLightFile(configCrontrolFile.StrayLightFile,nlambda,vOffsetsLambda);
+					printf("\n--------------------------------------------------------------------------------");
+					printf("\nSTRAY LIGHT FILE READ: %s ", configCrontrolFile.StrayLightFile);
+					printf("\n--------------------------------------------------------------------------------\n");
 				}
 				else if(strcmp(file_ext(configCrontrolFile.StrayLightFile),FITS_FILE)==0){
 					slight= readFitsStrayLightFile(&configCrontrolFile,&nl_straylight,&ns_straylight,&nx_straylight, &ny_straylight);
@@ -693,6 +781,9 @@ int main(int argc, char **argv)
 						free(slight);
 						slight= NULL;
 					}
+					printf("\n--------------------------------------------------------------------------------");
+					printf("\nSTRAY LIGHT FILE READ: %s ", configCrontrolFile.StrayLightFile);
+					printf("\n--------------------------------------------------------------------------------\n");
 				}
 				else{
 					printf("\n Stray light file hasn't extension .PER or .FITS, review it. \n. Stray light will not used for inversion pixel.\n");
@@ -700,7 +791,6 @@ int main(int argc, char **argv)
 					slight= NULL;				
 				}				
 			}
-
       
       	
 			AllocateMemoryDerivedSynthesis(nlambda);
@@ -716,9 +806,43 @@ int main(int argc, char **argv)
 			initModel.alfa = INITIAL_MODEL.alfa; //0.38; //stray light factor
 			initModel.S0 = INITIAL_MODEL.S0;
 			initModel.S1 = INITIAL_MODEL.S1;
+			printf("\n--------------------------------------------------------------------------------");
+			printf("\nATMOSPHERE MODEL FILE READ: %s ",configCrontrolFile.InitialGuessModel);
+			printf("\n--------------------------------------------------------------------------------");
+			printf("\nINITAL MODEL ATMOSPHERE: \n\n");
+			printf("eta_0               :%lf\n",initModel.eta0);
+			printf("magnetic field [G]  :%lf\n",initModel.B);
+			printf("LOS velocity[km/s]  :%lf\n",initModel.vlos);
+			printf("Doppler width [A]   :%lf\n",initModel.dopp);
+			printf("damping             :%lf\n",initModel.aa);
+			printf("gamma [deg]         :%lf\n",initModel.gm);
+			printf("phi   [deg]         :%lf\n",initModel.az);
+			printf("S_0                 :%lf\n",initModel.S0);
+			printf("S_1                 :%lf\n",initModel.S1);
+			printf("v_mac [km/s]        :%lf\n",initModel.mac);
+			printf("filling factor      :%lf\n",initModel.alfa);
+			printf("--------------------------------------------------------------------------------\n");
 
-      	int numIter;
-      	lm_mils(cuantic, wlines, vLambda, nlambda, spectroPER, nlambda, &initModel, spectra, &chisqrf, slight, configCrontrolFile.toplim, configCrontrolFile.NumberOfCycles,
+			if(configCrontrolFile.ConvolveWithPSF && initModel.mac>0){
+				printf("\n--------------------------------------------------------------------------------");
+				printf("\nThe program needs to use convolution. Filter PSF actived and macroturbulence greater than zero. ");
+				printf("\n--------------------------------------------------------------------------------\n");
+			}
+			else if(configCrontrolFile.ConvolveWithPSF){
+				printf("\n--------------------------------------------------------------------------------");
+				printf("\nThe program needs to use convolution. Filter PSF actived. ");
+				printf("\n--------------------------------------------------------------------------------\n");
+			}
+			else if(initModel.mac>0){
+				printf("\n--------------------------------------------------------------------------------");
+				printf("\nThe program needs to use convolution. Macroturbulence in initial atmosphere model greater than zero.");
+				printf("\n--------------------------------------------------------------------------------\n");
+			}
+      		int numIter =0;
+			printf("\n--------------------------------------------------------------------------------");
+			printf("\nNumber of free parameters for inversion: %d", free_params);
+			printf("\n--------------------------------------------------------------------------------\n");
+      		lm_mils(cuantic, wlines, vLambda, nlambda, spectroPER, nlambda, &initModel, spectra, &chisqrf, slight, configCrontrolFile.toplim, configCrontrolFile.NumberOfCycles,
                configCrontrolFile.WeightForStokes, configCrontrolFile.fix, vSigma, configCrontrolFile.noise, configCrontrolFile.InitialDiagonalElement,&configCrontrolFile.ConvolveWithPSF,&numIter,configCrontrolFile.mu, configCrontrolFile.logclambda);
 
 			// SAVE OUTPUT MODEL 
@@ -741,7 +865,7 @@ int main(int argc, char **argv)
 				fprintf(fptr,"Doppler width [A]   :%lf\n",initModel.dopp);
 				fprintf(fptr,"damping             :%lf\n",initModel.aa);
 				fprintf(fptr,"gamma [deg]         :%lf\n",initModel.gm);
-				fprintf(fptr,"phi  [deg]          :%lf\n",initModel.az);
+				fprintf(fptr,"phi   [deg]         :%lf\n",initModel.az);
 				fprintf(fptr,"S_0                 :%lf\n",initModel.S0);
 				fprintf(fptr,"S_1                 :%lf\n",initModel.S1);
 				fprintf(fptr,"v_mac [km/s]        :%lf\n",initModel.mac);
@@ -753,9 +877,9 @@ int main(int argc, char **argv)
 
 				fprintf(fptr,"\n\n");
 				fclose(fptr);
-				printf("\n*******************************************************************************************");
-				printf("\n******************INVERTED MODEL SAVED IN FILE: %s",nameAuxOutputModel);
-				printf("\n*******************************************************************************************\n");				
+				printf("\n\n--------------------------------------------------------------------------------");
+				printf("\nINVERTED MODEL SAVED IN FILE: %s",nameAuxOutputModel);
+				printf("\n--------------------------------------------------------------------------------\n");
 			}
 			else{
 				printf("\n ¡¡¡¡¡ ERROR: OUTPUT MODEL FILE CAN NOT BE OPENED\n !!!!! ");
@@ -782,9 +906,9 @@ int main(int argc, char **argv)
 					}
 					//printf("\nVALORES DE LAS FUNCIONES RESPUESTA \n");
 					fclose(fptr);
-					printf("\n*******************************************************************************************");
-					printf("\n******************SPECTRUM SYNTHESIS ADJUSTED SAVED IN FILE: %s",nameAuxOutputStokes);
-					printf("\n*******************************************************************************************\n\n");					
+					printf("\n--------------------------------------------------------------------------------");
+					printf("\nOutput profiles: %s",nameAuxOutputStokes);
+					printf("\n--------------------------------------------------------------------------------\n");
 				}
 				else{
 					printf("\n ¡¡¡¡¡ ERROR: OUTPUT SYNTHESIS PROFILE ADJUSTED FILE CAN NOT BE OPENED\n !!!!! ");
@@ -798,6 +922,9 @@ int main(int argc, char **argv)
 			if(configCrontrolFile.fix[10] && access(configCrontrolFile.StrayLightFile,F_OK)!=-1){ //  IF NOT EMPTY READ stray light file 
 				if(strcmp(file_ext(configCrontrolFile.StrayLightFile),PER_FILE)==0){
 					slight = readPerStrayLightFile(configCrontrolFile.StrayLightFile,nlambda,vOffsetsLambda);
+					printf("\n--------------------------------------------------------------------------------");
+					printf("\nSTRAY LIGHT FILE READ: %s ", configCrontrolFile.StrayLightFile);
+					printf("\n--------------------------------------------------------------------------------\n");
 				}
 				else if(strcmp(file_ext(configCrontrolFile.StrayLightFile),FITS_FILE)==0){
 					slight = readFitsStrayLightFile(&configCrontrolFile,&nl_straylight,&ns_straylight,&nx_straylight, &ny_straylight);
@@ -805,12 +932,17 @@ int main(int argc, char **argv)
 						printf("\n The number of wavelengths is different in the stray light file: %d and malla grid file %d. \n. Stray light will not used for inversion.", nl_straylight,nlambda);
 						free(slight);
 						slight= NULL;
+						exit(EXIT_FAILURE);
 					}
+					printf("\n--------------------------------------------------------------------------------");
+					printf("\nSTRAY LIGHT FILE READ: %s", configCrontrolFile.StrayLightFile);
+					printf("\n--------------------------------------------------------------------------------\n");
 				}
 				else{
 					printf("\n Stray light file hasn't extension .PER or .FITS, review it. \n. Stray light will not used for inversion.\n");
 					free(slight);
 					slight= NULL;				
+					exit(EXIT_FAILURE);
 				}				
 			}
 			// READ PIXELS FROM IMAGE 
@@ -820,9 +952,12 @@ int main(int argc, char **argv)
 			fitsImage = readFitsSpectroImage(nameInputFileSpectra,0,nlambda);
 			t = clock() - t;
 			timeReadImage = ((PRECISION)t)/CLOCKS_PER_SEC; // in seconds 
+			printf("\n--------------------------------------------------------------------------------");
+			printf("\nOBSERVED PROFILES FILE READ: %s", nameInputFileSpectra);
+			printf("\n--------------------------------------------------------------------------------");
+			printf("\nTIME TO READ FITS IMAGE:  %f seconds to execute ", timeReadImage); 
+			printf("\n--------------------------------------------------------------------------------\n");
 			
-			printf("\n\n TIME TO READ FITS IMAGE:  %f seconds to execute \n", timeReadImage); 
-			//slog_info(0,"\n\n TIME TO READ FITS IMAGE:  %f seconds to execute \n", timeReadImage);
 
 			if(fitsImage!=NULL){
 				FitsImage * imageStokesAdjust = NULL;
@@ -848,8 +983,41 @@ int main(int argc, char **argv)
 						imageStokesAdjust->pixels[i].spectro = calloc ((imageStokesAdjust->numStokes*imageStokesAdjust->nLambdas),sizeof(float));
 					}
 				}				
+				printf("\n--------------------------------------------------------------------------------");
+				printf("\nATMOSPHERE MODEL FILE READ: %s ",configCrontrolFile.InitialGuessModel);
+				printf("\n--------------------------------------------------------------------------------");
+				printf("\nINITAL MODEL ATMOSPHERE: \n\n");
+				printf("eta_0               :%lf\n",INITIAL_MODEL.eta0);
+				printf("magnetic field [G]  :%lf\n",INITIAL_MODEL.B);
+				printf("LOS velocity[km/s]  :%lf\n",INITIAL_MODEL.vlos);
+				printf("Doppler width [A]   :%lf\n",INITIAL_MODEL.dopp);
+				printf("damping             :%lf\n",INITIAL_MODEL.aa);
+				printf("gamma [deg]         :%lf\n",INITIAL_MODEL.gm);
+				printf("phi   [deg]         :%lf\n",INITIAL_MODEL.az);
+				printf("S_0                 :%lf\n",INITIAL_MODEL.S0);
+				printf("S_1                 :%lf\n",INITIAL_MODEL.S1);
+				printf("v_mac [km/s]        :%lf\n",INITIAL_MODEL.mac);
+				printf("filling factor      :%lf\n",INITIAL_MODEL.alfa);
+				printf("--------------------------------------------------------------------------------\n");
 
-
+				if(configCrontrolFile.ConvolveWithPSF && INITIAL_MODEL.mac>0){
+					printf("\n--------------------------------------------------------------------------------");
+					printf("\nThe program needs to use convolution. Filter PSF actived and macroturbulence greater than zero. ");
+					printf("\n--------------------------------------------------------------------------------\n");
+				}
+				else if(configCrontrolFile.ConvolveWithPSF){
+					printf("\n--------------------------------------------------------------------------------");
+					printf("\nThe program needs to use convolution. Filter PSF actived. ");
+					printf("\n--------------------------------------------------------------------------------\n");
+				}
+				else if(INITIAL_MODEL.mac>0){
+					printf("\n--------------------------------------------------------------------------------");
+					printf("\nThe program needs to use convolution. Macroturbulence in initial atmosphere model greater than zero.");
+					printf("\n--------------------------------------------------------------------------------\n");
+				}
+				printf("\n--------------------------------------------------------------------------------");
+				printf("\nNumber of free parameters for inversion: %d", free_params);
+				printf("\n--------------------------------------------------------------------------------\n");
 				//***************************************** INIT MEMORY WITH SIZE OF LAMBDA ****************************************************//
 				AllocateMemoryDerivedSynthesis(nlambda);
 				int indexPixel = 0;
@@ -860,8 +1028,10 @@ int main(int argc, char **argv)
 				vChisqrf = calloc (fitsImage->numPixels , sizeof(float));
 				vNumIter = calloc (fitsImage->numPixels , sizeof(int));
 				t = clock();
-				printf("\n***********************  PROGRESS INVERSION *******************************\n\n");
-				//slog_info(0,"\n***********************  PROGRESS INVERSION *******************************\n\n");
+				printf("\n--------------------------------------------------------------------------------");
+				printf("\n----------------------- IMAGE INVERSION IN PROGRESS ----------------------------");
+				printf("\n--------------------------------------------------------------------------------\n");
+				
 
 				for(indexPixel = 0; indexPixel < fitsImage->numPixels; indexPixel++){
 
@@ -902,6 +1072,7 @@ int main(int argc, char **argv)
 							slightPixel = slight;
 						}
 					}
+					vNumIter[indexPixel] = indexPixel;
 					lm_mils(cuantic, wlines, vLambda, nlambda, fitsImage->pixels[indexPixel].spectro, nlambda, &initModel, spectra, &vChisqrf[indexPixel], slightPixel, configCrontrolFile.toplim, configCrontrolFile.NumberOfCycles,
 							configCrontrolFile.WeightForStokes, configCrontrolFile.fix, vSigma,  configCrontrolFile.noise,configCrontrolFile.InitialDiagonalElement,&configCrontrolFile.ConvolveWithPSF,&vNumIter[indexPixel],configCrontrolFile.mu,configCrontrolFile.logclambda);						
 					
@@ -917,8 +1088,10 @@ int main(int argc, char **argv)
 				}
 				t = clock() - t;
 				timeReadImage = ((PRECISION)t)/CLOCKS_PER_SEC; // in seconds 
-				printf("\n FINISH EXECUTION OF INVERSION: %f seconds to execute \n", timeReadImage);
-				//slog_info(0,"\n FINISH EXECUTION OF INVERSION: %f seconds to execute \n", timeReadImage);
+				printf("\n\n--------------------------------------------------------------------------------");
+				printf("\nFINISH EXECUTION OF INVERSION: %f seconds to execute ", timeReadImage);
+				printf("\n--------------------------------------------------------------------------------");
+				
 				
 				char nameAuxOutputModel [4096];
 				if(configCrontrolFile.ObservedProfiles[0]!='\0')
@@ -957,7 +1130,10 @@ int main(int argc, char **argv)
 				printf("\n\n ***************************** FITS FILE WITH THE SPECTRO IMAGE CAN NOT BE READ IT ******************************\n");
 			}			
 
-			printf(" \n***********************  IMAGE INVERSION DONE, CLEANING MEMORY *********************\n");
+			/*printf("\n--------------------------------------------------------------------------------");
+			printf("\n------------------------  IMAGE INVERSION DONE, CLEANING MEMORY ----------------");
+			printf("\n--------------------------------------------------------------------------------\n");*/
+
 			freeFitsImage(fitsImage);
 		}
 		else{
