@@ -74,7 +74,7 @@ REAL **FGlobalInicial;
 
 PRECISION *GMAC,* GMAC_DERIV;
 PRECISION * dirConvPar;
-//REAL *resultConv;
+REAL *resultConv;
 PRECISION * G = NULL;
 //REAL * G;
 
@@ -655,12 +655,12 @@ int main(int argc, char **argv)
 
 		if(configCrontrolFile.ConvolveWithPSF && initModel.mac>0){
 			printf("\n--------------------------------------------------------------------------------");
-			printf("\nThe program needs to use convolution. Filter PSF actived and macroturbulence greater than zero. ");
+			printf("\nThe program needs to use convolution. Filter PSF activated and macroturbulence greater than zero. ");
 			printf("\n--------------------------------------------------------------------------------\n");
 		}
 		else if(configCrontrolFile.ConvolveWithPSF){
 			printf("\n--------------------------------------------------------------------------------");
-			printf("\nThe program needs to use convolution. Filter PSF actived. ");
+			printf("\nThe program needs to use convolution. Filter PSF activated. ");
 			printf("\n--------------------------------------------------------------------------------\n");
 		}
 		else if(initModel.mac>0){
@@ -825,12 +825,12 @@ int main(int argc, char **argv)
 
 			if(configCrontrolFile.ConvolveWithPSF && initModel.mac>0){
 				printf("\n--------------------------------------------------------------------------------");
-				printf("\nThe program needs to use convolution. Filter PSF actived and macroturbulence greater than zero. ");
+				printf("\nThe program needs to use convolution. Filter PSF activated and macroturbulence greater than zero. ");
 				printf("\n--------------------------------------------------------------------------------\n");
 			}
 			else if(configCrontrolFile.ConvolveWithPSF){
 				printf("\n--------------------------------------------------------------------------------");
-				printf("\nThe program needs to use convolution. Filter PSF actived. ");
+				printf("\nThe program needs to use convolution. Filter PSF activated. ");
 				printf("\n--------------------------------------------------------------------------------\n");
 			}
 			else if(initModel.mac>0){
@@ -1002,12 +1002,12 @@ int main(int argc, char **argv)
 
 				if(configCrontrolFile.ConvolveWithPSF && INITIAL_MODEL.mac>0){
 					printf("\n--------------------------------------------------------------------------------");
-					printf("\nThe program needs to use convolution. Filter PSF actived and macroturbulence greater than zero. ");
+					printf("\nThe program needs to use convolution. Filter PSF activated and macroturbulence greater than zero. ");
 					printf("\n--------------------------------------------------------------------------------\n");
 				}
 				else if(configCrontrolFile.ConvolveWithPSF){
 					printf("\n--------------------------------------------------------------------------------");
-					printf("\nThe program needs to use convolution. Filter PSF actived. ");
+					printf("\nThe program needs to use convolution. Filter PSF activated. ");
 					printf("\n--------------------------------------------------------------------------------\n");
 				}
 				else if(INITIAL_MODEL.mac>0){

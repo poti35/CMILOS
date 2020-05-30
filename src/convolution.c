@@ -27,7 +27,7 @@
 	_juanp
 */
 extern PRECISION *dirConvPar;
-//extern REAL *resultConv;
+extern REAL *resultConv;
 
 void direct_convolution_double(PRECISION *x, int nx, PRECISION *h, int nh)
 {
@@ -214,15 +214,14 @@ void convCircular(REAL *x, double *h, int size, REAL *result)
 				mod = size+mod;
 			aux += h[j] * x[mod];
     	}
-		//resultConv[i] = aux;
 		if(i < size/2)
-			result[ishift++] = aux;
+			resultConv[ishift++] = aux;
 		else
-			result[i-(size/2)] = aux;		
+			resultConv[i-(size/2)] = aux;
 	}
-	/*for(i=0;i<size;i++){
+	for(i=0;i<size;i++){
 		result[i] = resultConv[i];
-	}*/
+	}
 
 }
 

@@ -1,15 +1,15 @@
-eta_0               :13.997953
-magnetic field [G]  :1200.006340
-LOS velocity[km/s]  :-0.000037
-Doppler width [A]   :0.070002
-damping             :0.050008
-gamma [deg]         :129.999794
-phi   [deg]         :25.001281
-S_0                 :0.250001
-S_1                 :0.750016
-v_mac [km/s]        :0.999884
+eta_0               :14.000790
+magnetic field [G]  :1199.998501
+LOS velocity[km/s]  :-0.000000
+Doppler width [A]   :0.069999
+damping             :0.049999
+gamma [deg]         :130.000156
+phi   [deg]         :24.998961
+S_0                 :0.250000
+S_1                 :0.749985
+v_mac [km/s]        :1.000039
 filling factor      :1.000000
-# Iterations        :5
-chisqr              :5.594977e-05
+# Iterations        :7
+chisqr              :4.787604e-05
 
 
